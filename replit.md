@@ -63,8 +63,12 @@ Preferred communication style: Simple, everyday language.
 - **Email Templates**: Order confirmation emails using NIKITA RASOI & BAKES branding and INR currency formatting
 
 ### Image Resources
-- **Pixabay**: External image hosting for product photos and bakery imagery
-- **Stock Photos**: Placeholder images for products and promotional content
+- **Unsplash**: External image hosting for product photos, hero images, and bakery imagery
+- **Stock Photos**: Reliable placeholder images for products and promotional content
+
+### Typography
+- **Google Fonts**: Playfair Display (headings), Poppins (body), Dancing Script (decorative)
+- **Responsive Typography**: Fluid type scale using CSS clamp() for optimal readability
 
 ### Development Tools
 - **Environment Configuration**: Development vs production settings via environment variables
@@ -156,4 +160,25 @@ Preferred communication style: Simple, everyday language.
 - **Production Considerations**: Security headers, database options, email services, performance optimization, and scaling
 - **Troubleshooting Guide**: Comprehensive troubleshooting covering local development, deployment issues, and platform-specific problems
 - **Quick Start Summary**: Easy-to-follow deployment instructions for different skill levels and hosting preferences
+
+### Major UI/UX Enhancement (December 2025)
+- **Complete CSS Overhaul**: Modernized design system with CSS custom properties, gradients, and shadows
+- **Typography Upgrade**: Integrated Google Fonts (Playfair Display, Poppins, Dancing Script) for premium look
+- **Color Palette Enhancement**: Added gold accents, refined brown tones, and cream gradients
+- **Top Announcement Bar**: Added contact info, delivery promotions, and trust badges
+- **Enhanced Navigation**: Scroll-responsive navbar with active states, hover effects, and improved mobile menu
+- **Redesigned Hero Section**: Full-height hero with floating cards, animations, badge, and improved CTA buttons
+- **Trust Strip Section**: Added trust indicators below hero (Fresh Daily, Fast Delivery, Easy Payment, Made with Love)
+- **Enhanced Feature Cards**: Improved icons with gradient backgrounds and hover animations
+- **Product Card Redesign**: Quick action buttons, category badges, ratings display, hover overlays, and stock status
+- **Testimonials Section**: Customer reviews with avatars, ratings, and animated cards
+- **Category Preview Section**: Visual category cards with overlay text and hover effects
+- **CTA Section**: Gradient background with call-to-action for ordering
+- **Footer Enhancement**: Social media links, newsletter signup, payment badges, and improved layout
+- **Cart Page Improvements**: Better layout, quantity controls with +/- buttons, trust badges, and free delivery indicator
+- **Checkout Page Redesign**: Step indicators, enhanced payment method selection, QR/COD options with clear details
+- **Product Detail Page**: Interactive rating stars, enhanced layout, product benefits section
+- **Micro-interactions**: Smooth hover effects, reveal-on-scroll animations, toast notifications
+- **Mobile Responsiveness**: Improved breakpoints and mobile-first design considerations
+- **Image Migration**: Updated all images from Pixabay to Unsplash for reliable loading
 
