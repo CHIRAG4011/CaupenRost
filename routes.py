@@ -6,6 +6,7 @@ from data_store import data_store, add_visitor_log, get_next_id, get_weekly_visi
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
                   get_cart_total, get_cart_count, clear_cart, send_order_confirmation_email,
                   calculate_order_stats, search_products, get_cart)
+from email_service import send_and_store_otp, verify_otp
 import logging
 from datetime import datetime
 import json
@@ -183,7 +184,7 @@ def checkout():
 
 @app.route('/place_order', methods=['POST'])
 def place_order():
-    """Process order placement with QR code or COD payment"""
+    """Process order placement - Step 1: Validate and send OTP"""
     user = get_current_user()
     if not user:
         flash('Please login to place an order.', 'error')
@@ -194,7 +195,6 @@ def place_order():
         flash('Your cart is empty.', 'error')
         return redirect(url_for('cart'))
     
-    # Get shipping address
     address_id = request.form.get('address_id')
     new_address = request.form.get('new_address')
     payment_method = request.form.get('payment_method', 'qr_payment')
@@ -212,18 +212,13 @@ def place_order():
         flash('Please provide a delivery address to continue.', 'error')
         return redirect(url_for('checkout'))
     
-    # Calculate final amount
     cart_total = get_cart_total()
     delivery_fee = 50.00
     tax_amount = (cart_total + delivery_fee) * 0.18
     final_amount = cart_total + delivery_fee + tax_amount
     
-    # Add COD charges for cash on delivery
     if payment_method == 'cash_on_delivery':
-        final_amount += 20.00  # COD handling charges
-    
-    # Create order items and validate stock
-    order_items = []
+        final_amount += 20.00
     
     for product_id_str, item_data in cart_data.items():
         product_id = int(product_id_str)
@@ -232,57 +227,127 @@ def place_order():
         if not product or product.stock < item_data['quantity']:
             flash(f'Insufficient stock for {product.name if product else "unknown item"}.', 'error')
             return redirect(url_for('cart'))
-        
-        order_items.append({
-            'product_id': product_id,
-            'quantity': item_data['quantity'],
-            'price': item_data['price']
-        })
-        
-        # Update stock
-        product.stock -= item_data['quantity']
     
-    # Create order
-    order_id = get_next_id('order_id')
+    session['pending_order'] = {
+        'shipping_address': shipping_address,
+        'payment_method': payment_method,
+        'final_amount': final_amount
+    }
     
-    # Set order status based on payment method
-    if payment_method == 'cash_on_delivery':
-        status = 'pending'
+    if send_and_store_otp(user.email, 'order'):
+        flash('A verification code has been sent to your email to confirm your order.', 'success')
+        return redirect(url_for('verify_order_otp'))
     else:
-        status = 'payment_pending'  # Waiting for QR payment confirmation
+        flash('Failed to send verification email. Please try again.', 'error')
+        return redirect(url_for('checkout'))
+
+
+@app.route('/verify-order', methods=['GET', 'POST'])
+def verify_order_otp():
+    """Order placement - Step 2: Verify OTP and create order"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to place an order.', 'error')
+        return redirect(url_for('login'))
     
-    order = Order(
-        order_id=order_id,
-        user_id=user.id,
-        items=order_items,
-        total=final_amount,
-        shipping_address=shipping_address,
-        status=status
-    )
+    pending = session.get('pending_order')
+    if not pending:
+        flash('Please start the checkout process.', 'error')
+        return redirect(url_for('checkout'))
     
-    # Add payment method info
-    order.payment_method = payment_method
+    cart_data = get_cart()
+    if not cart_data:
+        flash('Your cart is empty.', 'error')
+        session.pop('pending_order', None)
+        return redirect(url_for('cart'))
     
-    data_store['orders'][order_id] = order
+    if request.method == 'POST':
+        otp = request.form.get('otp', '').strip()
+        
+        if not otp:
+            flash('Please enter the verification code.', 'error')
+            return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'])
+        
+        success, message = verify_otp(user.email, otp, 'order')
+        
+        if success:
+            order_items = []
+            for product_id_str, item_data in cart_data.items():
+                product_id = int(product_id_str)
+                product = data_store['products'].get(product_id)
+                
+                if not product or product.stock < item_data['quantity']:
+                    flash(f'Insufficient stock for {product.name if product else "unknown item"}.', 'error')
+                    session.pop('pending_order', None)
+                    return redirect(url_for('cart'))
+                
+                order_items.append({
+                    'product_id': product_id,
+                    'quantity': item_data['quantity'],
+                    'price': item_data['price']
+                })
+                
+                product.stock -= item_data['quantity']
+            
+            order_id = get_next_id('order_id')
+            
+            if pending['payment_method'] == 'cash_on_delivery':
+                status = 'pending'
+            else:
+                status = 'payment_pending'
+            
+            order = Order(
+                order_id=order_id,
+                user_id=user.id,
+                items=order_items,
+                total=pending['final_amount'],
+                shipping_address=pending['shipping_address'],
+                status=status
+            )
+            
+            order.payment_method = pending['payment_method']
+            data_store['orders'][order_id] = order
+            
+            try:
+                send_order_confirmation_email(user.email, order)
+            except Exception as e:
+                logging.warning(f"Failed to send confirmation email: {e}")
+            
+            clear_cart()
+            session.pop('pending_order', None)
+            
+            if pending['payment_method'] == 'cash_on_delivery':
+                flash(f'Order #{order_id} placed successfully! Payment will be collected on delivery.', 'success')
+                return redirect(url_for('order_tracking', order_id=order_id))
+            else:
+                session['payment_order_id'] = order_id
+                session['payment_amount'] = pending['final_amount']
+                return redirect(url_for('qr_payment'))
+        else:
+            flash(message, 'error')
     
-    # Send confirmation email (but catch any errors)
-    try:
-        send_order_confirmation_email(user.email, order)
-    except Exception as e:
-        logging.warning(f"Failed to send confirmation email: {e}")
+    return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'])
+
+
+@app.route('/resend-order-otp', methods=['POST'])
+def resend_order_otp():
+    """Resend order confirmation OTP"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to place an order.', 'error')
+        return redirect(url_for('login'))
     
-    # Clear cart
-    clear_cart()
+    pending = session.get('pending_order')
+    if not pending:
+        flash('Please start the checkout process.', 'error')
+        return redirect(url_for('checkout'))
     
-    # Redirect based on payment method
-    if payment_method == 'cash_on_delivery':
-        flash(f'Order #{order_id} placed successfully! Payment will be collected on delivery.', 'success')
-        return redirect(url_for('order_tracking', order_id=order_id))
+    if send_and_store_otp(user.email, 'order'):
+        flash('A new verification code has been sent.', 'success')
     else:
-        # Redirect to QR payment page
-        session['payment_order_id'] = order_id
-        session['payment_amount'] = final_amount
-        return redirect(url_for('qr_payment'))
+        flash('Failed to resend verification code. Please try again.', 'error')
+    
+    return redirect(url_for('verify_order_otp'))
 
 @app.route('/qr_payment')
 def qr_payment():
@@ -334,14 +399,13 @@ def confirm_payment(order_id):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """User registration"""
+    """User registration - Step 1: Collect details and send OTP"""
     if request.method == 'POST':
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         
-        # Validation
         if not all([username, email, password, confirm_password]):
             flash('All fields are required.', 'error')
             return render_template('auth/register.html')
@@ -350,7 +414,6 @@ def register():
             flash('Passwords do not match.', 'error')
             return render_template('auth/register.html')
         
-        # Check if user exists
         existing_user = None
         for user_obj in data_store['users'].values():
             if user_obj.username == username or user_obj.email == email:
@@ -361,30 +424,81 @@ def register():
             flash('Username or email already exists.', 'error')
             return render_template('auth/register.html')
         
-        # Create user
-        from data_store import get_next_id
-        user_id = get_next_id('user_id')
-        user = User(
-            user_id=user_id,
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password or '')
-        )
+        session['pending_registration'] = {
+            'username': username,
+            'email': email,
+            'password': password
+        }
         
-        data_store['users'][user_id] = user
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
+        if send_and_store_otp(email, 'registration'):
+            flash('A verification code has been sent to your email.', 'success')
+            return redirect(url_for('verify_registration_otp'))
+        else:
+            flash('Failed to send verification email. Please try again.', 'error')
+            return render_template('auth/register.html')
     
     return render_template('auth/register.html')
 
+
+@app.route('/verify-registration', methods=['GET', 'POST'])
+def verify_registration_otp():
+    """User registration - Step 2: Verify OTP"""
+    pending = session.get('pending_registration')
+    if not pending:
+        flash('Please start the registration process.', 'error')
+        return redirect(url_for('register'))
+    
+    if request.method == 'POST':
+        otp = request.form.get('otp', '').strip()
+        
+        if not otp:
+            flash('Please enter the verification code.', 'error')
+            return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'])
+        
+        success, message = verify_otp(pending['email'], otp, 'registration')
+        
+        if success:
+            from data_store import get_next_id
+            user_id = get_next_id('user_id')
+            user = User(
+                user_id=user_id,
+                username=pending['username'],
+                email=pending['email'],
+                password_hash=generate_password_hash(pending['password'] or '')
+            )
+            
+            data_store['users'][user_id] = user
+            session.pop('pending_registration', None)
+            flash('Email verified! Registration successful. Please login.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash(message, 'error')
+    
+    return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'])
+
+
+@app.route('/resend-registration-otp', methods=['POST'])
+def resend_registration_otp():
+    """Resend registration OTP"""
+    pending = session.get('pending_registration')
+    if not pending:
+        flash('Please start the registration process.', 'error')
+        return redirect(url_for('register'))
+    
+    if send_and_store_otp(pending['email'], 'registration'):
+        flash('A new verification code has been sent.', 'success')
+    else:
+        flash('Failed to resend verification code. Please try again.', 'error')
+    
+    return redirect(url_for('verify_registration_otp'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login"""
+    """User login - Step 1: Validate credentials and send OTP"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Find user
         user = None
         for user_obj in data_store['users'].values():
             if user_obj.username == username or user_obj.email == username:
@@ -392,15 +506,66 @@ def login():
                 break
         
         if user and user.check_password(password):
-            session['user_id'] = user.id
-            flash('Login successful!', 'success')
+            session['pending_login'] = {
+                'user_id': user.id,
+                'email': user.email,
+                'next': request.args.get('next')
+            }
             
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('index'))
+            if send_and_store_otp(user.email, 'login'):
+                flash('A verification code has been sent to your email.', 'success')
+                return redirect(url_for('verify_login_otp'))
+            else:
+                flash('Failed to send verification email. Please try again.', 'error')
         else:
             flash('Invalid username/email or password.', 'error')
     
     return render_template('auth/login.html')
+
+
+@app.route('/verify-login', methods=['GET', 'POST'])
+def verify_login_otp():
+    """User login - Step 2: Verify OTP"""
+    pending = session.get('pending_login')
+    if not pending:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        otp = request.form.get('otp', '').strip()
+        
+        if not otp:
+            flash('Please enter the verification code.', 'error')
+            return render_template('auth/verify_otp.html', purpose='login', email=pending['email'])
+        
+        success, message = verify_otp(pending['email'], otp, 'login')
+        
+        if success:
+            session['user_id'] = pending['user_id']
+            next_page = pending.get('next')
+            session.pop('pending_login', None)
+            flash('Login successful!', 'success')
+            return redirect(next_page or url_for('index'))
+        else:
+            flash(message, 'error')
+    
+    return render_template('auth/verify_otp.html', purpose='login', email=pending['email'])
+
+
+@app.route('/resend-login-otp', methods=['POST'])
+def resend_login_otp():
+    """Resend login OTP"""
+    pending = session.get('pending_login')
+    if not pending:
+        flash('Please login first.', 'error')
+        return redirect(url_for('login'))
+    
+    if send_and_store_otp(pending['email'], 'login'):
+        flash('A new verification code has been sent.', 'success')
+    else:
+        flash('Failed to resend verification code. Please try again.', 'error')
+    
+    return redirect(url_for('verify_login_otp'))
 
 @app.route('/logout')
 def logout():

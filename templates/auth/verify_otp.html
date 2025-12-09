@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Email - NIKITA RASOI & BAKES{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-brown text-white text-center">
+                    {% if purpose == 'registration' %}
+                    <h4 class="mb-0"><i class="fas fa-user-check me-2"></i>Verify Your Email</h4>
+                    {% elif purpose == 'login' %}
+                    <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Login Verification</h4>
+                    {% elif purpose == 'order' %}
+                    <h4 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Confirm Your Order</h4>
+                    {% else %}
+                    <h4 class="mb-0"><i class="fas fa-key me-2"></i>Verify Code</h4>
+                    {% endif %}
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="otp-icon mb-3">
+                            {% if purpose == 'registration' %}
+                            <i class="fas fa-envelope-open-text fa-3x text-primary"></i>
+                            {% elif purpose == 'login' %}
+                            <i class="fas fa-lock fa-3x text-primary"></i>
+                            {% elif purpose == 'order' %}
+                            <i class="fas fa-check-circle fa-3x text-success"></i>
+                            {% else %}
+                            <i class="fas fa-key fa-3x text-primary"></i>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted">
+                            {% if purpose == 'registration' %}
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to complete your registration.
+                            {% elif purpose == 'login' %}
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to complete your login.
+                            {% elif purpose == 'order' %}
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to confirm your order of <strong>₹{{ "%.2f"|format(amount) }}</strong>.
+                            {% else %}
+                            Enter the 6-digit code sent to <strong>{{ email }}</strong>.
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <form method="post">
+                        <div class="mb-4">
+                            <label for="otp" class="form-label">Verification Code</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg text-center" 
+                                   id="otp" 
+                                   name="otp" 
+                                   maxlength="6" 
+                                   pattern="[0-9]{6}" 
+                                   placeholder="000000"
+                                   required 
+                                   autofocus
+                                   style="letter-spacing: 10px; font-size: 24px; font-weight: bold;">
+                            <div class="form-text text-center">Enter the 6-digit code</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-brown w-100 btn-lg mb-3">
+                            {% if purpose == 'registration' %}
+                            <i class="fas fa-check-circle me-2"></i>Verify & Create Account
+                            {% elif purpose == 'login' %}
+                            <i class="fas fa-sign-in-alt me-2"></i>Verify & Login
+                            {% elif purpose == 'order' %}
+                            <i class="fas fa-shopping-bag me-2"></i>Verify & Place Order
+                            {% else %}
+                            <i class="fas fa-check me-2"></i>Verify
+                            {% endif %}
+                        </button>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="text-muted small mb-2">Didn't receive the code?</p>
+                        <form method="post" action="{% if purpose == 'registration' %}{{ url_for('resend_registration_otp') }}{% elif purpose == 'login' %}{{ url_for('resend_login_otp') }}{% elif purpose == 'order' %}{{ url_for('resend_order_otp') }}{% endif %}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-brown btn-sm">
+                                <i class="fas fa-redo me-1"></i>Resend Code
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        {% if purpose == 'registration' %}
+                        <a href="{{ url_for('register') }}" class="text-muted small">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Registration
+                        </a>
+                        {% elif purpose == 'login' %}
+                        <a href="{{ url_for('login') }}" class="text-muted small">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Login
+                        </a>
+                        {% elif purpose == 'order' %}
+                        <a href="{{ url_for('checkout') }}" class="text-muted small">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Checkout
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body text-center">
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        The verification code expires in 10 minutes. Check your spam folder if you don't see it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('otp').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+{% endblock %}
