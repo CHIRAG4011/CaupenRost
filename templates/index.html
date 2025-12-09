@@ -1,55 +1,131 @@
 {% extends "base.html" %}
 
-{% block title %}Home - NIKITA RASOI & BAKES{% endblock %}
+{% block title %}Home - NIKITA RASOI & BAKES | Fresh Bakery Delights{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section bg-cream text-center py-5">
+<section class="hero-section">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold text-brown mb-4">Welcome to NIKITA RASOI & BAKES</h1>
-                <p class="lead mb-4">Discover the magic of freshly baked goods made with love, premium ingredients, and traditional recipes passed down through generations.</p>
-                <div class="d-flex gap-3 justify-content-center">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6 hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-star"></i>
+                    <span>Trusted by 1000+ Happy Customers</span>
+                </div>
+                <h1 class="hero-title">
+                    Freshly Baked<br>
+                    <span class="highlight">Happiness</span> Delivered
+                </h1>
+                <p class="hero-subtitle">
+                    Discover the magic of artisan baked goods made with love, premium ingredients, and traditional recipes passed down through generations.
+                </p>
+                <div class="hero-buttons">
                     <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
                         <i class="fas fa-shopping-bag me-2"></i>Shop Now
                     </a>
                     <a href="#featured" class="btn btn-outline-brown btn-lg">
-                        <i class="fas fa-eye me-2"></i>View Featured
+                        <i class="fas fa-eye me-2"></i>View Menu
                     </a>
                 </div>
             </div>
             <div class="col-lg-6">
-                <img src="https://images.unsplash.com/photo-1555507036-ab794f0ab04c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                     alt="NIKITA RASOI & BAKES - Fresh Bakery" class="img-fluid rounded shadow">
+                <div class="hero-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1555507036-ab794f0ab04c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                         alt="NIKITA RASOI & BAKES - Fresh Bakery Delights" class="hero-image">
+                    
+                    <!-- Floating Cards -->
+                    <div class="hero-floating-card card-1 d-none d-lg-flex">
+                        <i class="fas fa-cookie-bite"></i>
+                        <span>Fresh Daily</span>
+                    </div>
+                    <div class="hero-floating-card card-2 d-none d-lg-flex">
+                        <i class="fas fa-award"></i>
+                        <span>Premium Quality</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Strip -->
+<section class="trust-strip">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="trust-text">
+                        <h6>Fresh Daily</h6>
+                        <p>Baked every morning</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="fas fa-truck"></i>
+                    <div class="trust-text">
+                        <h6>Fast Delivery</h6>
+                        <p>Same day available</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="fas fa-qrcode"></i>
+                    <div class="trust-text">
+                        <h6>Easy Payment</h6>
+                        <p>UPI & COD accepted</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="trust-item">
+                    <i class="fas fa-heart"></i>
+                    <div class="trust-text">
+                        <h6>Made with Love</h6>
+                        <p>Premium ingredients</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row text-center">
-            <div class="col-md-4 mb-4">
-                <div class="feature-card p-4">
-                    <i class="fas fa-clock fa-3x text-brown mb-3"></i>
-                    <h4>Fresh Daily</h4>
-                    <p>All our products are baked fresh every morning using the finest ingredients</p>
+<section class="py-5 bg-light-brown">
+    <div class="container py-4">
+        <div class="section-header reveal">
+            <span class="section-subtitle">Why Choose Us</span>
+            <h2>The NIKITA RASOI Difference</h2>
+            <p>We put passion and quality into every bite</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h4>100% Fresh Ingredients</h4>
+                    <p>We use only the finest, locally-sourced ingredients. No preservatives, no artificial flavors.</p>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card p-4">
-                    <i class="fas fa-truck fa-3x text-brown mb-3"></i>
-                    <h4>Fast Delivery</h4>
-                    <p>Same-day delivery available for orders placed before 2 PM within city limits</p>
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-birthday-cake"></i>
+                    </div>
+                    <h4>Handcrafted with Care</h4>
+                    <p>Every product is made by skilled bakers using traditional techniques perfected over years.</p>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card p-4">
-                    <i class="fas fa-heart fa-3x text-brown mb-3"></i>
-                    <h4>Made with Love</h4>
-                    <p>Every item is crafted with care using traditional recipes and premium ingredients</p>
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h4>Quick Doorstep Delivery</h4>
+                    <p>Get your favorites delivered fresh to your doorstep. Free delivery on orders above ₹500!</p>
                 </div>
             </div>
         </div>
@@ -57,29 +133,53 @@
 </section>
 
 <!-- Featured Products -->
-<section id="featured" class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5 text-brown">Featured Products</h2>
-        <div class="row">
+<section id="featured" class="py-5">
+    <div class="container py-4">
+        <div class="section-header reveal">
+            <span class="section-subtitle">Our Best Sellers</span>
+            <h2>Featured Products</h2>
+            <p>Discover our most loved baked goods</p>
+        </div>
+        <div class="row g-4">
             {% for product in featured_products %}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="card product-card h-100 shadow-sm">
-                    <img src="{{ product.image_url }}" class="card-img-top product-image" alt="{{ product.name }}">
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="card product-card h-100">
+                    <div class="product-image-wrapper">
+                        <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}">
+                        {% if loop.index <= 3 %}
+                        <span class="product-badge">
+                            <i class="fas fa-fire me-1"></i>Popular
+                        </span>
+                        {% endif %}
+                        <div class="product-quick-actions">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="d-inline">
+                                <button type="submit" class="quick-action-btn" title="Add to Cart">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     <div class="card-body d-flex flex-column">
+                        <div class="product-category">{{ product.category }}</div>
                         <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text text-muted">{{ product.description[:100] }}...</p>
+                        <div class="product-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span>(4.5)</span>
+                        </div>
+                        <p class="card-text">{{ product.description[:80] }}...</p>
                         <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="h5 text-brown mb-0">₹{{ "%.2f"|format(product.price) }}</span>
-                                <span class="badge bg-secondary">{{ product.category }}</span>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-brown btn-sm flex-fill">
-                                    <i class="fas fa-eye me-1"></i>View
-                                </a>
-                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="flex-fill">
-                                    <button type="submit" class="btn btn-brown btn-sm w-100">
-                                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
+                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}">
+                                    <button type="submit" class="btn btn-brown btn-sm">
+                                        <i class="fas fa-cart-plus me-1"></i>Add
                                     </button>
                                 </form>
                             </div>
@@ -89,32 +189,192 @@
             </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
-                <i class="fas fa-arrow-right me-2"></i>View All Products
+        <div class="text-center mt-5 reveal">
+            <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg px-5">
+                <i class="fas fa-th-large me-2"></i>View All Products
             </a>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Preview -->
+<section class="py-5 bg-cream">
+    <div class="container py-4">
+        <div class="section-header reveal">
+            <span class="section-subtitle">Explore</span>
+            <h2>Shop by Category</h2>
+            <p>Find exactly what you're craving</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6 reveal">
+                <a href="{{ url_for('products') }}?category=Cakes" class="text-decoration-none">
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Cakes">
+                        <div class="category-overlay">
+                            <h5>Cakes</h5>
+                            <p>Birthday, Wedding & Custom Cakes</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6 reveal">
+                <a href="{{ url_for('products') }}?category=Pastries" class="text-decoration-none">
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Pastries">
+                        <div class="category-overlay">
+                            <h5>Pastries</h5>
+                            <p>Fresh Croissants & Danish</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-6 reveal">
+                <a href="{{ url_for('products') }}?category=Breads" class="text-decoration-none">
+                    <div class="category-card">
+                        <img src="https://images.unsplash.com/photo-1549931319-a545dcf3bc73?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Breads">
+                        <div class="category-overlay">
+                            <h5>Breads</h5>
+                            <p>Artisan & Sourdough Loaves</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="text-center mt-5 reveal">
+            <a href="{{ url_for('categories') }}" class="btn btn-outline-brown btn-lg px-5">
+                <i class="fas fa-arrow-right me-2"></i>All Categories
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonial-section py-5">
+    <div class="container py-4">
+        <div class="section-header reveal">
+            <span class="section-subtitle">Customer Love</span>
+            <h2>What Our Customers Say</h2>
+            <p>Don't just take our word for it</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 reveal">
+                <div class="testimonial-card">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Customer" class="testimonial-avatar">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"The chocolate truffle cake was absolutely divine! Fresh, moist, and perfectly sweet. Will definitely order again for every celebration!"</p>
+                    <div class="testimonial-author">Priya Sharma</div>
+                    <div class="testimonial-role">Regular Customer</div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal">
+                <div class="testimonial-card">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Customer" class="testimonial-avatar">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Best bakery in town! The croissants are flaky and buttery just like in Paris. Quick delivery and excellent packaging too."</p>
+                    <div class="testimonial-author">Rahul Mehta</div>
+                    <div class="testimonial-role">Food Enthusiast</div>
+                </div>
+            </div>
+            <div class="col-lg-4 reveal">
+                <div class="testimonial-card">
+                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Customer" class="testimonial-avatar">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="testimonial-text">"Ordered a custom birthday cake and it exceeded all expectations! Beautiful design and the taste was even better. Highly recommend!"</p>
+                    <div class="testimonial-author">Anita Desai</div>
+                    <div class="testimonial-role">Happy Parent</div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- About Section -->
 <section class="py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4">
-                <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                     alt="Our Bakery Story" class="img-fluid rounded shadow">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                     alt="Our Bakery Story" class="img-fluid rounded-4 shadow-lg">
             </div>
-            <div class="col-lg-6">
-                <h2 class="text-brown mb-4">Our Story</h2>
-                <p class="lead">NIKITA RASOI & BAKES has been serving the community with exceptional baked goods since 2020. Our passion for baking and commitment to quality ingredients sets us apart.</p>
-                <p>From our signature sourdough bread to our decadent pastries, every item is made with traditional techniques and the finest ingredients sourced locally whenever possible.</p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><i class="fas fa-check text-brown me-2"></i>Premium organic ingredients</li>
-                    <li class="mb-2"><i class="fas fa-check text-brown me-2"></i>Traditional baking methods</li>
-                    <li class="mb-2"><i class="fas fa-check text-brown me-2"></i>Fresh daily production</li>
-                    <li class="mb-2"><i class="fas fa-check text-brown me-2"></i>Custom orders available</li>
-                </ul>
+            <div class="col-lg-6 reveal">
+                <span class="section-subtitle">Since 2020</span>
+                <h2 class="mb-4">Our Story</h2>
+                <p class="lead text-muted">NIKITA RASOI & BAKES began with a simple dream - to bring the joy of freshly baked goods to every home.</p>
+                <p>What started as a small home bakery has grown into a beloved community treasure. Our passion for baking and commitment to quality ingredients sets us apart. Every item is made with traditional techniques and the finest ingredients sourced locally.</p>
+                <div class="row mt-4">
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-3" style="width:50px;height:50px;">
+                                <i class="fas fa-check" style="font-size:1rem;"></i>
+                            </div>
+                            <span class="fw-semibold">100% Organic</span>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-3" style="width:50px;height:50px;">
+                                <i class="fas fa-check" style="font-size:1rem;"></i>
+                            </div>
+                            <span class="fw-semibold">No Preservatives</span>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-3" style="width:50px;height:50px;">
+                                <i class="fas fa-check" style="font-size:1rem;"></i>
+                            </div>
+                            <span class="fw-semibold">Custom Orders</span>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="feature-icon me-3" style="width:50px;height:50px;">
+                                <i class="fas fa-check" style="font-size:1rem;"></i>
+                            </div>
+                            <span class="fw-semibold">Same Day Delivery</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 reveal">
+                    <h2>Ready to Taste the Difference?</h2>
+                    <p>Order now and experience the joy of freshly baked goodness delivered to your doorstep!</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
+                            <i class="fas fa-shopping-bag me-2"></i>Order Now
+                        </a>
+                        <a href="tel:+917016377439" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-phone me-2"></i>Call Us
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

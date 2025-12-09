@@ -3,49 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NIKITA RASOI & BAKES - Freshly baked goods made with love. Order cakes, pastries, breads and more.">
+    <meta name="theme-color" content="#8B4513">
     <title>{% block title %}NIKITA RASOI & BAKES{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    <!-- Top Announcement Bar -->
+    <div class="top-bar d-none d-md-block">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-4">
+                    <span><i class="fas fa-phone me-2"></i>+91 7016377439</span>
+                    <span><i class="fas fa-envelope me-2"></i>hello@nikitarasoi.com</span>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <span><i class="fas fa-truck me-2"></i>Free Delivery on orders above ₹500</span>
+                    <span><i class="fas fa-qrcode me-2"></i>UPI Payment Available</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-brown sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-brown sticky-top" id="mainNav">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
                 <i class="fas fa-birthday-cake me-2"></i>NIKITA RASOI & BAKES
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1 d-lg-none"></i>Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('products') }}">Products</a>
+                        <a class="nav-link {% if request.endpoint == 'products' %}active{% endif %}" href="{{ url_for('products') }}">
+                            <i class="fas fa-cookie me-1 d-lg-none"></i>Products
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('categories') }}">Categories</a>
+                        <a class="nav-link {% if request.endpoint == 'categories' %}active{% endif %}" href="{{ url_for('categories') }}">
+                            <i class="fas fa-th-large me-1 d-lg-none"></i>Categories
+                        </a>
                     </li>
                 </ul>
                 
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-lg-center">
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="{{ url_for('cart') }}">
+                        <a class="nav-link position-relative {% if request.endpoint == 'cart' %}active{% endif %}" href="{{ url_for('cart') }}">
                             <i class="fas fa-shopping-cart"></i>
-                            Cart
+                            <span class="ms-1">Cart</span>
                             {% if cart_count > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <span class="position-absolute top-0 start-100 translate-middle badge cart-badge">
                                 {{ cart_count }}
                             </span>
                             {% endif %}
@@ -53,30 +81,37 @@
                     </li>
                     
                     {% if current_user %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ current_user.username }}
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="user-avatar me-2">
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            </span>
+                            <span class="d-none d-lg-inline">{{ current_user.username }}</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('user_orders') }}">My Orders</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                            <li class="px-3 py-2 border-bottom">
+                                <span class="text-muted small">Welcome back!</span>
+                                <div class="fw-semibold">{{ current_user.username }}</div>
+                            </li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('profile') }}"><i class="fas fa-user me-2 text-muted"></i>My Profile</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('user_orders') }}"><i class="fas fa-box me-2 text-muted"></i>My Orders</a></li>
                             {% if current_user.is_admin %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog me-2 text-muted"></i>Admin Dashboard</a></li>
                             {% endif %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
-                    <li class="nav-item">
+                    <li class="nav-item ms-lg-2">
                         <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt"></i> Login
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus"></i> Register
+                    <li class="nav-item ms-lg-1">
+                        <a class="btn btn-gold btn-sm px-3 py-2" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus me-1"></i>Register
                         </a>
                     </li>
                     {% endif %}
@@ -85,14 +120,18 @@
         </div>
     </nav>
 
+    <!-- Toast Container for Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="container mt-3">
             {% for category, message in messages %}
-            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' if category == 'danger' or category == 'error' else 'info-circle' }} me-2"></i>
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endfor %}
         </div>
@@ -104,34 +143,82 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-brown text-light mt-5 py-4">
+    <!-- Enhanced Footer -->
+    <footer class="text-light pt-5 pb-4">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5><i class="fas fa-birthday-cake me-2"></i>NIKITA RASOI & BAKES</h5>
-                    <p>Freshly baked goods made with love and premium ingredients. Serving the community with delicious treats since 2020.</p>
+            <div class="row g-4">
+                <!-- Brand Section -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span>NIKITA RASOI & BAKES</span>
+                    </div>
+                    <p class="mb-4">Freshly baked goods made with love, premium ingredients, and traditional recipes passed down through generations. Your happiness is our secret ingredient!</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="social-link" title="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <h5>Contact Info</h5>
-                    <p>
-                        <i class="fas fa-map-marker-alt me-2"></i>123 Baker Street, Sweet Town<br>
-                        <i class="fas fa-phone me-2"></i>(555) 123-CAKE<br>
-                        <i class="fas fa-envelope me-2"></i>hello@nikitarasoi.com
-                    </p>
+                
+                <!-- Quick Links -->
+                <div class="col-lg-2 col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}">Home</a></li>
+                        <li><a href="{{ url_for('products') }}">Products</a></li>
+                        <li><a href="{{ url_for('categories') }}">Categories</a></li>
+                        <li><a href="{{ url_for('cart') }}">Cart</a></li>
+                    </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Hours</h5>
-                    <p>
-                        Monday - Friday: 6:00 AM - 8:00 PM<br>
-                        Saturday: 7:00 AM - 9:00 PM<br>
-                        Sunday: 8:00 AM - 6:00 PM
-                    </p>
+                
+                <!-- Contact Info -->
+                <div class="col-lg-3 col-md-6">
+                    <h5>Contact Us</h5>
+                    <ul class="footer-links">
+                        <li>
+                            <i class="fas fa-map-marker-alt me-2 text-gold"></i>
+                            123 Baker Street, Sweet Town
+                        </li>
+                        <li>
+                            <i class="fas fa-phone me-2 text-gold"></i>
+                            +91 7016377439
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope me-2 text-gold"></i>
+                            hello@nikitarasoi.com
+                        </li>
+                        <li>
+                            <i class="fas fa-clock me-2 text-gold"></i>
+                            Mon-Sat: 7AM - 9PM
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Newsletter -->
+                <div class="col-lg-3 col-md-6">
+                    <h5>Stay Updated</h5>
+                    <p class="small mb-3">Subscribe for exclusive offers, new products, and baking tips!</p>
+                    <form class="newsletter-form" onsubmit="event.preventDefault(); showToast('Thank you for subscribing!', 'success');">
+                        <input type="email" placeholder="Your email" required>
+                        <button type="submit" class="btn btn-gold">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <div class="payment-badges mt-4">
+                        <div class="payment-badge">
+                            <i class="fas fa-qrcode"></i> UPI
+                        </div>
+                        <div class="payment-badge">
+                            <i class="fas fa-money-bill-wave"></i> COD
+                        </div>
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="text-center">
-                <p>&copy; 2025 NIKITA RASOI & BAKES. All rights reserved.</p>
+            
+            <div class="footer-bottom text-center">
+                <p class="mb-0">&copy; 2025 NIKITA RASOI & BAKES. Made with <i class="fas fa-heart text-danger"></i> in India. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -141,6 +228,52 @@
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNav');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `custom-toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle text-success' : 'exclamation-circle text-danger'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Scroll reveal animation
+        function revealOnScroll() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(el => {
+                const windowHeight = window.innerHeight;
+                const elementTop = el.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    el.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', revealOnScroll);
+        revealOnScroll();
+    </script>
     
     {% block extra_scripts %}{% endblock %}
 </body>

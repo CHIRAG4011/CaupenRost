@@ -3,26 +3,48 @@
 {% block title %}Products - NIKITA RASOI & BAKES{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
+<section class="bg-cream py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-brown text-decoration-none">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Products</li>
+                    </ol>
+                </nav>
+                <h1 class="display-title text-brown mb-0">Our Products</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
 <div class="container py-5">
-    <div class="row">
+    <div class="row g-4">
         <!-- Sidebar Filters -->
-        <div class="col-lg-3 mb-4">
-            <div class="card">
-                <div class="card-header bg-brown text-white">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
+                <div class="card-header bg-brown text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Filters</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="get" action="{{ url_for('products') }}">
                         <!-- Search -->
-                        <div class="mb-3">
-                            <label for="search" class="form-label">Search Products</label>
-                            <input type="text" class="form-control" id="search" name="q" 
-                                   value="{{ current_query }}" placeholder="Enter product name...">
+                        <div class="mb-4">
+                            <label for="search" class="form-label fw-semibold">Search Products</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="search" name="q" 
+                                       value="{{ current_query }}" placeholder="Type to search...">
+                            </div>
                         </div>
                         
                         <!-- Category Filter -->
-                        <div class="mb-3">
-                            <label for="category" class="form-label">Category</label>
+                        <div class="mb-4">
+                            <label for="category" class="form-label fw-semibold">Category</label>
                             <select class="form-select" id="category" name="category">
                                 <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
                                 {% for category in categories %}
@@ -34,9 +56,30 @@
                         </div>
                         
                         <button type="submit" class="btn btn-brown w-100">
-                            <i class="fas fa-search me-2"></i>Apply Filters
+                            <i class="fas fa-filter me-2"></i>Apply Filters
                         </button>
+                        
+                        {% if current_query or current_category != 'all' %}
+                        <a href="{{ url_for('products') }}" class="btn btn-outline-brown w-100 mt-2">
+                            <i class="fas fa-times me-2"></i>Clear Filters
+                        </a>
+                        {% endif %}
                     </form>
+                </div>
+            </div>
+            
+            <!-- Quick Categories -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-th-large me-2 text-gold"></i>Quick Categories</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for cat in categories[:6] %}
+                        <a href="{{ url_for('products') }}?category={{ cat }}" 
+                           class="badge bg-cream text-brown text-decoration-none py-2 px-3 hover-lift {% if current_category == cat %}bg-brown text-white{% endif %}">
+                            {{ cat }}
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -44,25 +87,55 @@
         <!-- Products Grid -->
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-brown mb-0">Our Products</h2>
-                <span class="text-muted">{{ products|length }} product(s) found</span>
+                <div>
+                    <span class="text-muted">Showing <strong>{{ products|length }}</strong> product(s)</span>
+                    {% if current_query %}
+                    <span class="ms-2 badge bg-cream text-brown">
+                        <i class="fas fa-search me-1"></i>"{{ current_query }}"
+                    </span>
+                    {% endif %}
+                </div>
             </div>
             
             {% if products %}
-            <div class="row">
+            <div class="row g-4">
                 {% for product in products %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card product-card h-100 shadow-sm">
-                        <img src="{{ product.image_url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                <div class="col-xl-4 col-md-6 reveal">
+                    <div class="card product-card h-100">
+                        <div class="product-image-wrapper">
+                            <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}">
+                            
+                            {% if product.stock <= 5 and product.stock > 0 %}
+                            <span class="product-badge">
+                                <i class="fas fa-fire me-1"></i>Low Stock
+                            </span>
+                            {% elif product.stock == 0 %}
+                            <span class="product-badge" style="background: #dc3545; color: white;">
+                                <i class="fas fa-times me-1"></i>Sold Out
+                            </span>
+                            {% endif %}
+                            
+                            <div class="product-quick-actions">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if product.stock > 0 %}
+                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="d-inline">
+                                    <button type="submit" class="quick-action-btn" title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
                         <div class="card-body d-flex flex-column">
+                            <div class="product-category">{{ product.category }}</div>
                             <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text text-muted">{{ product.description[:80] }}...</p>
                             
                             <!-- Rating Display -->
-                            <div class="mb-2">
+                            <div class="product-rating">
                                 {% set avg_rating = product.get_average_rating() %}
                                 {% if avg_rating > 0 %}
-                                <div class="text-warning">
                                     {% for i in range(5) %}
                                         {% if i < avg_rating %}
                                         <i class="fas fa-star"></i>
@@ -70,43 +143,42 @@
                                         <i class="far fa-star"></i>
                                         {% endif %}
                                     {% endfor %}
-                                    <small class="text-muted ms-2">({{ product.reviews|length }} reviews)</small>
-                                </div>
+                                    <span>({{ product.reviews|length }})</span>
                                 {% else %}
-                                <small class="text-muted">No reviews yet</small>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <span>No reviews</span>
                                 {% endif %}
                             </div>
                             
+                            <p class="card-text">{{ product.description[:70] }}...</p>
+                            
                             <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="h5 text-brown mb-0">₹{{ "%.2f"|format(product.price) }}</span>
-                                    <span class="badge bg-secondary">{{ product.category }}</span>
-                                </div>
-                                
                                 <!-- Stock Status -->
-                                <div class="mb-2">
+                                <div class="mb-3">
                                     {% if product.stock > 10 %}
-                                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>In Stock ({{ product.stock }})</small>
+                                    <small class="text-success"><i class="fas fa-check-circle me-1"></i>In Stock</small>
                                     {% elif product.stock > 0 %}
-                                    <small class="text-warning"><i class="fas fa-exclamation-circle me-1"></i>Low Stock ({{ product.stock }})</small>
+                                    <small class="text-warning"><i class="fas fa-exclamation-circle me-1"></i>Only {{ product.stock }} left</small>
                                     {% else %}
                                     <small class="text-danger"><i class="fas fa-times-circle me-1"></i>Out of Stock</small>
                                     {% endif %}
                                 </div>
                                 
-                                <div class="d-flex gap-2">
-                                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-brown btn-sm flex-fill">
-                                        <i class="fas fa-eye me-1"></i>View Details
-                                    </a>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
                                     {% if product.stock > 0 %}
-                                    <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="flex-fill">
-                                        <button type="submit" class="btn btn-brown btn-sm w-100">
-                                            <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                                    <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}">
+                                        <button type="submit" class="btn btn-brown btn-sm">
+                                            <i class="fas fa-cart-plus me-1"></i>Add
                                         </button>
                                     </form>
                                     {% else %}
-                                    <button class="btn btn-secondary btn-sm flex-fill" disabled>
-                                        <i class="fas fa-ban me-1"></i>Out of Stock
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        Sold Out
                                     </button>
                                     {% endif %}
                                 </div>
@@ -118,11 +190,13 @@
             </div>
             {% else %}
             <div class="text-center py-5">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <h3 class="text-muted">No products found</h3>
-                <p class="text-muted">Try adjusting your search criteria or browse all categories.</p>
+                <div class="mb-4">
+                    <i class="fas fa-search fa-4x text-muted"></i>
+                </div>
+                <h3 class="text-muted mb-3">No products found</h3>
+                <p class="text-muted mb-4">Try adjusting your search criteria or browse all categories.</p>
                 <a href="{{ url_for('products') }}" class="btn btn-brown">
-                    <i class="fas fa-arrow-left me-2"></i>View All Products
+                    <i class="fas fa-th-large me-2"></i>View All Products
                 </a>
             </div>
             {% endif %}
