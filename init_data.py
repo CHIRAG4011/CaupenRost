@@ -21,7 +21,7 @@ def init_database():
         # Create admin user
         admin_user = User(
             username='admin',
-            email='admin@nikitarasoi.com',
+            email='opgaming565710@gmail.com',
             password_hash=generate_password_hash('admin123'),
             is_admin=True
         )
