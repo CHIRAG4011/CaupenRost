@@ -1,41 +1,26 @@
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
-from models import User, Product, Order, Review, Address, VisitorLog, Category
 
-# In-memory data storage
 data_store = {
-    'users': {},
-    'products': {},
-    'orders': {},
-    'reviews': {},
-    'addresses': {},
-    'categories': {},
-    'visitor_logs': [],
-    'counters': {
-        'user_id': 1,
-        'product_id': 1,
-        'order_id': 1,
-        'review_id': 1,
-        'address_id': 1,
-        'category_id': 1
-    }
+    'otp_codes': {}
 }
 
 def init_data_store():
-    """Initialize the data store with sample data"""
+    """Initialize the database with sample data if empty"""
+    from app import db
+    from models import User, Category, Product
     
-    # Create admin user
+    if User.query.first() is not None:
+        return
+    
     admin_user = User(
-        user_id=1,
         username='admin',
         email='admin@nikitarasoi.com',
         password_hash=generate_password_hash('admin123'),
         is_admin=True
     )
-    data_store['users'][1] = admin_user
-    data_store['counters']['user_id'] = 2
+    db.session.add(admin_user)
     
-    # Initialize categories
     categories_data = [
         {
             'name': 'Bread',
@@ -59,18 +44,16 @@ def init_data_store():
         }
     ]
     
-    for i, category_data in enumerate(categories_data, 1):
+    for cat_data in categories_data:
         category = Category(
-            category_id=i,
-            name=category_data['name'],
-            description=category_data['description'],
-            image_url=category_data['image_url']
+            name=cat_data['name'],
+            description=cat_data['description'],
+            image_url=cat_data['image_url']
         )
-        data_store['categories'][i] = category
+        db.session.add(category)
     
-    data_store['counters']['category_id'] = len(categories_data) + 1
+    db.session.commit()
     
-    # Sample products with stock photos
     products_data = [
         {
             'name': 'Artisan Sourdough Bread',
@@ -138,47 +121,60 @@ def init_data_store():
         }
     ]
     
-    for i, product_data in enumerate(products_data, 1):
+    for product_data in products_data:
+        cat = Category.query.filter_by(name=product_data['category']).first()
         product = Product(
-            product_id=i,
             name=product_data['name'],
             description=product_data['description'],
             price=product_data['price'],
             category=product_data['category'],
+            category_id=cat.id if cat else None,
             image_url=product_data['image_url'],
             stock=product_data['stock']
         )
-        data_store['products'][i] = product
+        db.session.add(product)
     
-    data_store['counters']['product_id'] = len(products_data) + 1
+    db.session.commit()
 
-def get_next_id(counter_name):
-    """Get next available ID for a given counter"""
-    current_id = data_store['counters'][counter_name]
-    data_store['counters'][counter_name] += 1
-    return current_id
 
 def add_visitor_log(ip_address, user_agent, page=None):
     """Add a visitor log entry"""
-    visitor_log = VisitorLog(ip_address, user_agent, page)
-    data_store['visitor_logs'].append(visitor_log)
+    from app import db
+    from models import VisitorLog
+    
+    visitor_log = VisitorLog(ip_address=ip_address, user_agent=user_agent, page=page)
+    db.session.add(visitor_log)
+    try:
+        db.session.commit()
+    except:
+        db.session.rollback()
+
 
 def get_daily_visitors():
     """Get visitor count for today"""
+    from models import VisitorLog
+    from sqlalchemy import func
+    
     today = datetime.now().date()
-    daily_visitors = [log for log in data_store['visitor_logs'] 
-                     if log.timestamp.date() == today]
-    return len(set(log.ip_address for log in daily_visitors))
+    count = VisitorLog.query.filter(
+        func.date(VisitorLog.timestamp) == today
+    ).distinct(VisitorLog.ip_address).count()
+    return count
+
 
 def get_weekly_visitors():
     """Get visitor data for the past week"""
+    from models import VisitorLog
+    from sqlalchemy import func
+    
     week_ago = datetime.now() - timedelta(days=7)
     weekly_data = {}
     
     for i in range(7):
         date = (week_ago + timedelta(days=i)).date()
-        daily_logs = [log for log in data_store['visitor_logs'] 
-                     if log.timestamp.date() == date]
-        weekly_data[date.strftime('%Y-%m-%d')] = len(set(log.ip_address for log in daily_logs))
+        count = VisitorLog.query.filter(
+            func.date(VisitorLog.timestamp) == date
+        ).distinct(VisitorLog.ip_address).count()
+        weekly_data[date.strftime('%Y-%m-%d')] = count
     
     return weekly_data

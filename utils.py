@@ -1,15 +1,14 @@
 from flask import session
 from flask_mail import Message
-from app import mail
+from app import mail, db
 from models import User, Product, Order, Review, CartItem
-from data_store import data_store
 import logging
 
 def get_current_user():
     """Get current logged-in user"""
     user_id = session.get('user_id')
     if user_id:
-        return data_store['users'].get(user_id)
+        return User.query.get(user_id)
     return None
 
 def get_cart():
@@ -21,7 +20,7 @@ def get_cart():
 def add_to_cart(product_id, quantity=1):
     """Add item to cart"""
     cart = get_cart()
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     
     if not product:
         return False
@@ -56,7 +55,7 @@ def update_cart_quantity(product_id, quantity):
     """Update item quantity in cart"""
     cart = get_cart()
     product_id_str = str(product_id)
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     
     if product_id_str in cart and product and product.stock >= quantity:
         if quantity <= 0:
@@ -121,13 +120,13 @@ The NIKITA RASOI & BAKES Team
 
 def calculate_order_stats():
     """Calculate order statistics for admin dashboard"""
-    orders = list(data_store['orders'].values())
+    orders = Order.query.all()
     
     total_orders = len(orders)
     total_revenue = sum(order.total for order in orders)
     
-    pending_orders = len([o for o in orders if o.status == 'pending'])
-    completed_orders = len([o for o in orders if o.status == 'delivered'])
+    pending_orders = Order.query.filter_by(status='pending').count()
+    completed_orders = Order.query.filter_by(status='delivered').count()
     
     return {
         'total_orders': total_orders,
@@ -138,13 +137,18 @@ def calculate_order_stats():
 
 def search_products(query, category=None):
     """Search products by name and optionally filter by category"""
-    products = list(data_store['products'].values())
+    products_query = Product.query
     
     if category and category != 'all':
-        products = [p for p in products if p.category.lower() == category.lower()]
+        products_query = products_query.filter(Product.category.ilike(category))
     
     if query:
-        query = query.lower()
-        products = [p for p in products if query in p.name.lower() or query in p.description.lower()]
+        search_term = f"%{query}%"
+        products_query = products_query.filter(
+            db.or_(
+                Product.name.ilike(search_term),
+                Product.description.ilike(search_term)
+            )
+        )
     
-    return list(products)
+    return products_query.all()

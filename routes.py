@@ -1,8 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app
+from app import app, db
 from models import User, Product, Order, Review, Address, OrderItem, VisitorLog, Category
-from data_store import data_store, add_visitor_log, get_next_id, get_weekly_visitors
+from data_store import add_visitor_log, get_weekly_visitors
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
                   get_cart_total, get_cart_count, clear_cart, send_order_confirmation_email,
                   calculate_order_stats, search_products, get_cart)
@@ -22,7 +22,6 @@ def log_visitor():
                 request.endpoint
             )
         except Exception as e:
-            # If visitor logging fails, don't break the app
             logging.warning(f"Failed to log visitor: {e}")
 
 @app.context_processor
@@ -31,15 +30,13 @@ def inject_globals():
     return {
         'current_user': get_current_user(),
         'cart_count': get_cart_count(),
-        'cart_total': get_cart_total(),
-        'data_store': data_store
+        'cart_total': get_cart_total()
     }
 
 @app.route('/')
 def index():
     """Home page"""
-    # Get first 6 products as featured
-    featured_products = list(data_store['products'].values())[:6]
+    featured_products = Product.query.limit(6).all()
     return render_template('index.html', featured_products=featured_products)
 
 @app.route('/products')
@@ -51,10 +48,9 @@ def products():
     if query or category != 'all':
         product_list = search_products(query, category)
     else:
-        product_list = list(data_store['products'].values())
+        product_list = Product.query.all()
     
-    # Get categories from data store
-    categories = [cat.name for cat in data_store['categories'].values() if cat.is_active]
+    categories = [cat.name for cat in Category.query.filter_by(is_active=True).all()]
     
     return render_template('products.html', 
                          products=product_list, 
@@ -65,40 +61,33 @@ def products():
 @app.route('/categories')
 def categories():
     """Categories page showing all available categories"""
-    active_categories = [cat for cat in data_store['categories'].values() if cat.is_active]
+    active_categories = Category.query.filter_by(is_active=True).all()
     return render_template('categories.html', categories=active_categories)
 
 @app.route('/category/<category_name>')
 def category_products(category_name):
     """Show products for a specific category"""
-    # Get the category object
-    category = None
-    for cat in data_store['categories'].values():
-        if cat.name == category_name and cat.is_active:
-            category = cat
-            break
+    category = Category.query.filter_by(name=category_name, is_active=True).first()
     
     if not category:
         flash('Category not found.', 'error')
         return redirect(url_for('products'))
     
-    # Get products for this category
-    category_products = [p for p in data_store['products'].values() if p.category == category_name]
+    category_products_list = Product.query.filter_by(category=category_name).all()
     
     return render_template('category_products.html', 
                          category=category, 
-                         products=category_products)
+                         products=category_products_list)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     """Product detail page"""
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     if not product:
         from flask import abort
         abort(404)
     
-    # Get reviews for this product
-    product_reviews = [r for r in data_store['reviews'].values() if r.product_id == product_id]
+    product_reviews = Review.query.filter_by(product_id=product_id).all()
     
     return render_template('product_detail.html', product=product, reviews=product_reviews)
 
@@ -122,7 +111,7 @@ def cart():
     
     for product_id_str, item_data in cart_data.items():
         product_id = int(product_id_str)
-        product = data_store['products'].get(product_id)
+        product = Product.query.get(product_id)
         if product:
             cart_items.append({
                 'product': product,
@@ -168,11 +157,8 @@ def checkout():
         flash('Your cart is empty.', 'error')
         return redirect(url_for('cart'))
     
-    # Get user addresses
-    user_addresses = [addr for addr in data_store['addresses'].values() 
-                     if addr.user_id == user.id]
+    user_addresses = Address.query.filter_by(user_id=user.id).all()
     
-    # Calculate final amount
     cart_total = get_cart_total()
     delivery_fee = 50.00
     tax_amount = (cart_total + delivery_fee) * 0.18
@@ -200,7 +186,7 @@ def place_order():
     payment_method = request.form.get('payment_method', 'qr_payment')
     
     if address_id:
-        address = data_store['addresses'].get(int(address_id))
+        address = Address.query.get(int(address_id))
         if address:
             shipping_address = f"{address.name}, {address.street}, {address.city}, {address.state} {address.zip_code}"
         else:
@@ -222,7 +208,7 @@ def place_order():
     
     for product_id_str, item_data in cart_data.items():
         product_id = int(product_id_str)
-        product = data_store['products'].get(product_id)
+        product = Product.query.get(product_id)
         
         if not product or product.stock < item_data['quantity']:
             flash(f'Insufficient stock for {product.name if product else "unknown item"}.', 'error')
@@ -271,42 +257,42 @@ def verify_order_otp():
         success, message = verify_otp(user.email, otp, 'order')
         
         if success:
-            order_items = []
-            for product_id_str, item_data in cart_data.items():
-                product_id = int(product_id_str)
-                product = data_store['products'].get(product_id)
-                
-                if not product or product.stock < item_data['quantity']:
-                    flash(f'Insufficient stock for {product.name if product else "unknown item"}.', 'error')
-                    session.pop('pending_order', None)
-                    return redirect(url_for('cart'))
-                
-                order_items.append({
-                    'product_id': product_id,
-                    'quantity': item_data['quantity'],
-                    'price': item_data['price']
-                })
-                
-                product.stock -= item_data['quantity']
-            
-            order_id = get_next_id('order_id')
-            
             if pending['payment_method'] == 'cash_on_delivery':
                 status = 'pending'
             else:
                 status = 'payment_pending'
             
             order = Order(
-                order_id=order_id,
                 user_id=user.id,
-                items=order_items,
                 total=pending['final_amount'],
                 shipping_address=pending['shipping_address'],
-                status=status
+                status=status,
+                payment_method=pending['payment_method']
             )
+            db.session.add(order)
+            db.session.flush()
             
-            order.payment_method = pending['payment_method']
-            data_store['orders'][order_id] = order
+            for product_id_str, item_data in cart_data.items():
+                product_id = int(product_id_str)
+                product = Product.query.get(product_id)
+                
+                if not product or product.stock < item_data['quantity']:
+                    db.session.rollback()
+                    flash(f'Insufficient stock for {product.name if product else "unknown item"}.', 'error')
+                    session.pop('pending_order', None)
+                    return redirect(url_for('cart'))
+                
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=product_id,
+                    quantity=item_data['quantity'],
+                    price=item_data['price']
+                )
+                db.session.add(order_item)
+                
+                product.stock -= item_data['quantity']
+            
+            db.session.commit()
             
             try:
                 send_order_confirmation_email(user.email, order)
@@ -317,10 +303,10 @@ def verify_order_otp():
             session.pop('pending_order', None)
             
             if pending['payment_method'] == 'cash_on_delivery':
-                flash(f'Order #{order_id} placed successfully! Payment will be collected on delivery.', 'success')
-                return redirect(url_for('order_tracking', order_id=order_id))
+                flash(f'Order #{order.id} placed successfully! Payment will be collected on delivery.', 'success')
+                return redirect(url_for('order_tracking', order_id=order.id))
             else:
-                session['payment_order_id'] = order_id
+                session['payment_order_id'] = order.id
                 session['payment_amount'] = pending['final_amount']
                 return redirect(url_for('qr_payment'))
         else:
@@ -364,8 +350,7 @@ def qr_payment():
         flash('Invalid payment session.', 'error')
         return redirect(url_for('index'))
     
-    # Get order details
-    order = data_store['orders'].get(order_id)
+    order = Order.query.get(order_id)
     if not order:
         flash('Order not found.', 'error')
         return redirect(url_for('index'))
@@ -382,15 +367,14 @@ def confirm_payment(order_id):
     if not user:
         return jsonify({'error': 'Please login to proceed'}), 401
     
-    order = data_store['orders'].get(order_id)
+    order = Order.query.get(order_id)
     if not order or order.user_id != user.id:
         return jsonify({'error': 'Order not found'}), 404
     
-    # Update order status to paid
     order.status = 'confirmed'
     order.updated_at = datetime.now()
+    db.session.commit()
     
-    # Clear payment session
     session.pop('payment_order_id', None)
     session.pop('payment_amount', None)
     
@@ -414,11 +398,9 @@ def register():
             flash('Passwords do not match.', 'error')
             return render_template('auth/register.html')
         
-        existing_user = None
-        for user_obj in data_store['users'].values():
-            if user_obj.username == username or user_obj.email == email:
-                existing_user = user_obj
-                break
+        existing_user = User.query.filter(
+            (User.username == username) | (User.email == email)
+        ).first()
         
         if existing_user:
             flash('Username or email already exists.', 'error')
@@ -458,16 +440,14 @@ def verify_registration_otp():
         success, message = verify_otp(pending['email'], otp, 'registration')
         
         if success:
-            from data_store import get_next_id
-            user_id = get_next_id('user_id')
             user = User(
-                user_id=user_id,
                 username=pending['username'],
                 email=pending['email'],
                 password_hash=generate_password_hash(pending['password'] or '')
             )
             
-            data_store['users'][user_id] = user
+            db.session.add(user)
+            db.session.commit()
             session.pop('pending_registration', None)
             flash('Email verified! Registration successful. Please login.', 'success')
             return redirect(url_for('login'))
@@ -499,11 +479,9 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = None
-        for user_obj in data_store['users'].values():
-            if user_obj.username == username or user_obj.email == username:
-                user = user_obj
-                break
+        user = User.query.filter(
+            (User.username == username) | (User.email == username)
+        ).first()
         
         if user and user.check_password(password):
             session['pending_login'] = {
@@ -583,8 +561,7 @@ def profile():
         flash('Please login to view your profile.', 'error')
         return redirect(url_for('login'))
     
-    # Get user addresses
-    user_addresses = [addr for addr in data_store['addresses'].values() if addr.user_id == user.id]
+    user_addresses = Address.query.filter_by(user_id=user.id).all()
     
     return render_template('user/profile.html', addresses=user_addresses)
 
@@ -595,10 +572,7 @@ def add_address():
     if not user:
         return redirect(url_for('login'))
     
-    from data_store import get_next_id
-    address_id = get_next_id('address_id')
     address = Address(
-        address_id=address_id,
         user_id=user.id,
         name=request.form.get('name'),
         street=request.form.get('street'),
@@ -607,7 +581,8 @@ def add_address():
         zip_code=request.form.get('zip_code')
     )
     
-    data_store['addresses'][address_id] = address
+    db.session.add(address)
+    db.session.commit()
     flash('Address added successfully!', 'success')
     return redirect(url_for('profile'))
 
@@ -619,16 +594,14 @@ def user_orders():
         flash('Please login to view your orders.', 'error')
         return redirect(url_for('login'))
     
-    user_orders_list = [order for order in data_store['orders'].values() if order.user_id == user.id]
-    
-    user_orders_list.sort(key=lambda x: x.created_at, reverse=True)
+    user_orders_list = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
     
     return render_template('user/orders.html', orders=user_orders_list)
 
 @app.route('/order/<int:order_id>')
 def order_tracking(order_id):
     """Order tracking page"""
-    order = data_store['orders'].get(order_id)
+    order = Order.query.get(order_id)
     if not order:
         flash('Order not found.', 'error')
         return redirect(url_for('user_orders'))
@@ -638,16 +611,15 @@ def order_tracking(order_id):
         flash('Unauthorized access.', 'error')
         return redirect(url_for('index'))
     
-    # Get order items with product details
     order_items = []
-    for item in order.items:
-        product = data_store['products'].get(item['product_id'])
+    for item in order.items.all():
+        product = Product.query.get(item.product_id)
         if product:
             order_items.append({
                 'product': product,
-                'quantity': item['quantity'],
-                'price': item['price'],
-                'total': item['quantity'] * item['price']
+                'quantity': item.quantity,
+                'price': item.price,
+                'total': item.quantity * item.price
             })
     
     return render_template('user/order_detail.html', order=order, order_items=order_items)
@@ -663,21 +635,18 @@ def add_review(product_id):
     rating = int(request.form.get('rating', '1'))
     comment = request.form.get('comment')
     
-    from data_store import get_next_id
-    review_id = get_next_id('review_id')
     review = Review(
-        review_id=review_id,
         product_id=product_id,
         user_id=user.id,
         rating=rating,
         comment=comment
     )
     
-    data_store['reviews'][review_id] = review
+    db.session.add(review)
+    db.session.commit()
     flash('Review added successfully!', 'success')
     return redirect(url_for('product_detail', product_id=product_id))
 
-# Admin routes
 @app.route('/admin')
 def admin_dashboard():
     """Admin dashboard"""
@@ -689,9 +658,7 @@ def admin_dashboard():
     stats = calculate_order_stats()
     from data_store import get_daily_visitors
     daily_visitors = get_daily_visitors()
-    recent_orders = list(data_store['orders'].values())
-    recent_orders.sort(key=lambda x: x.created_at, reverse=True)
-    recent_orders = recent_orders[:10]
+    recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
     
     return render_template('admin/dashboard.html', 
                          stats=stats, 
@@ -706,8 +673,8 @@ def admin_products():
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    products = list(data_store['products'].values())
-    categories = list(data_store['categories'].values())
+    products = Product.query.all()
+    categories = Category.query.all()
     return render_template('admin/products.html', products=products, categories=categories)
 
 @app.route('/admin/add_product', methods=['POST'])
@@ -717,18 +684,21 @@ def admin_add_product():
     if not user or not user.is_admin:
         return redirect(url_for('index'))
     
-    product_id = get_next_id('product_id')
+    category_name = request.form.get('category')
+    cat = Category.query.filter_by(name=category_name).first()
+    
     product = Product(
-        product_id=product_id,
         name=request.form.get('name'),
         description=request.form.get('description'),
         price=float(request.form.get('price', '0')),
-        category=request.form.get('category'),
+        category=category_name,
+        category_id=cat.id if cat else None,
         image_url=request.form.get('image_url'),
         stock=int(request.form.get('stock', '0'))
     )
     
-    data_store['products'][product_id] = product
+    db.session.add(product)
+    db.session.commit()
     flash('Product added successfully!', 'success')
     return redirect(url_for('admin_products'))
 
@@ -739,9 +709,10 @@ def admin_update_stock(product_id):
     if not user or not user.is_admin:
         return redirect(url_for('index'))
     
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     if product:
         product.stock = int(request.form.get('stock', '0'))
+        db.session.commit()
         flash('Stock updated successfully!', 'success')
     
     return redirect(url_for('admin_products'))
@@ -758,15 +729,20 @@ def admin_edit_product():
         flash('Product ID is required.', 'error')
         return redirect(url_for('admin_products'))
     product_id = int(product_id_str)
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     
     if product:
+        category_name = request.form.get('category')
+        cat = Category.query.filter_by(name=category_name).first()
+        
         product.name = request.form.get('name')
         product.description = request.form.get('description')
         product.price = float(request.form.get('price', '0'))
-        product.category = request.form.get('category')
+        product.category = category_name
+        product.category_id = cat.id if cat else None
         product.image_url = request.form.get('image_url')
         product.stock = int(request.form.get('stock', '0'))
+        db.session.commit()
         flash('Product updated successfully!', 'success')
     
     return redirect(url_for('admin_products'))
@@ -779,8 +755,7 @@ def admin_orders():
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    orders = list(data_store['orders'].values())
-    orders.sort(key=lambda x: x.created_at, reverse=True)
+    orders = Order.query.order_by(Order.created_at.desc()).all()
     
     return render_template('admin/orders.html', orders=orders)
 
@@ -791,10 +766,11 @@ def admin_update_order_status(order_id):
     if not user or not user.is_admin:
         return redirect(url_for('index'))
     
-    order = data_store['orders'].get(order_id)
+    order = Order.query.get(order_id)
     if order:
         new_status = request.form.get('status')
         order.update_status(new_status)
+        db.session.commit()
         flash('Order status updated successfully!', 'success')
     
     return redirect(url_for('admin_orders'))
@@ -814,7 +790,6 @@ def admin_analytics():
                          weekly_visitors=weekly_visitors,
                          stats=stats)
 
-# Admin User Management
 @app.route('/admin/users')
 def admin_users():
     """Admin user management"""
@@ -823,7 +798,7 @@ def admin_users():
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    users = list(data_store['users'].values())
+    users = User.query.all()
     return render_template('admin/users.html', users=users)
 
 @app.route('/admin/categories')
@@ -834,7 +809,7 @@ def admin_categories():
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    categories = list(data_store['categories'].values())
+    categories = Category.query.all()
     return render_template('admin/categories.html', categories=categories)
 
 @app.route('/admin/add_category', methods=['GET', 'POST'])
@@ -854,27 +829,22 @@ def admin_add_category():
             flash('Category name is required.', 'error')
             return render_template('admin/add_category.html')
         
-        # Check if category name already exists
-        existing_category = None
-        for cat in data_store['categories'].values():
-            if cat.name.lower() == name.lower():
-                existing_category = cat
-                break
+        existing_category = Category.query.filter(
+            db.func.lower(Category.name) == name.lower()
+        ).first()
         
         if existing_category:
             flash('Category with this name already exists.', 'error')
             return render_template('admin/add_category.html')
         
-        # Create new category
-        category_id = get_next_id('category_id')
         new_category = Category(
-            category_id=category_id,
             name=name,
             description=description,
             image_url=image_url
         )
         
-        data_store['categories'][category_id] = new_category
+        db.session.add(new_category)
+        db.session.commit()
         flash(f'Category "{name}" added successfully!', 'success')
         return redirect(url_for('admin_categories'))
     
@@ -888,7 +858,7 @@ def admin_edit_category(category_id):
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    category = data_store['categories'].get(category_id)
+    category = Category.query.get(category_id)
     if not category:
         flash('Category not found.', 'error')
         return redirect(url_for('admin_categories'))
@@ -903,22 +873,20 @@ def admin_edit_category(category_id):
             flash('Category name is required.', 'error')
             return render_template('admin/edit_category.html', category=category)
         
-        # Check if category name already exists (excluding current category)
-        existing_category = None
-        for cat in data_store['categories'].values():
-            if cat.name.lower() == name.lower() and cat.id != category_id:
-                existing_category = cat
-                break
+        existing_category = Category.query.filter(
+            db.func.lower(Category.name) == name.lower(),
+            Category.id != category_id
+        ).first()
         
         if existing_category:
             flash('Category with this name already exists.', 'error')
             return render_template('admin/edit_category.html', category=category)
         
-        # Update category
         category.name = name
         category.description = description
         category.image_url = image_url
         category.is_active = is_active
+        db.session.commit()
         
         flash(f'Category "{name}" updated successfully!', 'success')
         return redirect(url_for('admin_categories'))
@@ -933,12 +901,13 @@ def admin_toggle_category_status(category_id):
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    category = data_store['categories'].get(category_id)
+    category = Category.query.get(category_id)
     if not category:
         flash('Category not found.', 'error')
         return redirect(url_for('admin_categories'))
     
     category.is_active = not category.is_active
+    db.session.commit()
     status = "activated" if category.is_active else "deactivated"
     flash(f'Category "{category.name}" {status} successfully!', 'success')
     
@@ -952,20 +921,19 @@ def admin_delete_category(category_id):
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    category = data_store['categories'].get(category_id)
+    category = Category.query.get(category_id)
     if not category:
         flash('Category not found.', 'error')
         return redirect(url_for('admin_categories'))
     
-    # Check if category has products
-    products_in_category = [p for p in data_store['products'].values() if p.category == category.name]
+    products_in_category = Product.query.filter_by(category=category.name).all()
     if products_in_category:
         flash(f'Cannot delete category "{category.name}" because it contains {len(products_in_category)} products. Please move or delete these products first.', 'error')
         return redirect(url_for('admin_categories'))
     
-    # Delete the category
     category_name = category.name
-    del data_store['categories'][category_id]
+    db.session.delete(category)
+    db.session.commit()
     flash(f'Category "{category_name}" deleted successfully!', 'success')
     
     return redirect(url_for('admin_categories'))
@@ -978,20 +946,20 @@ def admin_delete_product(product_id):
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    product = data_store['products'].get(product_id)
+    product = Product.query.get(product_id)
     if not product:
         flash('Product not found.', 'error')
         return redirect(url_for('admin_products'))
     
-    # Delete associated reviews
-    reviews_to_delete = [r_id for r_id, review in data_store['reviews'].items() if review.product_id == product_id]
-    for review_id in reviews_to_delete:
-        del data_store['reviews'][review_id]
+    reviews_to_delete = Review.query.filter_by(product_id=product_id).all()
+    review_count = len(reviews_to_delete)
+    for review in reviews_to_delete:
+        db.session.delete(review)
     
-    # Delete the product
     product_name = product.name
-    del data_store['products'][product_id]
-    flash(f'Product "{product_name}" and its {len(reviews_to_delete)} reviews deleted successfully!', 'success')
+    db.session.delete(product)
+    db.session.commit()
+    flash(f'Product "{product_name}" and its {review_count} reviews deleted successfully!', 'success')
     
     return redirect(url_for('admin_products'))
 
@@ -1003,18 +971,17 @@ def toggle_admin(user_id):
         flash('Access denied.', 'error')
         return redirect(url_for('index'))
     
-    target_user = data_store['users'].get(user_id)
+    target_user = User.query.get(user_id)
     if not target_user:
         from flask import abort
         abort(404)
     
-    # Prevent removing admin from yourself
     if target_user.id == current_user.id:
         flash('You cannot remove admin privileges from yourself.', 'error')
         return redirect(url_for('admin_users'))
     
     target_user.is_admin = not target_user.is_admin
-    # No commit needed for in-memory storage
+    db.session.commit()
     
     action = 'granted' if target_user.is_admin else 'removed'
     flash(f'Admin privileges {action} for {target_user.username}.', 'success')
