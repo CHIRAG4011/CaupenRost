@@ -68,8 +68,10 @@ def send_otp_email(to_email, otp, purpose='verification'):
         gmail_user = os.environ.get('GMAIL_EMAIL')
         gmail_password = os.environ.get('GMAIL_APP_PASSWORD')
         
+        logging.debug(f"Gmail user configured: {bool(gmail_user)}, Password configured: {bool(gmail_password)}")
+        
         if not gmail_user or not gmail_password:
-            logging.error("Gmail credentials not configured")
+            logging.error(f"Gmail credentials not configured - GMAIL_EMAIL: {bool(gmail_user)}, GMAIL_APP_PASSWORD: {bool(gmail_password)}")
             return False
         
         if purpose == 'registration':
@@ -152,12 +154,28 @@ def send_otp_email(to_email, otp, purpose='verification'):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
         
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, to_email, msg.as_string())
-        
-        logging.info(f"OTP email sent to {to_email} for {purpose}")
-        return True
+        # Try TLS connection first (port 587), then fall back to SSL (port 465)
+        try:
+            logging.debug("Attempting Gmail SMTP with TLS on port 587")
+            with smtplib.SMTP('smtp.gmail.com', 587, timeout=30) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(gmail_user, gmail_password)
+                server.sendmail(gmail_user, to_email, msg.as_string())
+            logging.info(f"OTP email sent to {to_email} for {purpose} via TLS")
+            return True
+        except Exception as tls_error:
+            logging.warning(f"TLS connection failed: {str(tls_error)}, trying SSL")
+            try:
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
+                    server.login(gmail_user, gmail_password)
+                    server.sendmail(gmail_user, to_email, msg.as_string())
+                logging.info(f"OTP email sent to {to_email} for {purpose} via SSL")
+                return True
+            except Exception as ssl_error:
+                logging.error(f"SSL connection also failed: {str(ssl_error)}")
+                raise ssl_error
         
     except Exception as e:
         logging.error(f"Failed to send OTP email: {str(e)}")
