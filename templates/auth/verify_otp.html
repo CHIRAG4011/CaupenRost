@@ -33,28 +33,18 @@
                         </div>
                         <p class="text-muted">
                             {% if purpose == 'registration' %}
-                            Your verification code for <strong>{{ email }}</strong> is shown below. 
-                            Enter it to complete your registration.
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to complete your registration.
                             {% elif purpose == 'login' %}
-                            Your verification code for <strong>{{ email }}</strong> is shown below. 
-                            Enter it to complete your login.
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to complete your login.
                             {% elif purpose == 'order' %}
-                            Your verification code for <strong>{{ email }}</strong> is shown below. 
-                            Enter it to confirm your order of <strong>₹{{ "%.2f"|format(amount) }}</strong>.
+                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
+                            Enter it below to confirm your order of <strong>₹{{ "%.2f"|format(amount) }}</strong>.
                             {% else %}
-                            Enter your verification code below.
+                            Enter the 6-digit code sent to <strong>{{ email }}</strong>.
                             {% endif %}
                         </p>
-                        
-                        {% if display_otp %}
-                        <div class="alert alert-success text-center mb-3">
-                            <p class="mb-1 small text-muted">Your Verification Code:</p>
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 32px; font-weight: bold; padding: 15px; border-radius: 10px; letter-spacing: 8px;">
-                                {{ display_otp }}
-                            </div>
-                            <p class="mt-2 mb-0 small"><i class="fas fa-clock me-1"></i>Valid for 10 minutes</p>
-                        </div>
-                        {% endif %}
                     </div>
                     
                     <form method="post">
@@ -119,7 +109,7 @@
                 <div class="card-body text-center">
                     <p class="text-muted small mb-0">
                         <i class="fas fa-info-circle me-1"></i>
-                        The verification code expires in 10 minutes.
+                        The verification code expires in 10 minutes. Check your spam folder if you don't see it.
                     </p>
                 </div>
             </div>

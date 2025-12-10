@@ -6,7 +6,7 @@ from data_store import data_store, add_visitor_log, get_next_id, get_weekly_visi
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
                   get_cart_total, get_cart_count, clear_cart, send_order_confirmation_email,
                   calculate_order_stats, search_products, get_cart)
-from email_service import send_and_store_otp, verify_otp, get_stored_otp
+from email_service import send_and_store_otp, verify_otp
 import logging
 from datetime import datetime
 import json
@@ -234,13 +234,11 @@ def place_order():
         'final_amount': final_amount
     }
     
-    success, otp = send_and_store_otp(user.email, 'order')
-    if success:
-        session['display_otp'] = otp
-        flash('Your verification code is displayed below. Please enter it to confirm your order.', 'success')
+    if send_and_store_otp(user.email, 'order'):
+        flash('A verification code has been sent to your email to confirm your order.', 'success')
         return redirect(url_for('verify_order_otp'))
     else:
-        flash('Failed to generate verification code. Please try again.', 'error')
+        flash('Failed to send verification email. Please try again.', 'error')
         return redirect(url_for('checkout'))
 
 
@@ -268,8 +266,7 @@ def verify_order_otp():
         
         if not otp:
             flash('Please enter the verification code.', 'error')
-            display_otp = get_stored_otp(user.email, 'order')
-            return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'], display_otp=display_otp)
+            return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'])
         
         success, message = verify_otp(user.email, otp, 'order')
         
@@ -329,8 +326,7 @@ def verify_order_otp():
         else:
             flash(message, 'error')
     
-    display_otp = session.pop('display_otp', None) or get_stored_otp(user.email, 'order')
-    return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'], display_otp=display_otp)
+    return render_template('auth/verify_otp.html', purpose='order', email=user.email, amount=pending['final_amount'])
 
 
 @app.route('/resend-order-otp', methods=['POST'])
@@ -346,12 +342,10 @@ def resend_order_otp():
         flash('Please start the checkout process.', 'error')
         return redirect(url_for('checkout'))
     
-    success, otp = send_and_store_otp(user.email, 'order')
-    if success:
-        session['display_otp'] = otp
-        flash('A new verification code has been generated.', 'success')
+    if send_and_store_otp(user.email, 'order'):
+        flash('A new verification code has been sent.', 'success')
     else:
-        flash('Failed to generate verification code. Please try again.', 'error')
+        flash('Failed to resend verification code. Please try again.', 'error')
     
     return redirect(url_for('verify_order_otp'))
 
@@ -436,13 +430,11 @@ def register():
             'password': password
         }
         
-        success, otp = send_and_store_otp(email, 'registration')
-        if success:
-            session['display_otp'] = otp
-            flash('Your verification code is displayed below.', 'success')
+        if send_and_store_otp(email, 'registration'):
+            flash('A verification code has been sent to your email.', 'success')
             return redirect(url_for('verify_registration_otp'))
         else:
-            flash('Failed to generate verification code. Please try again.', 'error')
+            flash('Failed to send verification email. Please try again.', 'error')
             return render_template('auth/register.html')
     
     return render_template('auth/register.html')
@@ -461,8 +453,7 @@ def verify_registration_otp():
         
         if not otp:
             flash('Please enter the verification code.', 'error')
-            display_otp = get_stored_otp(pending['email'], 'registration')
-            return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'], display_otp=display_otp)
+            return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'])
         
         success, message = verify_otp(pending['email'], otp, 'registration')
         
@@ -483,8 +474,7 @@ def verify_registration_otp():
         else:
             flash(message, 'error')
     
-    display_otp = session.pop('display_otp', None) or get_stored_otp(pending['email'], 'registration')
-    return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'], display_otp=display_otp)
+    return render_template('auth/verify_otp.html', purpose='registration', email=pending['email'])
 
 
 @app.route('/resend-registration-otp', methods=['POST'])
@@ -495,12 +485,10 @@ def resend_registration_otp():
         flash('Please start the registration process.', 'error')
         return redirect(url_for('register'))
     
-    success, otp = send_and_store_otp(pending['email'], 'registration')
-    if success:
-        session['display_otp'] = otp
-        flash('A new verification code has been generated.', 'success')
+    if send_and_store_otp(pending['email'], 'registration'):
+        flash('A new verification code has been sent.', 'success')
     else:
-        flash('Failed to generate verification code. Please try again.', 'error')
+        flash('Failed to resend verification code. Please try again.', 'error')
     
     return redirect(url_for('verify_registration_otp'))
 
@@ -524,13 +512,11 @@ def login():
                 'next': request.args.get('next')
             }
             
-            success, otp = send_and_store_otp(user.email, 'login')
-            if success:
-                session['display_otp'] = otp
-                flash('Your verification code is displayed below.', 'success')
+            if send_and_store_otp(user.email, 'login'):
+                flash('A verification code has been sent to your email.', 'success')
                 return redirect(url_for('verify_login_otp'))
             else:
-                flash('Failed to generate verification code. Please try again.', 'error')
+                flash('Failed to send verification email. Please try again.', 'error')
         else:
             flash('Invalid username/email or password.', 'error')
     
@@ -550,8 +536,7 @@ def verify_login_otp():
         
         if not otp:
             flash('Please enter the verification code.', 'error')
-            display_otp = get_stored_otp(pending['email'], 'login')
-            return render_template('auth/verify_otp.html', purpose='login', email=pending['email'], display_otp=display_otp)
+            return render_template('auth/verify_otp.html', purpose='login', email=pending['email'])
         
         success, message = verify_otp(pending['email'], otp, 'login')
         
@@ -564,8 +549,7 @@ def verify_login_otp():
         else:
             flash(message, 'error')
     
-    display_otp = session.pop('display_otp', None) or get_stored_otp(pending['email'], 'login')
-    return render_template('auth/verify_otp.html', purpose='login', email=pending['email'], display_otp=display_otp)
+    return render_template('auth/verify_otp.html', purpose='login', email=pending['email'])
 
 
 @app.route('/resend-login-otp', methods=['POST'])
@@ -576,12 +560,10 @@ def resend_login_otp():
         flash('Please login first.', 'error')
         return redirect(url_for('login'))
     
-    success, otp = send_and_store_otp(pending['email'], 'login')
-    if success:
-        session['display_otp'] = otp
-        flash('A new verification code has been generated.', 'success')
+    if send_and_store_otp(pending['email'], 'login'):
+        flash('A new verification code has been sent.', 'success')
     else:
-        flash('Failed to generate verification code. Please try again.', 'error')
+        flash('Failed to resend verification code. Please try again.', 'error')
     
     return redirect(url_for('verify_login_otp'))
 
