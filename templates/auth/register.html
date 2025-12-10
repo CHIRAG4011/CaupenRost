@@ -24,7 +24,16 @@
                         
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                            <div class="form-text small">
+                                <div id="password-requirements">
+                                    <span id="req-length" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>At least 8 characters</span><br>
+                                    <span id="req-upper" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One uppercase letter</span><br>
+                                    <span id="req-lower" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One lowercase letter</span><br>
+                                    <span id="req-number" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One number</span><br>
+                                    <span id="req-special" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One special character (!@#$%^&*)</span>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="mb-3">
@@ -52,6 +61,44 @@
 
 {% block extra_scripts %}
 <script>
+// Password requirements validation
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    
+    // Check each requirement
+    const requirements = {
+        'req-length': password.length >= 8,
+        'req-upper': /[A-Z]/.test(password),
+        'req-lower': /[a-z]/.test(password),
+        'req-number': /[0-9]/.test(password),
+        'req-special': /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)
+    };
+    
+    // Update UI for each requirement
+    for (const [id, met] of Object.entries(requirements)) {
+        const element = document.getElementById(id);
+        if (met) {
+            element.classList.remove('text-muted', 'text-danger');
+            element.classList.add('text-success');
+            element.querySelector('i').classList.remove('fa-circle', 'fa-times-circle');
+            element.querySelector('i').classList.add('fa-check-circle');
+        } else {
+            element.classList.remove('text-success', 'text-danger');
+            element.classList.add('text-muted');
+            element.querySelector('i').classList.remove('fa-check-circle', 'fa-times-circle');
+            element.querySelector('i').classList.add('fa-circle');
+        }
+    }
+    
+    // Set validity
+    const allMet = Object.values(requirements).every(v => v);
+    if (!allMet) {
+        this.setCustomValidity('Password does not meet all requirements');
+    } else {
+        this.setCustomValidity('');
+    }
+});
+
 // Password confirmation validation
 document.getElementById('confirm_password').addEventListener('input', function() {
     const password = document.getElementById('password').value;

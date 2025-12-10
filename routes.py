@@ -398,6 +398,23 @@ def register():
             flash('Passwords do not match.', 'error')
             return render_template('auth/register.html')
         
+        # Password requirements validation
+        password_errors = []
+        if len(password) < 8:
+            password_errors.append('at least 8 characters')
+        if not any(c.isupper() for c in password):
+            password_errors.append('one uppercase letter')
+        if not any(c.islower() for c in password):
+            password_errors.append('one lowercase letter')
+        if not any(c.isdigit() for c in password):
+            password_errors.append('one number')
+        if not any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in password):
+            password_errors.append('one special character (!@#$%^&*)')
+        
+        if password_errors:
+            flash(f'Password must contain: {", ".join(password_errors)}.', 'error')
+            return render_template('auth/register.html')
+        
         existing_user = User.query.filter(
             (User.username == username) | (User.email == email)
         ).first()
