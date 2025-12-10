@@ -17,4 +17,6 @@ dependencies = [
     "pyjwt>=2.10.1",
     "razorpay>=1.4.2",
     "requests>=2.32.4",
+    "python-dotenv>=1.2.1",
+    "sqlalchemy>=2.0.42",
 ]

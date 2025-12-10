@@ -6,6 +6,13 @@ from sqlalchemy.orm import DeclarativeBase
 from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+# Load environment variables from .env file for local development
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 logging.basicConfig(level=logging.DEBUG)
 
 class Base(DeclarativeBase):
