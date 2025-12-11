@@ -19,4 +19,6 @@ dependencies = [
     "requests>=2.32.4",
     "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.42",
+    "pymongo>=4.15.5",
+    "flask-pymongo>=3.0.1",
 ]
