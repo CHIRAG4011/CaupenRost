@@ -498,20 +498,22 @@ For production deployments, ensure:
 - **MongoDB:** NoSQL option for flexible schemas
 
 ### Email Configuration for Production
-**Recommended Email Services:**
-- **SendGrid:** 100 emails/day free
-- **Mailgun:** 5,000 emails/month free
-- **Amazon SES:** Very affordable
-- **Gmail SMTP:** Requires "App Passwords"
+**This project uses Gmail SMTP for sending emails.**
 
-**Gmail Setup Example:**
+**Gmail SMTP Setup:**
+1. Enable 2-Step Verification on your Google account
+2. Generate an App Password at https://myaccount.google.com/apppasswords
+3. Configure the following environment variables:
+
 ```env
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-business-email@gmail.com
-MAIL_PASSWORD=your-16-char-app-password
-MAIL_DEFAULT_SENDER=your-business-email@gmail.com
+GMAIL_EMAIL=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-16-char-app-password
 ```
+
+**Notes:**
+- Gmail allows 500 emails/day for regular accounts
+- App Passwords are required (regular passwords won't work)
+- The 16-character password looks like: `abcd efgh ijkl mnop`
 
 ### Performance Optimization
 

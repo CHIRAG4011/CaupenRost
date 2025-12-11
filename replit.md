@@ -58,9 +58,9 @@ Preferred communication style: Simple, everyday language.
 - **Currency Formatting**: JavaScript uses Intl.NumberFormat with en-IN locale for Indian Rupee formatting
 
 ### Email Service
-- **SMTP Configuration**: Configurable mail server settings (defaults to Gmail SMTP)
-- **Environment Variables**: MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER
-- **Email Templates**: Order confirmation emails using NIKITA RASOI & BAKES branding and INR currency formatting
+- **Gmail SMTP**: Uses Gmail SMTP directly for sending OTP and notification emails
+- **Environment Variables**: GMAIL_EMAIL, GMAIL_APP_PASSWORD (requires Google App Password)
+- **Email Templates**: OTP verification, order confirmation, and notification emails with NIKITA RASOI & BAKES branding
 
 ### Image Resources
 - **Unsplash**: External image hosting for product photos, hero images, and bakery imagery
