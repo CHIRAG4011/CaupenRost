@@ -1,5 +1,5 @@
 /**
- * NIKITA RASOI & BAKES - Main JavaScript
+ * CaupenRost - Main JavaScript
  * Core functionality and utility functions
  */
 
@@ -7,7 +7,7 @@
     'use strict';
 
     // Application namespace
-    window.NikitaRasoi = window.NikitaRasoi || {};
+    window.CaupenRost = window.CaupenRost || {};
 
     /**
      * Main application class
@@ -572,11 +572,11 @@
 
     // Initialize the application
     document.addEventListener('DOMContentLoaded', () => {
-        window.NikitaRasoi.app = new BakeryApp();
+        window.CaupenRost.app = new BakeryApp();
     });
 
     // Expose utilities globally
-    window.NikitaRasoi.utils = {
+    window.CaupenRost.utils = {
         formatCurrency: (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount),
         formatDate: (date) => new Intl.DateTimeFormat('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(date)),
         debounce: function(func, wait) {

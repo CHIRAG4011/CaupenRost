@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Initialize the database with sample data for NIKITA RASOI & BAKES
+Initialize the database with sample data for CaupenRost
 """
 
 from app import app, db

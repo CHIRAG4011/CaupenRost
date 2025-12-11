@@ -93,7 +93,7 @@ def send_order_confirmation_email(user_email, order):
             body=f'''
 Dear Customer,
 
-Thank you for your order at NIKITA RASOI & BAKES!
+Thank you for your order at CaupenRost!
 
 Order Details:
 Order ID: #{order.id}
@@ -105,10 +105,10 @@ Your delicious baked goods will be prepared with care and delivered to:
 
 You can track your order status in your account dashboard.
 
-Thank you for choosing NIKITA RASOI & BAKES!
+Thank you for choosing CaupenRost!
 
 Best regards,
-The NIKITA RASOI & BAKES Team
+The CaupenRost Team
             '''
         )
         mail.send(msg)

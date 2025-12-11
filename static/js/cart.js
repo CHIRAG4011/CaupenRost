@@ -1,5 +1,5 @@
 /**
- * NIKITA RASOI & BAKES - Cart Management
+ * CaupenRost - Cart Management
  * Handles shopping cart functionality and interactions
  */
 

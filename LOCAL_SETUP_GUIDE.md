@@ -1,4 +1,4 @@
-# NIKITA RASOI & BAKES - Local Setup Guide
+# CaupenRost - Local Setup Guide
 
 This guide will help you run the application on your local machine offline.
 
@@ -53,9 +53,9 @@ The app will automatically use SQLite if no PostgreSQL is configured. Just skip 
    psql -U postgres
    
    # Create database and user
-   CREATE DATABASE nikitarasoi;
+   CREATE DATABASE caupenrost;
    CREATE USER appuser WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE nikitarasoi TO appuser;
+   GRANT ALL PRIVILEGES ON DATABASE caupenrost TO appuser;
    \q
    ```
 
@@ -87,7 +87,7 @@ SESSION_SECRET=your-random-secret-key-here-make-it-long
 DATABASE_URL=sqlite:///app.db
 
 # For PostgreSQL:
-# DATABASE_URL=postgresql://appuser:your_password@localhost:5432/nikitarasoi
+# DATABASE_URL=postgresql://appuser:your_password@localhost:5432/caupenrost
 
 # Gmail SMTP Configuration
 GMAIL_EMAIL=your-email@gmail.com

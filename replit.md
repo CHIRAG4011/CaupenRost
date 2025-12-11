@@ -1,8 +1,8 @@
-# NIKITA RASOI & BAKES
+# CaupenRost
 
 ## Overview
 
-NIKITA RASOI & BAKES is a Flask-based e-commerce web application for an online bakery business. The application provides a complete shopping experience with product browsing, cart management, order placement, user authentication, and admin management capabilities. It features a warm, bakery-themed design with brown and cream color schemes, product catalogs with search and filtering, shopping cart functionality, order tracking, user profile management, and comprehensive admin tools for managing products, orders, and analytics. The application has been fully rebranded from "Sweet Crumbs Bakery" to "NIKITA RASOI & BAKES" and converted to use Indian Rupee (INR) currency throughout.
+CaupenRost is a Flask-based e-commerce web application for an online bakery business. The application provides a complete shopping experience with product browsing, cart management, order placement, user authentication, and admin management capabilities. It features a warm, bakery-themed design with brown and cream color schemes, product catalogs with search and filtering, shopping cart functionality, order tracking, user profile management, and comprehensive admin tools for managing products, orders, and analytics. The application has been fully rebranded from "Sweet Crumbs Bakery" to "CaupenRost" and converted to use Indian Rupee (INR) currency throughout.
 
 ## User Preferences
 
@@ -60,7 +60,7 @@ Preferred communication style: Simple, everyday language.
 ### Email Service
 - **Gmail SMTP**: Uses Gmail SMTP directly for sending OTP and notification emails
 - **Environment Variables**: GMAIL_EMAIL, GMAIL_APP_PASSWORD (requires Google App Password)
-- **Email Templates**: OTP verification, order confirmation, and notification emails with NIKITA RASOI & BAKES branding
+- **Email Templates**: OTP verification, order confirmation, and notification emails with CaupenRost branding
 
 ### Image Resources
 - **Unsplash**: External image hosting for product photos, hero images, and bakery imagery
@@ -78,12 +78,12 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (August 2025)
 
 ### Complete Rebranding and Currency Conversion
-- **Business Name**: Changed from "Sweet Crumbs Bakery" to "NIKITA RASOI & BAKES" across all templates, JavaScript files, and email content
+- **Business Name**: Changed from "Sweet Crumbs Bakery" to "CaupenRost" across all templates, JavaScript files, and email content
 - **Currency Conversion**: Full conversion from USD ($) to Indian Rupee (₹) throughout the application
 - **Product Pricing**: Updated all product prices to appropriate INR values (multiplied by ~10x for realistic Indian pricing)
 - **Delivery Fees**: Updated from $5.00 to ₹50.00, free delivery threshold changed from $50 to ₹500
 - **Tax Rates**: Updated from 8.5% US tax to 18% Indian GST rate
-- **Admin Email**: Changed from admin@sweetcrumbsbakery.com to admin@nikitarasoi.com
+- **Admin Email**: Changed from admin@sweetcrumbsbakery.com to admin@caupenrost.com
 - **JavaScript Localization**: Updated currency formatting to use en-IN locale with INR currency
 - **Template Fixes**: Fixed analytics template slicing and undefined variable errors
 

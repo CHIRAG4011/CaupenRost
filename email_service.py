@@ -75,11 +75,11 @@ def send_otp_email(to_email, otp, purpose='verification'):
             return False
         
         if purpose == 'registration':
-            subject = "Verify Your Email - NIKITA RASOI & BAKES"
+            subject = "Verify Your Email - CaupenRost"
             html_content = f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">NIKITA RASOI & BAKES</h1>
+                    <h1 style="color: white; margin: 0;">CaupenRost</h1>
                 </div>
                 <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
                     <h2 style="color: #333;">Verify Your Email Address</h2>
@@ -93,11 +93,11 @@ def send_otp_email(to_email, otp, purpose='verification'):
             </div>
             """
         elif purpose == 'login':
-            subject = "Login Verification - NIKITA RASOI & BAKES"
+            subject = "Login Verification - CaupenRost"
             html_content = f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">NIKITA RASOI & BAKES</h1>
+                    <h1 style="color: white; margin: 0;">CaupenRost</h1>
                 </div>
                 <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
                     <h2 style="color: #333;">Login Verification</h2>
@@ -111,11 +111,11 @@ def send_otp_email(to_email, otp, purpose='verification'):
             </div>
             """
         elif purpose == 'order':
-            subject = "Confirm Your Order - NIKITA RASOI & BAKES"
+            subject = "Confirm Your Order - CaupenRost"
             html_content = f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">NIKITA RASOI & BAKES</h1>
+                    <h1 style="color: white; margin: 0;">CaupenRost</h1>
                 </div>
                 <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
                     <h2 style="color: #333;">Confirm Your Order</h2>
@@ -129,11 +129,11 @@ def send_otp_email(to_email, otp, purpose='verification'):
             </div>
             """
         else:
-            subject = "Your OTP - NIKITA RASOI & BAKES"
+            subject = "Your OTP - CaupenRost"
             html_content = f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">NIKITA RASOI & BAKES</h1>
+                    <h1 style="color: white; margin: 0;">CaupenRost</h1>
                 </div>
                 <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
                     <h2 style="color: #333;">Your Verification Code</h2>

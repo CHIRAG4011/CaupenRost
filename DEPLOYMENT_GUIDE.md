@@ -1,7 +1,7 @@
-# NIKITA RASOI & BAKES - Deployment Guide
+# CaupenRost - Deployment Guide
 
 ## Overview
-This comprehensive guide covers deploying the NIKITA RASOI & BAKES Flask e-commerce application both locally and on various free hosting platforms. The application uses Indian Rupee (₹) currency and includes features like product management, cart functionality, order tracking, and admin dashboard.
+This comprehensive guide covers deploying the CaupenRost Flask e-commerce application both locally and on various free hosting platforms. The application uses Indian Rupee (₹) currency and includes features like product management, cart functionality, order tracking, and admin dashboard.
 
 ## 🏠 Local Development Setup
 
@@ -15,7 +15,7 @@ This comprehensive guide covers deploying the NIKITA RASOI & BAKES Flask e-comme
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd nikita-rasoi-bakes
+cd caupenrost
 
 # Install dependencies directly (uses uv.lock for consistency)
 pip install flask flask-mail werkzeug gunicorn email-validator
@@ -34,7 +34,7 @@ python main.py
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd nikita-rasoi-bakes
+cd caupenrost
 
 # Create virtual environment
 python -m venv bakery_env
@@ -105,7 +105,7 @@ python -m flask run --host=0.0.0.0 --port=5000
 
 ### Default Admin Credentials
 - **Username:** admin
-- **Email:** admin@nikitarasoi.com
+- **Email:** admin@caupenrost.com
 - **Password:** admin123
 
 ### Sample Test Users
@@ -205,7 +205,7 @@ The application comes with pre-loaded sample data:
    - Choose "Web Service"
 
 2. **Configuration:**
-   - **Name:** nikita-rasoi-bakes
+   - **Name:** caupenrost
    - **Environment:** Python 3
    - **Build Command:** `pip install flask flask-mail werkzeug gunicorn email-validator`
    - **Start Command:** `gunicorn --bind 0.0.0.0:$PORT main:app`
@@ -244,7 +244,7 @@ The application comes with pre-loaded sample data:
 
 3. **Configuration (fly.toml):**
    ```toml
-   app = "nikita-rasoi-bakes"
+   app = "caupenrost"
    
    [env]
      PORT = "8080"
@@ -327,7 +327,7 @@ The application comes with pre-loaded sample data:
 3. **WSGI Configuration:**
    ```python
    import sys
-   path = '/home/yourusername/nikita-rasoi-bakes'
+   path = '/home/yourusername/caupenrost'
    if path not in sys.path:
        sys.path.append(path)
    
@@ -398,11 +398,11 @@ DEBUG=True
 #### Create `app.json` (for platform compatibility):
 ```json
 {
-  "name": "NIKITA RASOI & BAKES",
+  "name": "CaupenRost",
   "description": "A Flask e-commerce application for an Indian bakery",
   "keywords": ["flask", "ecommerce", "bakery", "python"],
-  "website": "https://github.com/yourusername/nikita-rasoi-bakes",
-  "repository": "https://github.com/yourusername/nikita-rasoi-bakes",
+  "website": "https://github.com/yourusername/caupenrost",
+  "repository": "https://github.com/yourusername/caupenrost",
   "env": {
     "SESSION_SECRET": {
       "description": "A secret key for session management",
@@ -584,7 +584,7 @@ GMAIL_APP_PASSWORD=your-16-char-app-password
 1. **"Module not found" Error:**
    ```bash
    # Ensure you're in the right directory
-   cd nikita-rasoi-bakes
+   cd caupenrost
    
    # Check if virtual environment is activated
    which python  # Should show your virtual environment path
@@ -763,7 +763,7 @@ python main.py
 - [ ] Cart functionality works (add/remove items)
 - [ ] User registration and login
 - [ ] Order placement with address validation
-- [ ] Admin panel access (admin@nikitarasoi.com / admin123)
+- [ ] Admin panel access (admin@caupenrost.com / admin123)
 - [ ] Email functionality (if configured)
 - [ ] Responsive design on mobile/tablet
 
