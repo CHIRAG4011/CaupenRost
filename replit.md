@@ -62,6 +62,12 @@ Preferred communication style: Simple, everyday language.
 - **Environment Variables**: GMAIL_EMAIL, GMAIL_APP_PASSWORD (requires Google App Password)
 - **Email Templates**: OTP verification, order confirmation, and notification emails with CaupenRost branding
 
+### Database Configuration
+- **Automatic Detection**: App automatically detects database configuration from environment
+- **SQLite (Default)**: For local development, uses `instance/caupenrost.db` - no setup needed
+- **PostgreSQL (Production)**: Configure via DATABASE_URL or PG* environment variables
+- **Connection Pooling**: Automatically enabled for PostgreSQL, disabled for SQLite
+
 ### Image Resources
 - **Unsplash**: External image hosting for product photos, hero images, and bakery imagery
 - **Stock Photos**: Reliable placeholder images for products and promotional content

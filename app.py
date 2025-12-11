@@ -24,8 +24,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+# Database configuration with SQLite fallback for local development
+flask_env = os.environ.get("FLASK_ENV", "development")
 database_url = os.environ.get("DATABASE_URL")
-logging.debug(f"DATABASE_URL from env: {bool(database_url)}")
 
 if not database_url:
     pg_host = os.environ.get("PGHOST")
@@ -33,26 +34,37 @@ if not database_url:
     pg_user = os.environ.get("PGUSER")
     pg_password = os.environ.get("PGPASSWORD")
     pg_database = os.environ.get("PGDATABASE")
-    logging.debug(f"PG vars: host={pg_host}, port={pg_port}, user={pg_user}, db={pg_database}")
+    
     if pg_host and pg_user and pg_password and pg_database:
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
-
-if not database_url:
-    logging.error("No database URL configured! Please ensure DATABASE_URL or PG* environment variables are set.")
-    database_url = "sqlite:///app.db"
+        logging.info("Using PostgreSQL database")
+    else:
+        # Default to SQLite for local development
+        # Use absolute path to ensure the database file can be created
+        import pathlib
+        base_dir = pathlib.Path(__file__).parent.absolute()
+        db_path = base_dir / "instance" / "caupenrost.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        database_url = f"sqlite:///{db_path}"
+        logging.info(f"Using SQLite database at: {db_path}")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+# Use connection pooling only for PostgreSQL
+if database_url.startswith("postgresql"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+
+# Mail configuration (Gmail SMTP)
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'opgaming565710@gmail.com')
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', os.environ.get('GMAIL_EMAIL', ''))
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', os.environ.get('GMAIL_APP_PASSWORD', ''))
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', os.environ.get('GMAIL_EMAIL', ''))
 
 db.init_app(app)
 mail = Mail(app)

@@ -1,14 +1,16 @@
 # CaupenRost - Local Setup Guide
 
-This guide will help you run the application on your local machine offline.
+This guide will help you run the CaupenRost bakery application on your local machine.
 
 ---
 
 ## Prerequisites
 
-1. **Python 3.11+** - Download from https://python.org
-2. **PostgreSQL** (recommended) or SQLite (simpler)
-3. **Gmail Account** with App Password for sending emails
+1. **Python 3.8+** - Download from https://python.org
+2. **Git** (optional) - For cloning the repository
+3. **Gmail Account** with App Password for sending OTP emails
+
+**Database:** The app automatically uses **SQLite** (no installation needed). PostgreSQL is optional for production.
 
 ---
 
@@ -76,30 +78,29 @@ To send OTP verification emails, you need a Gmail App Password:
 
 ## Step 5: Configure Environment Variables
 
-Create a file named `.env` in the project folder:
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your settings:
 
 ```env
+# Flask environment (use 'local' for SQLite)
+FLASK_ENV=local
+
 # Session Security (generate a random string)
 SESSION_SECRET=your-random-secret-key-here-make-it-long
 
-# Database (choose one)
-# For SQLite (simpler):
-DATABASE_URL=sqlite:///app.db
-
-# For PostgreSQL:
-# DATABASE_URL=postgresql://appuser:your_password@localhost:5432/caupenrost
-
-# Gmail SMTP Configuration
+# Gmail SMTP Configuration (for OTP emails)
 GMAIL_EMAIL=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-char-app-password
+GMAIL_APP_PASSWORD=your-16-character-app-password
 
-# Flask Mail (optional, uses Gmail settings)
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-16-char-app-password
-MAIL_DEFAULT_SENDER=your-email@gmail.com
+# Optional: PostgreSQL (only if you want to use PostgreSQL instead of SQLite)
+# DATABASE_URL=postgresql://appuser:your_password@localhost:5432/caupenrost
 ```
+
+**Note:** With `FLASK_ENV=local`, the app automatically uses SQLite. No database URL needed!
 
 ---
 
@@ -184,7 +185,7 @@ Open your browser and go to:
 
 ### Database Errors?
 
-1. For SQLite: Delete `app.db` and run `python init_data.py` again
+1. For SQLite: Delete the `instance/caupenrost.db` file and restart the app
 2. For PostgreSQL: Ensure the service is running and credentials are correct
 
 ### Port Already in Use?
