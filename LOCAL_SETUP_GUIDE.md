@@ -1,27 +1,35 @@
-# CaupenRost - Local Setup Guide
+# CaupenRost Bakery - Local Deployment Guide
 
-This guide will help you run the CaupenRost bakery application on your local machine.
+This comprehensive guide will help you run the CaupenRost bakery application on your local machine with MongoDB.
 
 ---
 
 ## Prerequisites
 
+Before starting, ensure you have:
+
 1. **Python 3.8+** - Download from https://python.org
-2. **Git** (optional) - For cloning the repository
-3. **Gmail Account** with App Password for sending OTP emails
-
-**Database:** The app automatically uses **SQLite** (no installation needed). PostgreSQL is optional for production.
-
----
-
-## Step 1: Download and Extract
-
-1. Download all project files to a folder on your computer
-2. Open a terminal/command prompt in that folder
+2. **Git** (optional) - For version control
+3. **MongoDB** - Either local installation or MongoDB Atlas (cloud)
+4. **Gmail Account** with App Password for sending OTP emails
 
 ---
 
-## Step 2: Install Python Dependencies
+## Step 1: Download the Project
+
+### Option A: Clone from Git
+```bash
+git clone <your-repository-url>
+cd caupenrost
+```
+
+### Option B: Download ZIP
+1. Download all project files to a folder
+2. Extract and open a terminal in that folder
+
+---
+
+## Step 2: Create Virtual Environment
 
 ```bash
 # Create virtual environment
@@ -30,122 +38,185 @@ python -m venv venv
 # Activate virtual environment
 # On Windows:
 venv\Scripts\activate
+
 # On Mac/Linux:
 source venv/bin/activate
-
-# Install dependencies
-pip install flask flask-sqlalchemy flask-login flask-mail gunicorn psycopg2-binary werkzeug email-validator
 ```
 
 ---
 
-## Step 3: Database Setup
+## Step 3: Install Python Dependencies
 
-### Option A: SQLite (Simpler - No Installation Required)
+```bash
+pip install flask flask-pymongo flask-login flask-mail gunicorn werkzeug email-validator pymongo python-dotenv requests razorpay
+```
 
-The app will automatically use SQLite if no PostgreSQL is configured. Just skip to Step 4.
+Or use the requirements file:
+```bash
+pip install -r requirements.txt
+```
 
-### Option B: PostgreSQL (Recommended for Production)
+### Create requirements.txt (if needed):
+```
+flask>=2.0
+flask-pymongo>=2.3
+flask-login>=0.6
+flask-mail>=0.9
+gunicorn>=21.0
+werkzeug>=2.0
+email-validator>=2.0
+pymongo>=4.0
+python-dotenv>=1.0
+requests>=2.28
+razorpay>=1.3
+```
 
-1. **Install PostgreSQL** from https://postgresql.org/download/
+---
 
-2. **Create a database:**
-   ```bash
-   # Open PostgreSQL command line
-   psql -U postgres
+## Step 4: MongoDB Setup
+
+### Option A: MongoDB Atlas (Cloud - Recommended for Beginners)
+
+1. **Create a free MongoDB Atlas account:**
+   - Go to https://www.mongodb.com/atlas
+   - Click "Try Free" and create an account
+
+2. **Create a new cluster:**
+   - Choose the FREE tier (M0 Sandbox)
+   - Select a region close to you
+   - Click "Create Cluster"
+
+3. **Create a database user:**
+   - Go to "Database Access" in the left menu
+   - Click "Add New Database User"
+   - Choose "Password" authentication
+   - Enter a username and password (save these!)
+   - Set privileges to "Read and write to any database"
+   - Click "Add User"
+
+4. **Allow network access:**
+   - Go to "Network Access" in the left menu
+   - Click "Add IP Address"
+   - Click "Allow Access from Anywhere" (for development)
+   - Click "Confirm"
+
+5. **Get your connection string:**
+   - Go to "Database" and click "Connect"
+   - Choose "Connect your application"
+   - Select "Python" and version "3.6 or later"
+   - Copy the connection string (looks like):
+     ```
+     mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/
+     ```
+   - Replace `<password>` with your actual password
+   - Add your database name at the end:
+     ```
+     mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/caupenrost
+     ```
+
+### Option B: Local MongoDB Installation
+
+1. **Install MongoDB Community Edition:**
    
-   # Create database and user
-   CREATE DATABASE caupenrost;
-   CREATE USER appuser WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE caupenrost TO appuser;
-   \q
+   **Windows:**
+   - Download from https://www.mongodb.com/try/download/community
+   - Run the installer
+   - Choose "Complete" installation
+   - Install MongoDB as a Windows Service
+   
+   **Mac:**
+   ```bash
+   brew tap mongodb/brew
+   brew install mongodb-community
+   brew services start mongodb-community
+   ```
+   
+   **Linux (Ubuntu/Debian):**
+   ```bash
+   wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+   echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+   sudo apt-get update
+   sudo apt-get install -y mongodb-org
+   sudo systemctl start mongod
+   sudo systemctl enable mongod
+   ```
+
+2. **Verify MongoDB is running:**
+   ```bash
+   mongosh
+   # You should see the MongoDB shell
+   # Type 'exit' to quit
+   ```
+
+3. **Your connection string for local MongoDB:**
+   ```
+   mongodb://localhost:27017/caupenrost
    ```
 
 ---
 
-## Step 4: Gmail App Password Setup
+## Step 5: Gmail App Password Setup
 
-To send OTP verification emails, you need a Gmail App Password:
+To send OTP verification emails:
 
 1. Go to https://myaccount.google.com/security
 2. Enable **2-Step Verification** if not already enabled
 3. Go to https://myaccount.google.com/apppasswords
-4. Select "Mail" and "Windows Computer" (or your device)
+4. Select "Mail" and your device type
 5. Click "Generate"
-6. Copy the 16-character password (e.g., `abcd efgh ijkl mnop`)
+6. Copy the 16-character password (format: `abcd efgh ijkl mnop`)
 
 ---
 
-## Step 5: Configure Environment Variables
+## Step 6: Create Environment File
 
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Edit `.env` with your settings:
+Create a file named `.env` in your project root:
 
 ```env
-# Flask environment (use 'local' for SQLite)
-FLASK_ENV=local
+# MongoDB Connection
+# For MongoDB Atlas (cloud):
+MONGO_URI=mongodb+srv://your-username:your-password@cluster0.xxxxx.mongodb.net/caupenrost
 
-# Session Security (generate a random string)
-SESSION_SECRET=your-random-secret-key-here-make-it-long
+# For Local MongoDB:
+# MONGO_URI=mongodb://localhost:27017/caupenrost
+
+# Flask Session Secret (generate a random string)
+SESSION_SECRET=your-super-secret-random-key-here-make-it-long-and-random
 
 # Gmail SMTP Configuration (for OTP emails)
-GMAIL_EMAIL=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-character-app-password
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-16-character-app-password
+MAIL_DEFAULT_SENDER=your-email@gmail.com
 
-# Optional: PostgreSQL (only if you want to use PostgreSQL instead of SQLite)
-# DATABASE_URL=postgresql://appuser:your_password@localhost:5432/caupenrost
+# Optional: Razorpay Payment Gateway
+# RAZORPAY_KEY_ID=your-razorpay-key
+# RAZORPAY_KEY_SECRET=your-razorpay-secret
 ```
 
-**Note:** With `FLASK_ENV=local`, the app automatically uses SQLite. No database URL needed!
+**Important:** Never commit the `.env` file to version control!
 
----
-
-## Step 6: Load Environment Variables
-
-### Option A: Manual Export (Linux/Mac)
-
-```bash
-export SESSION_SECRET="your-random-secret-key"
-export DATABASE_URL="sqlite:///app.db"
-export GMAIL_EMAIL="your-email@gmail.com"
-export GMAIL_APP_PASSWORD="your-app-password"
+Add to `.gitignore`:
 ```
-
-### Option B: Using python-dotenv
-
-```bash
-pip install python-dotenv
-```
-
-Add this at the top of `app.py`:
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-### Option C: Windows Command Prompt
-
-```cmd
-set SESSION_SECRET=your-random-secret-key
-set DATABASE_URL=sqlite:///app.db
-set GMAIL_EMAIL=your-email@gmail.com
-set GMAIL_APP_PASSWORD=your-app-password
+.env
+venv/
+__pycache__/
+*.pyc
 ```
 
 ---
 
-## Step 7: Initialize Database
+## Step 7: Initialize the Database
 
-```bash
-# Run the initialization script
-python init_data.py
-```
+The application will automatically create sample data on first run, including:
+- Admin user
+- Product categories
+- Sample products
 
-This creates sample products and an admin user.
+Default admin credentials:
+- **Email:** opgaming565710@gmail.com
+- **Password:** admin123
 
 ---
 
@@ -165,88 +236,179 @@ gunicorn --bind 0.0.0.0:5000 main:app
 
 ## Step 9: Access the Application
 
-Open your browser and go to:
-- **Website:** http://localhost:5000
-- **Admin Panel:** http://localhost:5000/admin
+Open your browser and navigate to:
 
-### Default Admin Login:
-- **Email:** opgaming565710@gmail.com
-- **Password:** admin123
+| Page | URL |
+|------|-----|
+| Home | http://localhost:5000 |
+| Shop | http://localhost:5000/products |
+| Cart | http://localhost:5000/cart |
+| Login | http://localhost:5000/login |
+| Admin Panel | http://localhost:5000/admin |
+
+---
+
+## Project Structure
+
+```
+caupenrost/
+├── app.py                 # Flask app configuration & MongoDB connection
+├── main.py                # Application entry point
+├── routes.py              # URL routes and views
+├── db.py                  # Database repository classes
+├── mongodb_models.py      # MongoDB model classes
+├── data_store.py          # Data initialization & utilities
+├── email_service.py       # OTP email functionality
+├── utils.py               # Helper utilities
+├── config.py              # Configuration settings
+├── templates/             # HTML templates
+│   ├── base.html
+│   ├── index.html
+│   ├── products.html
+│   ├── cart.html
+│   ├── admin/
+│   └── ...
+├── static/                # CSS, JS, images
+│   ├── css/
+│   ├── js/
+│   └── images/
+├── .env                   # Environment variables (create this)
+├── requirements.txt       # Python dependencies
+└── LOCAL_SETUP_GUIDE.md   # This guide
+```
+
+---
+
+## Environment Variables Reference
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `MONGO_URI` | Yes | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/caupenrost` |
+| `SESSION_SECRET` | Yes | Flask session encryption key | Any random string (32+ characters) |
+| `MAIL_SERVER` | No | SMTP server | `smtp.gmail.com` |
+| `MAIL_PORT` | No | SMTP port | `587` |
+| `MAIL_USERNAME` | No | Email address | `you@gmail.com` |
+| `MAIL_PASSWORD` | No | Gmail App Password | `abcd efgh ijkl mnop` |
+| `MAIL_DEFAULT_SENDER` | No | From address | `you@gmail.com` |
 
 ---
 
 ## Troubleshooting
 
-### Email Not Sending?
+### MongoDB Connection Failed
 
-1. Verify Gmail App Password is correct (16 characters, no spaces)
-2. Check that 2-Step Verification is enabled on your Google account
-3. Make sure "Less secure app access" is NOT what you're using (use App Passwords instead)
+**Error:** `InvalidURI: Invalid URI scheme`
+- Ensure your MONGO_URI starts with `mongodb://` or `mongodb+srv://`
+- Check for typos in the connection string
 
-### Database Errors?
+**Error:** `ServerSelectionTimeoutError`
+- For Atlas: Check that your IP is whitelisted in Network Access
+- For local: Ensure MongoDB service is running
+  ```bash
+  # Windows
+  net start MongoDB
+  
+  # Mac
+  brew services start mongodb-community
+  
+  # Linux
+  sudo systemctl start mongod
+  ```
 
-1. For SQLite: Delete the `instance/caupenrost.db` file and restart the app
-2. For PostgreSQL: Ensure the service is running and credentials are correct
+### Email Not Sending
 
-### Port Already in Use?
+1. Verify Gmail App Password is correct (16 characters, no spaces when entered)
+2. Check that 2-Step Verification is enabled
+3. Ensure you're using App Passwords, not your regular Gmail password
 
-```bash
-# Use a different port
-python -c "from app import app; app.run(host='0.0.0.0', port=8080)"
-```
-
----
-
-## Running Offline (No Internet)
-
-The app works offline except for:
-1. **Email sending** - Requires internet to connect to Gmail SMTP
-2. **Product images** - Currently use external URLs (see below to fix)
-
-### To Make Images Work Offline:
-
-1. Download product images and save to `static/images/products/`
-2. Update product image URLs in the database or `init_data.py` to use local paths like `/static/images/products/chocolate-cake.jpg`
-
----
-
-## File Structure
-
-```
-project/
-├── app.py              # Flask app configuration
-├── main.py             # Application entry point
-├── models.py           # Database models
-├── routes.py           # URL routes and views
-├── email_service.py    # OTP email functionality
-├── init_data.py        # Database initialization
-├── templates/          # HTML templates
-├── static/             # CSS, JS, images
-└── .env                # Environment variables (create this)
-```
-
----
-
-## Quick Start Commands
+### Port Already in Use
 
 ```bash
-# 1. Setup (one time)
+# Find process using port 5000
+# Windows:
+netstat -ano | findstr :5000
+
+# Mac/Linux:
+lsof -i :5000
+
+# Kill the process or use a different port:
+gunicorn --bind 0.0.0.0:8080 main:app
+```
+
+### Module Not Found Errors
+
+```bash
+# Ensure virtual environment is activated
+source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate     # Windows
+
+# Reinstall dependencies
+pip install -r requirements.txt
+```
+
+---
+
+## Quick Start Summary
+
+```bash
+# 1. Clone/download project
+cd caupenrost
+
+# 2. Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install flask flask-sqlalchemy flask-login flask-mail gunicorn werkzeug email-validator
+source venv/bin/activate  # Mac/Linux
+# or: venv\Scripts\activate  # Windows
 
-# 2. Configure (one time)
-# Create .env file with your settings
+# 3. Install dependencies
+pip install flask flask-pymongo flask-login flask-mail gunicorn werkzeug email-validator pymongo python-dotenv
 
-# 3. Initialize database (one time)
-python init_data.py
+# 4. Create .env file with your MongoDB URI and settings
+# (see Step 6 above)
 
-# 4. Run (every time)
+# 5. Run the application
 python main.py
+
+# 6. Open http://localhost:5000 in your browser
+```
+
+---
+
+## Deploying to Production
+
+For production deployment, consider:
+
+1. **Use a process manager** like Supervisor or systemd
+2. **Set up a reverse proxy** with Nginx or Apache
+3. **Enable HTTPS** with Let's Encrypt
+4. **Use MongoDB Atlas** for reliable database hosting
+5. **Set strong secrets** and never expose them
+
+Example Nginx configuration:
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
 ---
 
 ## Support
 
-For issues, check the logs in the terminal where you ran the application.
+If you encounter issues:
+1. Check the terminal logs for error messages
+2. Verify your `.env` file has all required variables
+3. Ensure MongoDB is running and accessible
+4. Test your MongoDB connection string using MongoDB Compass (free GUI tool)
+
+For MongoDB Compass:
+1. Download from https://www.mongodb.com/products/compass
+2. Paste your connection string to test connectivity

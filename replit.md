@@ -63,10 +63,11 @@ Preferred communication style: Simple, everyday language.
 - **Email Templates**: OTP verification, order confirmation, and notification emails with CaupenRost branding
 
 ### Database Configuration
-- **Automatic Detection**: App automatically detects database configuration from environment
-- **SQLite (Default)**: For local development, uses `instance/caupenrost.db` - no setup needed
-- **PostgreSQL (Production)**: Configure via DATABASE_URL or PG* environment variables
-- **Connection Pooling**: Automatically enabled for PostgreSQL, disabled for SQLite
+- **Database**: MongoDB (NoSQL document database)
+- **Cloud Option**: MongoDB Atlas (free tier available) - Recommended for production
+- **Local Option**: MongoDB Community Edition for local development
+- **Connection**: Configure via MONGO_URI environment variable
+- **ORM**: Flask-PyMongo for database operations with repository pattern in db.py
 
 ### Image Resources
 - **Unsplash**: External image hosting for product photos, hero images, and bakery imagery
