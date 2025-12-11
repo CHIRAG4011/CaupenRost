@@ -58,14 +58,13 @@ if database_url.startswith("postgresql"):
         "pool_pre_ping": True,
     }
 
-# Mail configuration (Local SMTP)
-app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'localhost')
-app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '25'))
-app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'false').lower() == 'true'
-app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+# Mail configuration (Gmail SMTP)
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@localhost')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', '')
 
 db.init_app(app)
 mail = Mail(app)

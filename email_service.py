@@ -63,17 +63,19 @@ def verify_otp(email, otp, purpose='verification'):
 
 
 def send_otp_email(to_email, otp, purpose='verification'):
-    """Send OTP email using local SMTP"""
+    """Send OTP email using Gmail SMTP"""
     try:
-        mail_server = os.environ.get('MAIL_SERVER', 'localhost')
-        mail_port = int(os.environ.get('MAIL_PORT', '25'))
+        mail_server = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+        mail_port = int(os.environ.get('MAIL_PORT', '587'))
         mail_username = os.environ.get('MAIL_USERNAME', '')
         mail_password = os.environ.get('MAIL_PASSWORD', '')
-        mail_sender = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@localhost')
-        use_tls = os.environ.get('MAIL_USE_TLS', 'false').lower() == 'true'
-        use_ssl = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+        mail_sender = os.environ.get('MAIL_DEFAULT_SENDER', mail_username)
         
-        logging.debug(f"Mail server: {mail_server}:{mail_port}, TLS: {use_tls}, SSL: {use_ssl}")
+        logging.debug(f"Mail server: {mail_server}:{mail_port}, Username configured: {bool(mail_username)}")
+        
+        if not mail_username or not mail_password:
+            logging.error("Mail credentials not configured - MAIL_USERNAME and MAIL_PASSWORD required")
+            return False
         
         if purpose == 'registration':
             subject = "Verify Your Email - CaupenRost"
@@ -155,27 +157,28 @@ def send_otp_email(to_email, otp, purpose='verification'):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
         
-        # Connect to local SMTP server
+        # Connect to Gmail SMTP with TLS
         try:
-            if use_ssl:
-                logging.debug(f"Connecting to SMTP server {mail_server}:{mail_port} with SSL")
-                server = smtplib.SMTP_SSL(mail_server, mail_port, timeout=30)
-            else:
-                logging.debug(f"Connecting to SMTP server {mail_server}:{mail_port}")
-                server = smtplib.SMTP(mail_server, mail_port, timeout=30)
-                if use_tls:
-                    server.starttls()
-            
-            if mail_username and mail_password:
+            logging.debug(f"Connecting to SMTP server {mail_server}:{mail_port} with TLS")
+            with smtplib.SMTP(mail_server, mail_port, timeout=30) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
                 server.login(mail_username, mail_password)
-            
-            server.sendmail(mail_sender, to_email, msg.as_string())
-            server.quit()
+                server.sendmail(mail_sender, to_email, msg.as_string())
             logging.info(f"OTP email sent to {to_email} for {purpose}")
             return True
-        except Exception as e:
-            logging.error(f"SMTP connection failed: {str(e)}")
-            raise e
+        except Exception as tls_error:
+            logging.warning(f"TLS connection failed: {str(tls_error)}, trying SSL on port 465")
+            try:
+                with smtplib.SMTP_SSL(mail_server, 465, timeout=30) as server:
+                    server.login(mail_username, mail_password)
+                    server.sendmail(mail_sender, to_email, msg.as_string())
+                logging.info(f"OTP email sent to {to_email} for {purpose} via SSL")
+                return True
+            except Exception as ssl_error:
+                logging.error(f"SSL connection also failed: {str(ssl_error)}")
+                raise ssl_error
         
     except Exception as e:
         logging.error(f"Failed to send OTP email: {str(e)}")
@@ -183,7 +186,7 @@ def send_otp_email(to_email, otp, purpose='verification'):
 
 
 def send_and_store_otp(email, purpose='verification'):
-    """Generate, store and send OTP via local SMTP"""
+    """Generate, store and send OTP via Gmail SMTP"""
     otp = generate_otp()
     store_otp(email, otp, purpose)
     success = send_otp_email(email, otp, purpose)
