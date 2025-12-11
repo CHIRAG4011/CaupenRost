@@ -17,6 +17,10 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/caupenrost")
+if mongo_uri.endswith('/'):
+    mongo_uri = mongo_uri + "caupenrost"
+elif '/caupenrost' not in mongo_uri and '?' not in mongo_uri:
+    mongo_uri = mongo_uri + "/caupenrost"
 app.config["MONGO_URI"] = mongo_uri
 logging.info(f"Using MongoDB at: {mongo_uri}")
 
