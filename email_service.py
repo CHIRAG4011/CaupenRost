@@ -15,50 +15,43 @@ def generate_otp(length=6):
 
 def store_otp(email, otp, purpose='verification', expiry_minutes=10):
     """Store OTP in database"""
-    from app import db
-    from models import OTPCode
+    from db import OTPRepo
     
-    OTPCode.query.filter_by(email=email, purpose=purpose).delete()
+    OTPRepo.delete_by_email_purpose(email, purpose)
     
-    otp_code = OTPCode(
-        email=email,
-        purpose=purpose,
-        otp=otp,
-        attempts=0,
-        expires_at=datetime.utcnow() + timedelta(minutes=expiry_minutes)
-    )
-    db.session.add(otp_code)
-    db.session.commit()
+    OTPRepo.create({
+        'email': email,
+        'purpose': purpose,
+        'otp': otp,
+        'attempts': 0,
+        'expires_at': datetime.utcnow() + timedelta(minutes=expiry_minutes)
+    })
 
 
 def verify_otp(email, otp, purpose='verification'):
     """Verify OTP for given email and purpose"""
-    from app import db
-    from models import OTPCode
+    from db import OTPRepo
     
-    stored = OTPCode.query.filter_by(email=email, purpose=purpose).first()
+    stored = OTPRepo.find_by_email_purpose(email, purpose)
     
     if not stored:
         return False, "No verification code found. Please request a new one."
     
     if datetime.utcnow() > stored.expires_at:
-        db.session.delete(stored)
-        db.session.commit()
+        OTPRepo.delete(stored._id)
         return False, "Verification code has expired. Please request a new one."
     
     stored.attempts += 1
     
     if stored.attempts > 5:
-        db.session.delete(stored)
-        db.session.commit()
+        OTPRepo.delete(stored._id)
         return False, "Too many attempts. Please request a new verification code."
     
     if stored.otp != otp:
-        db.session.commit()
+        OTPRepo.update(stored._id, {'attempts': stored.attempts})
         return False, f"Invalid code. {5 - stored.attempts} attempts remaining."
     
-    db.session.delete(stored)
-    db.session.commit()
+    OTPRepo.delete(stored._id)
     return True, "Verification successful."
 
 
@@ -157,7 +150,6 @@ def send_otp_email(to_email, otp, purpose='verification'):
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
         
-        # Connect to Gmail SMTP with TLS
         try:
             logging.debug(f"Connecting to SMTP server {mail_server}:{mail_port} with TLS")
             with smtplib.SMTP(mail_server, mail_port, timeout=30) as server:

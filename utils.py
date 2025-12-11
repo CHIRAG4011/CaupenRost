@@ -1,14 +1,14 @@
 from flask import session
 from flask_mail import Message
-from app import mail, db
-from models import User, Product, Order, Review, CartItem
+from app import mail
+from db import UserRepo, ProductRepo, OrderRepo
 import logging
 
 def get_current_user():
     """Get current logged-in user"""
     user_id = session.get('user_id')
     if user_id:
-        return User.query.get(user_id)
+        return UserRepo.find_by_id(user_id)
     return None
 
 def get_cart():
@@ -20,7 +20,7 @@ def get_cart():
 def add_to_cart(product_id, quantity=1):
     """Add item to cart"""
     cart = get_cart()
-    product = Product.query.get(product_id)
+    product = ProductRepo.find_by_id(product_id)
     
     if not product:
         return False
@@ -55,7 +55,7 @@ def update_cart_quantity(product_id, quantity):
     """Update item quantity in cart"""
     cart = get_cart()
     product_id_str = str(product_id)
-    product = Product.query.get(product_id)
+    product = ProductRepo.find_by_id(product_id)
     
     if product_id_str in cart and product and product.stock >= quantity:
         if quantity <= 0:
@@ -120,13 +120,10 @@ The CaupenRost Team
 
 def calculate_order_stats():
     """Calculate order statistics for admin dashboard"""
-    orders = Order.query.all()
-    
-    total_orders = len(orders)
-    total_revenue = sum(order.total for order in orders)
-    
-    pending_orders = Order.query.filter_by(status='pending').count()
-    completed_orders = Order.query.filter_by(status='delivered').count()
+    total_orders = OrderRepo.count()
+    total_revenue = OrderRepo.sum_total()
+    pending_orders = OrderRepo.count_by_status('pending')
+    completed_orders = OrderRepo.count_by_status('delivered')
     
     return {
         'total_orders': total_orders,
@@ -137,18 +134,4 @@ def calculate_order_stats():
 
 def search_products(query, category=None):
     """Search products by name and optionally filter by category"""
-    products_query = Product.query
-    
-    if category and category != 'all':
-        products_query = products_query.filter(Product.category.ilike(category))
-    
-    if query:
-        search_term = f"%{query}%"
-        products_query = products_query.filter(
-            db.or_(
-                Product.name.ilike(search_term),
-                Product.description.ilike(search_term)
-            )
-        )
-    
-    return products_query.all()
+    return ProductRepo.search(query, category)
