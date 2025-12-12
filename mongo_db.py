@@ -567,3 +567,109 @@ class MongoOTPRepo:
             MongoOTPRepo._get_collection().delete_one({'_id': ObjectId(str(otp_id))})
         except:
             pass
+
+
+class MongoTicketRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['tickets']
+    
+    @staticmethod
+    def find_by_id(ticket_id):
+        from mongodb_models import MongoTicket
+        try:
+            doc = MongoTicketRepo._get_collection().find_one({'_id': ObjectId(str(ticket_id))})
+            ticket = MongoTicket.from_doc(doc)
+            if ticket:
+                ticket.messages = MongoTicketMessageRepo.find_by_ticket(ticket_id)
+            return ticket
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_user(user_id):
+        from mongodb_models import MongoTicket
+        docs = MongoTicketRepo._get_collection().find({'user_id': str(user_id)}).sort('created_at', -1)
+        return [MongoTicket.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def find_all(status=None, ticket_type=None):
+        from mongodb_models import MongoTicket
+        query = {}
+        if status:
+            query['status'] = status
+        if ticket_type:
+            query['ticket_type'] = ticket_type
+        docs = MongoTicketRepo._get_collection().find(query).sort('created_at', -1)
+        return [MongoTicket.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def create(ticket_data):
+        from mongodb_models import MongoTicket
+        doc = {
+            'user_id': str(ticket_data.get('user_id')),
+            'order_id': str(ticket_data.get('order_id')) if ticket_data.get('order_id') else None,
+            'ticket_type': ticket_data.get('ticket_type'),
+            'subject': ticket_data.get('subject'),
+            'description': ticket_data.get('description'),
+            'status': ticket_data.get('status', 'open'),
+            'priority': ticket_data.get('priority', 'normal'),
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+        result = MongoTicketRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoTicket.from_doc(doc)
+    
+    @staticmethod
+    def update(ticket_id, update_data):
+        try:
+            update_data['updated_at'] = datetime.utcnow()
+            MongoTicketRepo._get_collection().update_one(
+                {'_id': ObjectId(str(ticket_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def count():
+        return MongoTicketRepo._get_collection().count_documents({})
+    
+    @staticmethod
+    def count_by_status(status):
+        return MongoTicketRepo._get_collection().count_documents({'status': status})
+
+
+class MongoTicketMessageRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['ticket_messages']
+    
+    @staticmethod
+    def find_by_ticket(ticket_id):
+        from mongodb_models import MongoTicketMessage
+        docs = MongoTicketMessageRepo._get_collection().find({'ticket_id': str(ticket_id)}).sort('created_at', 1)
+        messages = []
+        for doc in docs:
+            msg = MongoTicketMessage.from_doc(doc)
+            if msg:
+                msg.author = MongoUserRepo.find_by_id(msg.author_id)
+            messages.append(msg)
+        return messages
+    
+    @staticmethod
+    def create(message_data):
+        from mongodb_models import MongoTicketMessage
+        doc = {
+            'ticket_id': str(message_data.get('ticket_id')),
+            'author_id': str(message_data.get('author_id')),
+            'message': message_data.get('message'),
+            'is_admin_reply': message_data.get('is_admin_reply', False),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoTicketMessageRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        msg = MongoTicketMessage.from_doc(doc)
+        msg.author = MongoUserRepo.find_by_id(msg.author_id)
+        return msg

@@ -309,6 +309,118 @@ class MongoOTPCode:
         return cls(doc)
 
 
+class MongoTicket:
+    collection_name = 'tickets'
+    
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.user_id = data.get('user_id')
+        self.order_id = data.get('order_id')
+        self.ticket_type = data.get('ticket_type')
+        self.subject = data.get('subject')
+        self.description = data.get('description')
+        self.status = data.get('status', 'open')
+        self.priority = data.get('priority', 'normal')
+        self.created_at = data.get('created_at', datetime.utcnow())
+        self.updated_at = data.get('updated_at', datetime.utcnow())
+        self._user = None
+        self._order = None
+        self._messages = []
+    
+    @property
+    def user(self):
+        if self._user is None and self.user_id:
+            from mongo_db import MongoUserRepo
+            self._user = MongoUserRepo.find_by_id(self.user_id)
+        return self._user
+    
+    @user.setter
+    def user(self, value):
+        self._user = value
+    
+    @property
+    def order(self):
+        if self._order is None and self.order_id:
+            from mongo_db import MongoOrderRepo
+            self._order = MongoOrderRepo.find_by_id(self.order_id)
+        return self._order
+    
+    @property
+    def messages(self):
+        return self._messages
+    
+    @messages.setter
+    def messages(self, value):
+        self._messages = value
+    
+    def get_status_badge_class(self):
+        status_classes = {
+            'open': 'bg-primary',
+            'in_progress': 'bg-warning',
+            'resolved': 'bg-success',
+            'closed': 'bg-secondary'
+        }
+        return status_classes.get(self.status, 'bg-secondary')
+    
+    def get_priority_badge_class(self):
+        priority_classes = {
+            'low': 'bg-info',
+            'normal': 'bg-secondary',
+            'high': 'bg-warning',
+            'urgent': 'bg-danger'
+        }
+        return priority_classes.get(self.priority, 'bg-secondary')
+    
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'order_id': self.order_id,
+            'ticket_type': self.ticket_type,
+            'subject': self.subject,
+            'description': self.description,
+            'status': self.status,
+            'priority': self.priority,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+    
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
+class MongoTicketMessage:
+    collection_name = 'ticket_messages'
+    
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.ticket_id = data.get('ticket_id')
+        self.author_id = data.get('author_id')
+        self.message = data.get('message')
+        self.is_admin_reply = data.get('is_admin_reply', False)
+        self.created_at = data.get('created_at', datetime.utcnow())
+        self.author = None
+    
+    def to_dict(self):
+        return {
+            'ticket_id': self.ticket_id,
+            'author_id': self.author_id,
+            'message': self.message,
+            'is_admin_reply': self.is_admin_reply,
+            'created_at': self.created_at
+        }
+    
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
 class CartItem:
     def __init__(self, product_id, quantity, price):
         self.product_id = product_id

@@ -554,3 +554,88 @@ class OTPRepo:
         if otp:
             db.session.delete(otp)
             db.session.commit()
+
+
+class TicketRepo:
+    @staticmethod
+    def find_by_id(ticket_id):
+        from models import Ticket
+        db = get_db()
+        try:
+            return db.session.get(Ticket, int(ticket_id))
+        except (ValueError, TypeError):
+            return None
+    
+    @staticmethod
+    def find_by_user(user_id):
+        from models import Ticket
+        return Ticket.query.filter_by(user_id=int(user_id)).order_by(Ticket.created_at.desc()).all()
+    
+    @staticmethod
+    def find_all(status=None, ticket_type=None):
+        from models import Ticket
+        query = Ticket.query
+        if status:
+            query = query.filter_by(status=status)
+        if ticket_type:
+            query = query.filter_by(ticket_type=ticket_type)
+        return query.order_by(Ticket.created_at.desc()).all()
+    
+    @staticmethod
+    def create(ticket_data):
+        from models import Ticket
+        db = get_db()
+        ticket = Ticket(
+            user_id=int(ticket_data.get('user_id')),
+            order_id=int(ticket_data.get('order_id')) if ticket_data.get('order_id') else None,
+            ticket_type=ticket_data.get('ticket_type'),
+            subject=ticket_data.get('subject'),
+            description=ticket_data.get('description'),
+            status=ticket_data.get('status', 'open'),
+            priority=ticket_data.get('priority', 'normal')
+        )
+        db.session.add(ticket)
+        db.session.commit()
+        return ticket
+    
+    @staticmethod
+    def update(ticket_id, update_data):
+        from models import Ticket
+        db = get_db()
+        ticket = db.session.get(Ticket, int(ticket_id))
+        if ticket:
+            for key, value in update_data.items():
+                setattr(ticket, key, value)
+            ticket.updated_at = datetime.utcnow()
+            db.session.commit()
+    
+    @staticmethod
+    def count():
+        from models import Ticket
+        return Ticket.query.count()
+    
+    @staticmethod
+    def count_by_status(status):
+        from models import Ticket
+        return Ticket.query.filter_by(status=status).count()
+
+
+class TicketMessageRepo:
+    @staticmethod
+    def find_by_ticket(ticket_id):
+        from models import TicketMessage
+        return TicketMessage.query.filter_by(ticket_id=int(ticket_id)).order_by(TicketMessage.created_at.asc()).all()
+    
+    @staticmethod
+    def create(message_data):
+        from models import TicketMessage
+        db = get_db()
+        message = TicketMessage(
+            ticket_id=int(message_data.get('ticket_id')),
+            author_id=int(message_data.get('author_id')),
+            message=message_data.get('message'),
+            is_admin_reply=message_data.get('is_admin_reply', False)
+        )
+        db.session.add(message)
+        db.session.commit()
+        return message

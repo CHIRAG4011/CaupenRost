@@ -147,6 +147,56 @@ class OTPCode(db.Model):
     expires_at = db.Column(db.DateTime, nullable=False)
 
 
+class Ticket(db.Model):
+    __tablename__ = 'tickets'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
+    ticket_type = db.Column(db.String(50), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(50), default='open')
+    priority = db.Column(db.String(20), default='normal')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    messages = db.relationship('TicketMessage', backref='ticket', lazy='dynamic', cascade='all, delete-orphan')
+    user = db.relationship('User', backref=db.backref('tickets', lazy='dynamic'))
+    order = db.relationship('Order', backref=db.backref('tickets', lazy='dynamic'))
+    
+    def get_status_badge_class(self):
+        status_classes = {
+            'open': 'bg-primary',
+            'in_progress': 'bg-warning',
+            'resolved': 'bg-success',
+            'closed': 'bg-secondary'
+        }
+        return status_classes.get(self.status, 'bg-secondary')
+    
+    def get_priority_badge_class(self):
+        priority_classes = {
+            'low': 'bg-info',
+            'normal': 'bg-secondary',
+            'high': 'bg-warning',
+            'urgent': 'bg-danger'
+        }
+        return priority_classes.get(self.priority, 'bg-secondary')
+
+
+class TicketMessage(db.Model):
+    __tablename__ = 'ticket_messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_admin_reply = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    author = db.relationship('User', backref=db.backref('ticket_messages', lazy='dynamic'))
+
+
 class CartItem:
     def __init__(self, product_id, quantity, price):
         self.product_id = product_id
