@@ -137,7 +137,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for product in data_store.products.values() %}
+                                {% for product in products %}
                                 {% if loop.index <= 10 %}
                                 <tr>
                                     <td>
@@ -156,7 +156,7 @@
                                         <span class="badge bg-success">{{ product.stock }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ product.reviews|length }}</td>
+                                    <td>{{ product.reviews.all()|length }}</td>
                                     <td>
                                         {% if product.get_average_rating() > 0 %}
                                         <div class="text-warning">

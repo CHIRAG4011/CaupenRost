@@ -57,7 +57,7 @@
                                 </form>
                             </td>
                             <td>
-                                <span class="badge bg-info">{{ product.reviews|length }} reviews</span>
+                                <span class="badge bg-info">{{ product.reviews.all()|length }} reviews</span>
                                 {% if product.get_average_rating() > 0 %}
                                 <br><small class="text-warning">
                                     ★ {{ "%.1f"|format(product.get_average_rating()) }}

@@ -777,10 +777,12 @@ def admin_analytics():
     
     weekly_visitors = get_weekly_visitors()
     stats = calculate_order_stats()
+    products = ProductRepo.find_all()
     
     return render_template('admin/analytics.html', 
                          weekly_visitors=weekly_visitors,
-                         stats=stats)
+                         stats=stats,
+                         products=products)
 
 @app.route('/admin/users')
 def admin_users():
