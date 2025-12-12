@@ -78,8 +78,15 @@ def send_otp_email(to_email, otp, purpose='verification'):
         logging.debug(f"Mail server: {mail_server}:{mail_port}, Username configured: {bool(mail_username)}")
         
         if not mail_username or not mail_password:
-            logging.error("Mail credentials not configured - MAIL_USERNAME and MAIL_PASSWORD required")
-            return False
+            logging.warning("Mail credentials not configured - LOCAL DEV MODE: OTP displayed in logs")
+            logging.info(f"=== LOCAL DEV MODE === OTP for {to_email} ({purpose}): {otp}")
+            print(f"\n{'='*50}")
+            print(f"LOCAL DEV MODE - Email not sent")
+            print(f"OTP Code: {otp}")
+            print(f"Email: {to_email}")
+            print(f"Purpose: {purpose}")
+            print(f"{'='*50}\n")
+            return True
         
         if purpose == 'registration':
             subject = "Verify Your Email - CaupenRost"
