@@ -65,3 +65,16 @@ Preferred communication style: Simple, everyday language.
 
 ### Typography
 - **Google Fonts**: Playfair Display, Poppins, Dancing Script.
+
+## Recent Changes (December 2025)
+
+### Local Development & MongoDB Compatibility
+- **Improved data initialization**: Categories and products are now seeded independently, with backfill logic for category_id
+- **Enhanced MongoDB support**: Added missing methods (exists_by_name_exclude, find_recent, get_product_count)
+- **CLI database seeding**: Updated init_data.py with --reset and --mongo flags for flexible database management
+- **Order item compatibility**: Fixed order tracking to handle both dict and object-based item access
+- **Updated LOCAL_SETUP_GUIDE.md**: Comprehensive instructions for SQLite, PostgreSQL, and MongoDB backends
+
+### Email Configuration
+- Uses Gmail SMTP for OTP verification emails
+- Requires MAIL_USERNAME and MAIL_PASSWORD secrets to be set

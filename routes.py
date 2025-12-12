@@ -618,13 +618,22 @@ def order_tracking(order_id):
     
     order_items = []
     for item in order.items:
-        product = ProductRepo.find_by_id(item['product_id'])
+        if isinstance(item, dict):
+            product_id = item.get('product_id')
+            quantity = item.get('quantity', 1)
+            price = item.get('price', 0)
+        else:
+            product_id = getattr(item, 'product_id', None)
+            quantity = getattr(item, 'quantity', 1)
+            price = getattr(item, 'price', 0)
+        
+        product = ProductRepo.find_by_id(product_id)
         if product:
             order_items.append({
                 'product': product,
-                'quantity': item['quantity'],
-                'price': item['price'],
-                'total': item['quantity'] * item['price']
+                'quantity': quantity,
+                'price': price,
+                'total': quantity * price
             })
     
     return render_template('user/order_detail.html', order=order, order_items=order_items)

@@ -1,251 +1,192 @@
 #!/usr/bin/env python3
 """
 Initialize the database with sample data for CaupenRost
+Supports both SQLAlchemy (SQLite/PostgreSQL) and MongoDB backends.
+
+Usage:
+    python init_data.py              # Initialize/seed database
+    python init_data.py --reset      # Drop all data and reinitialize
+    python init_data.py --mongo      # Force MongoDB mode (requires MONGO_URI env var)
 """
 
-from app import app, db
-from models import User, Product, Order, Review, Address, OrderItem, VisitorLog
-from werkzeug.security import generate_password_hash
-from datetime import datetime, timedelta
+import os
+import sys
 import logging
+from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
-def init_database():
-    """Initialize database with sample data"""
-    with app.app_context():
-        # Drop all tables and recreate them
-        db.drop_all()
-        db.create_all()
+USE_MONGODB = bool(os.environ.get('MONGO_URI')) or '--mongo' in sys.argv
+RESET_DB = '--reset' in sys.argv
+
+
+def init_mongodb():
+    """Initialize MongoDB with sample data"""
+    from mongo_db import (MongoUserRepo, MongoCategoryRepo, MongoProductRepo,
+                         MongoOrderRepo, MongoReviewRepo, MongoAddressRepo,
+                         MongoVisitorLogRepo, get_mongo_db)
+    
+    db = get_mongo_db()
+    
+    if RESET_DB:
+        logger.info("Resetting MongoDB collections...")
+        db['users'].delete_many({})
+        db['categories'].delete_many({})
+        db['products'].delete_many({})
+        db['orders'].delete_many({})
+        db['reviews'].delete_many({})
+        db['addresses'].delete_many({})
+        db['visitor_logs'].delete_many({})
+        db['otp_codes'].delete_many({})
+    
+    if MongoUserRepo.count() == 0:
+        logger.info("Creating admin user...")
+        MongoUserRepo.create({
+            'username': 'admin',
+            'email': 'opgaming565710@gmail.com',
+            'password_hash': generate_password_hash('admin123'),
+            'is_admin': True
+        })
         
-        # Create admin user
-        admin_user = User(
-            username='admin',
-            email='opgaming565710@gmail.com',
-            password_hash=generate_password_hash('admin123'),
-            is_admin=True
-        )
-        db.session.add(admin_user)
-        
-        # Create some regular users
+        logger.info("Creating sample users...")
         users = [
-            User(username='john_doe', email='john@example.com', password_hash=generate_password_hash('password123')),
-            User(username='sarah_baker', email='sarah@example.com', password_hash=generate_password_hash('password123')),
-            User(username='mike_sweet', email='mike@example.com', password_hash=generate_password_hash('password123'))
+            {'username': 'john_doe', 'email': 'john@example.com', 'password_hash': generate_password_hash('Password1!')},
+            {'username': 'sarah_baker', 'email': 'sarah@example.com', 'password_hash': generate_password_hash('Password1!')},
         ]
-        
-        for user in users:
-            db.session.add(user)
-        
-        # Create sample products (in INR)
+        for user_data in users:
+            MongoUserRepo.create(user_data)
+    
+    if MongoCategoryRepo.count() == 0:
+        logger.info("Creating categories...")
+        categories = [
+            {'name': 'Bread', 'description': 'Fresh artisan breads, rolls, and baked goods made daily with premium ingredients.', 'image_url': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'},
+            {'name': 'Pastries', 'description': 'Buttery, flaky pastries and croissants made with traditional French techniques.', 'image_url': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'},
+            {'name': 'Muffins', 'description': 'Moist and fluffy muffins with various flavors and mix-ins to start your day right.', 'image_url': 'https://images.unsplash.com/photo-1587241321921-91a834d6d191?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'},
+            {'name': 'Desserts', 'description': 'Decadent desserts, tarts, and sweet treats perfect for any special occasion.', 'image_url': 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'},
+        ]
+        for cat_data in categories:
+            MongoCategoryRepo.create(cat_data)
+    
+    if MongoProductRepo.count() == 0:
+        logger.info("Creating products...")
         products = [
-            Product(
-                name='Chocolate Truffle Cake',
-                description='Rich and decadent chocolate cake with chocolate ganache',
-                price=850.00,
-                category='Cakes',
-                image_url='https://cdn.pixabay.com/photo/2016/11/22/18/54/cake-1851142_1280.jpg',
-                stock=15
-            ),
-            Product(
-                name='Vanilla Bean Cupcakes',
-                description='Classic vanilla cupcakes with buttercream frosting',
-                price=120.00,
-                category='Cupcakes',
-                image_url='https://cdn.pixabay.com/photo/2018/04/11/16/39/cupcake-3309789_1280.jpg',
-                stock=24
-            ),
-            Product(
-                name='Fresh Strawberry Tart',
-                description='Buttery pastry shell filled with pastry cream and fresh strawberries',
-                price=450.00,
-                category='Tarts',
-                image_url='https://cdn.pixabay.com/photo/2017/05/01/05/18/pastry-2274750_1280.jpg',
-                stock=8
-            ),
-            Product(
-                name='Artisan Sourdough Bread',
-                description='Freshly baked sourdough with a perfect crust',
-                price=180.00,
-                category='Bread',
-                image_url='https://cdn.pixabay.com/photo/2017/06/23/23/58/bread-2434370_1280.jpg',
-                stock=12
-            ),
-            Product(
-                name='Red Velvet Cake',
-                description='Classic red velvet cake with cream cheese frosting',
-                price=920.00,
-                category='Cakes',
-                image_url='https://cdn.pixabay.com/photo/2018/02/21/03/19/cake-3169966_1280.jpg',
-                stock=10
-            ),
-            Product(
-                name='Chocolate Chip Cookies',
-                description='Homemade chocolate chip cookies - pack of 12',
-                price=280.00,
-                category='Cookies',
-                image_url='https://cdn.pixabay.com/photo/2014/07/08/12/34/cookies-386761_1280.jpg',
-                stock=30
-            ),
-            Product(
-                name='Lemon Meringue Pie',
-                description='Tangy lemon curd topped with fluffy meringue',
-                price=650.00,
-                category='Pies',
-                image_url='https://cdn.pixabay.com/photo/2017/01/11/11/33/cake-1971552_1280.jpg',
-                stock=6
-            ),
-            Product(
-                name='Cinnamon Rolls',
-                description='Warm cinnamon rolls with glaze - pack of 6',
-                price=320.00,
-                category='Pastries',
-                image_url='https://cdn.pixabay.com/photo/2016/03/27/22/16/cinnamon-roll-1284543_1280.jpg',
-                stock=18
-            ),
-            Product(
-                name='Black Forest Cake',
-                description='Chocolate sponge with cherries and whipped cream',
-                price=1050.00,
-                category='Cakes',
-                image_url='https://cdn.pixabay.com/photo/2017/01/11/11/33/cake-1971555_1280.jpg',
-                stock=8
-            ),
-            Product(
-                name='Apple Pie',
-                description='Traditional apple pie with lattice crust',
-                price=580.00,
-                category='Pies',
-                image_url='https://cdn.pixabay.com/photo/2016/03/05/20/02/apple-pie-1238510_1280.jpg',
-                stock=12
-            ),
-            Product(
-                name='Blueberry Muffins',
-                description='Fresh blueberry muffins - pack of 6',
-                price=240.00,
-                category='Muffins',
-                image_url='https://cdn.pixabay.com/photo/2014/07/08/12/35/muffin-386646_1280.jpg',
-                stock=20
-            ),
-            Product(
-                name='Cheesecake',
-                description='New York style cheesecake with berry compote',
-                price=750.00,
-                category='Cakes',
-                image_url='https://cdn.pixabay.com/photo/2017/05/12/08/29/cheesecake-2306966_1280.jpg',
-                stock=9
-            )
+            {'name': 'Artisan Sourdough Bread', 'description': 'Traditional sourdough bread made with our signature starter.', 'price': 89.99, 'category': 'Bread', 'image_url': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73', 'stock': 15},
+            {'name': 'Fresh Croissants', 'description': 'Buttery, flaky croissants made fresh daily with premium French butter.', 'price': 129.99, 'category': 'Pastries', 'image_url': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587', 'stock': 24},
+            {'name': 'Chocolate Chip Muffins', 'description': 'Moist and fluffy muffins loaded with premium chocolate chips.', 'price': 159.99, 'category': 'Muffins', 'image_url': 'https://images.unsplash.com/photo-1587241321921-91a834d6d191', 'stock': 18},
+            {'name': 'Fruit Tarts', 'description': 'Beautiful individual fruit tarts with pastry cream and fresh seasonal fruits.', 'price': 229.99, 'category': 'Desserts', 'image_url': 'https://images.unsplash.com/photo-1551024506-0bccd828d307', 'stock': 8},
+            {'name': 'Cinnamon Rolls', 'description': 'Soft, gooey cinnamon rolls with cream cheese frosting.', 'price': 149.99, 'category': 'Pastries', 'image_url': 'https://images.unsplash.com/photo-1509440159596-0249088772ff', 'stock': 16},
+            {'name': 'Whole Wheat Rolls', 'description': 'Healthy whole wheat dinner rolls, perfect for any meal.', 'price': 69.99, 'category': 'Bread', 'image_url': 'https://images.unsplash.com/photo-1508737804141-4c3b688e2546', 'stock': 20},
         ]
+        for product_data in products:
+            cat = MongoCategoryRepo.find_by_name(product_data['category'])
+            if cat:
+                product_data['category_id'] = str(cat.id)
+            MongoProductRepo.create(product_data)
+    else:
+        logger.info("Backfilling missing category_id for existing products...")
+        all_products = MongoProductRepo.find_all()
+        for product in all_products:
+            if not product.category_id and product.category:
+                cat = MongoCategoryRepo.find_by_name(product.category)
+                if cat:
+                    MongoProductRepo.update(product.id, {'category_id': str(cat.id)})
+    
+    logger.info("MongoDB initialization complete!")
+    logger.info("Admin login: admin / admin123")
+    logger.info("Sample user login: john_doe / Password1!")
+
+
+def init_sqlalchemy():
+    """Initialize SQLAlchemy database with sample data"""
+    from app import app, db
+    from models import User, Category, Product, Order, OrderItem, Review, Address, VisitorLog
+    
+    with app.app_context():
+        if RESET_DB:
+            logger.info("Resetting SQLAlchemy database...")
+            db.drop_all()
+            db.create_all()
+        else:
+            db.create_all()
         
-        for product in products:
-            db.session.add(product)
-        
-        # Commit users and products first
-        db.session.commit()
-        
-        # Create sample addresses
-        addresses = [
-            Address(
-                user_id=users[0].id,
-                name='John Doe',
-                street='123 Main Street',
-                city='Mumbai',
-                state='Maharashtra',
-                zip_code='400001'
-            ),
-            Address(
-                user_id=users[1].id,
-                name='Sarah Baker',
-                street='456 Oak Avenue',
-                city='Delhi',
-                state='Delhi',
-                zip_code='110001'
+        if User.query.count() == 0:
+            logger.info("Creating admin user...")
+            admin_user = User(
+                username='admin',
+                email='opgaming565710@gmail.com',
+                password_hash=generate_password_hash('admin123'),
+                is_admin=True
             )
-        ]
+            db.session.add(admin_user)
+            
+            logger.info("Creating sample users...")
+            users = [
+                User(username='john_doe', email='john@example.com', password_hash=generate_password_hash('Password1!')),
+                User(username='sarah_baker', email='sarah@example.com', password_hash=generate_password_hash('Password1!')),
+            ]
+            for user in users:
+                db.session.add(user)
+            db.session.commit()
         
-        for address in addresses:
-            db.session.add(address)
+        if Category.query.count() == 0:
+            logger.info("Creating categories...")
+            categories = [
+                Category(name='Bread', description='Fresh artisan breads, rolls, and baked goods made daily with premium ingredients.', image_url='https://images.unsplash.com/photo-1549931319-a545dcf3bc73?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+                Category(name='Pastries', description='Buttery, flaky pastries and croissants made with traditional French techniques.', image_url='https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+                Category(name='Muffins', description='Moist and fluffy muffins with various flavors and mix-ins to start your day right.', image_url='https://images.unsplash.com/photo-1587241321921-91a834d6d191?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+                Category(name='Desserts', description='Decadent desserts, tarts, and sweet treats perfect for any special occasion.', image_url='https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+            ]
+            for cat in categories:
+                db.session.add(cat)
+            db.session.commit()
         
-        # Create sample orders
-        sample_order = Order(
-            user_id=users[0].id,
-            total=1170.00,
-            status='delivered',
-            created_at=datetime.utcnow() - timedelta(days=2)
-        )
-        db.session.add(sample_order)
-        db.session.commit()
+        if Product.query.count() == 0:
+            logger.info("Creating products...")
+            bread_cat = Category.query.filter_by(name='Bread').first()
+            pastries_cat = Category.query.filter_by(name='Pastries').first()
+            muffins_cat = Category.query.filter_by(name='Muffins').first()
+            desserts_cat = Category.query.filter_by(name='Desserts').first()
+            
+            products = [
+                Product(name='Artisan Sourdough Bread', description='Traditional sourdough bread made with our signature starter.', price=89.99, category='Bread', category_id=bread_cat.id if bread_cat else None, image_url='https://images.unsplash.com/photo-1549931319-a545dcf3bc73', stock=15),
+                Product(name='Fresh Croissants', description='Buttery, flaky croissants made fresh daily with premium French butter.', price=129.99, category='Pastries', category_id=pastries_cat.id if pastries_cat else None, image_url='https://images.unsplash.com/photo-1578985545062-69928b1d9587', stock=24),
+                Product(name='Chocolate Chip Muffins', description='Moist and fluffy muffins loaded with premium chocolate chips.', price=159.99, category='Muffins', category_id=muffins_cat.id if muffins_cat else None, image_url='https://images.unsplash.com/photo-1587241321921-91a834d6d191', stock=18),
+                Product(name='Fruit Tarts', description='Beautiful individual fruit tarts with pastry cream and fresh seasonal fruits.', price=229.99, category='Desserts', category_id=desserts_cat.id if desserts_cat else None, image_url='https://images.unsplash.com/photo-1551024506-0bccd828d307', stock=8),
+                Product(name='Cinnamon Rolls', description='Soft, gooey cinnamon rolls with cream cheese frosting.', price=149.99, category='Pastries', category_id=pastries_cat.id if pastries_cat else None, image_url='https://images.unsplash.com/photo-1509440159596-0249088772ff', stock=16),
+                Product(name='Whole Wheat Rolls', description='Healthy whole wheat dinner rolls, perfect for any meal.', price=69.99, category='Bread', category_id=bread_cat.id if bread_cat else None, image_url='https://images.unsplash.com/photo-1508737804141-4c3b688e2546', stock=20),
+            ]
+            for product in products:
+                db.session.add(product)
+            db.session.commit()
         
-        # Create order items
-        order_items = [
-            OrderItem(
-                order_id=sample_order.id,
-                product_id=products[0].id,  # Chocolate Truffle Cake
-                quantity=1,
-                price=products[0].price
-            ),
-            OrderItem(
-                order_id=sample_order.id,
-                product_id=products[5].id,  # Chocolate Chip Cookies
-                quantity=1,
-                price=products[5].price
-            )
-        ]
-        
-        for item in order_items:
-            db.session.add(item)
-        
-        # Create sample reviews
-        reviews = [
-            Review(
-                product_id=products[0].id,
-                user_id=users[0].id,
-                rating=5,
-                comment='Amazing chocolate cake! Rich and delicious.',
-                created_at=datetime.utcnow() - timedelta(days=1)
-            ),
-            Review(
-                product_id=products[1].id,
-                user_id=users[1].id,
-                rating=4,
-                comment='Lovely vanilla cupcakes, kids loved them!',
-                created_at=datetime.utcnow() - timedelta(hours=12)
-            ),
-            Review(
-                product_id=products[0].id,
-                user_id=users[2].id,
-                rating=5,
-                comment='Best chocolate cake in the city!',
-                created_at=datetime.utcnow() - timedelta(hours=6)
-            )
-        ]
-        
-        for review in reviews:
-            db.session.add(review)
-        
-        # Create sample visitor logs
-        for i in range(50):
-            visitor_log = VisitorLog(
-                ip_address=f'192.168.1.{i + 100}',
-                user_agent='Mozilla/5.0 (compatible sample)',
-                timestamp=datetime.utcnow() - timedelta(hours=i)
-            )
-            db.session.add(visitor_log)
-        
-        # Commit all changes
-        db.session.commit()
-        
-        logging.info("Database initialized successfully!")
-        logging.info(f"Created {len(users) + 1} users (including admin)")
-        logging.info(f"Created {len(products)} products")
-        logging.info(f"Created {len(addresses)} addresses")
-        logging.info(f"Created 1 sample order with {len(order_items)} items")
-        logging.info(f"Created {len(reviews)} reviews")
-        logging.info("Created 50 visitor log entries")
-        
-        print("Database initialization complete!")
-        print("Admin login: admin / admin123")
-        print("Sample user login: john_doe / password123")
+        logger.info("SQLAlchemy database initialization complete!")
+        logger.info("Admin login: admin / admin123")
+        logger.info("Sample user login: john_doe / Password1!")
+
+
+def main():
+    """Main entry point"""
+    print("=" * 50)
+    print("CaupenRost Database Initialization")
+    print("=" * 50)
+    
+    if USE_MONGODB:
+        if not os.environ.get('MONGO_URI'):
+            logger.error("MONGO_URI environment variable is required for MongoDB mode")
+            logger.info("Set MONGO_URI=mongodb://localhost:27017/caupenrost")
+            sys.exit(1)
+        logger.info("Using MongoDB backend")
+        init_mongodb()
+    else:
+        logger.info("Using SQLAlchemy backend (SQLite/PostgreSQL)")
+        init_sqlalchemy()
+    
+    print("=" * 50)
+    print("Initialization complete!")
+    print("=" * 50)
+
 
 if __name__ == '__main__':
-    init_database()
+    main()

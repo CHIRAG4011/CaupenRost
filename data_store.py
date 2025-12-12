@@ -22,19 +22,26 @@ def init_data_store():
     UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo = get_repos()
     
     try:
-        if UserRepo.count() > 0:
-            return
+        user_count = UserRepo.count()
+        category_count = CategoryRepo.count()
+        product_count = ProductRepo.count()
     except Exception as e:
         logging.warning(f"Database not available, skipping data initialization: {e}")
         return
 
-    UserRepo.create({
-        'username': 'admin',
-        'email': 'opgaming565710@gmail.com',
-        'password_hash': generate_password_hash('admin123'),
-        'is_admin': True
-    })
-
+    if user_count == 0:
+        logging.info("Creating admin user...")
+        UserRepo.create({
+            'username': 'admin',
+            'email': 'opgaming565710@gmail.com',
+            'password_hash': generate_password_hash('admin123'),
+            'is_admin': True
+        })
+    
+    if category_count > 0 and product_count > 0:
+        logging.info("Database already has categories and products, skipping sample data.")
+        return
+    
     categories_data = [{
         'name': 'Bread',
         'description': 'Fresh artisan breads, rolls, and baked goods made daily with premium ingredients.',
@@ -53,8 +60,10 @@ def init_data_store():
         'image_url': 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     }]
 
-    for cat_data in categories_data:
-        CategoryRepo.create(cat_data)
+    if category_count == 0:
+        logging.info("Seeding categories...")
+        for cat_data in categories_data:
+            CategoryRepo.create(cat_data)
 
     products_data = [{
         'name': 'Artisan Sourdough Bread',
@@ -114,11 +123,21 @@ def init_data_store():
         'stock': 8
     }]
 
-    for product_data in products_data:
-        cat = CategoryRepo.find_by_name(product_data['category'])
-        if cat:
-            product_data['category_id'] = cat.id
-        ProductRepo.create(product_data)
+    if product_count == 0:
+        logging.info("Seeding products...")
+        for product_data in products_data:
+            cat = CategoryRepo.find_by_name(product_data['category'])
+            if cat:
+                product_data['category_id'] = cat.id
+            ProductRepo.create(product_data)
+    else:
+        logging.info("Backfilling missing category_id for existing products...")
+        all_products = ProductRepo.find_all()
+        for product in all_products:
+            if not getattr(product, 'category_id', None) and getattr(product, 'category', None):
+                cat = CategoryRepo.find_by_name(product.category)
+                if cat:
+                    ProductRepo.update(product.id, {'category_id': cat.id})
 
 
 def add_visitor_log(ip_address, user_agent, page=None):

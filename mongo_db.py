@@ -181,6 +181,17 @@ class MongoCategoryRepo:
     @staticmethod
     def count():
         return MongoCategoryRepo._get_collection().count_documents({})
+    
+    @staticmethod
+    def exists_by_name_exclude(name, exclude_id):
+        """Check if category with name exists, excluding a specific ID"""
+        query = {'name': {'$regex': f'^{name}$', '$options': 'i'}}
+        if exclude_id:
+            try:
+                query['_id'] = {'$ne': ObjectId(str(exclude_id))}
+            except:
+                pass
+        return MongoCategoryRepo._get_collection().find_one(query) is not None
 
 
 class MongoProductRepo:
@@ -372,6 +383,13 @@ class MongoOrderRepo:
         pipeline = [{'$group': {'_id': None, 'total': {'$sum': '$total'}}}]
         result = list(MongoOrderRepo._get_collection().aggregate(pipeline))
         return result[0]['total'] if result else 0
+    
+    @staticmethod
+    def find_recent(limit=10):
+        """Find most recent orders"""
+        from mongodb_models import MongoOrder
+        docs = MongoOrderRepo._get_collection().find().sort('created_at', -1).limit(limit)
+        return [MongoOrder.from_doc(doc) for doc in docs]
 
 
 class MongoReviewRepo:

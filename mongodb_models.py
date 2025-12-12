@@ -64,6 +64,12 @@ class MongoCategory:
         self.is_active = data.get('is_active', True)
         self.created_at = data.get('created_at', datetime.utcnow())
     
+    def get_product_count(self):
+        """Get count of products in this category"""
+        from mongo_db import MongoProductRepo
+        products = MongoProductRepo.find_by_category(self.name)
+        return len(products) if products else 0
+    
     def to_dict(self):
         return {
             'name': self.name,
