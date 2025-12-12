@@ -3,6 +3,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from bson import ObjectId
 
 
+class ReviewsList(list):
+    """Wrapper around list to provide .all() method for SQLAlchemy compatibility"""
+    def all(self):
+        return list(self)
+
+
 class MongoUser:
     collection_name = 'users'
     
@@ -88,6 +94,13 @@ class MongoProduct:
         self.image_url = data.get('image_url')
         self.stock = data.get('stock', 0)
         self.created_at = data.get('created_at', datetime.utcnow())
+        self.reviews = ReviewsList()
+    
+    def get_average_rating(self):
+        if not self.reviews:
+            return 0
+        total = sum(r.rating for r in self.reviews)
+        return total / len(self.reviews) if self.reviews else 0
     
     def to_dict(self):
         return {
@@ -108,6 +121,18 @@ class MongoProduct:
         return cls(doc)
 
 
+class OrderItem:
+    """Wrapper to make order item dicts accessible as objects with attributes"""
+    def __init__(self, data):
+        self.product_id = data.get('product_id')
+        self.name = data.get('name', 'Product')
+        self.quantity = data.get('quantity', 1)
+        self.price = data.get('price', 0)
+    
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+
 class MongoOrder:
     collection_name = 'orders'
     
@@ -121,11 +146,20 @@ class MongoOrder:
         self.payment_method = data.get('payment_method')
         self.created_at = data.get('created_at', datetime.utcnow())
         self.updated_at = data.get('updated_at', datetime.utcnow())
-        self.items = data.get('items', [])
+        raw_items = data.get('items', [])
+        self.items = [OrderItem(item) if isinstance(item, dict) else item for item in raw_items]
+        self._user = None
     
     def update_status(self, new_status):
         self.status = new_status
         self.updated_at = datetime.utcnow()
+    
+    @property
+    def user(self):
+        if self._user is None and self.user_id:
+            from mongo_db import MongoUserRepo
+            self._user = MongoUserRepo.find_by_id(self.user_id)
+        return self._user
     
     def to_dict(self):
         return {
@@ -136,7 +170,7 @@ class MongoOrder:
             'payment_method': self.payment_method,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
-            'items': self.items
+            'items': [{'product_id': i.product_id, 'name': i.name, 'quantity': i.quantity, 'price': i.price} for i in self.items]
         }
     
     @classmethod

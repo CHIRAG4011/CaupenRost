@@ -40,9 +40,8 @@
                             <h6>Order Items:</h6>
                             <ul class="list-unstyled">
                                 {% for item in order.items %}
-                                {% set product = data_store.products[item.product_id] %}
                                 <li class="mb-1">
-                                    {{ item.quantity }}x {{ product.name }} - ₹{{ "%.2f"|format(item.price) }} each
+                                    {{ item.quantity }}x {{ item.name if item.name else 'Product' }} - ₹{{ "%.2f"|format(item.price) }} each
                                 </li>
                                 {% endfor %}
                             </ul>

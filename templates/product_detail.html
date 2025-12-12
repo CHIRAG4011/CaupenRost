@@ -209,15 +209,19 @@
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-circle bg-brown text-white rounded-circle d-flex align-items-center justify-content-center" 
                                              style="width: 45px; height: 45px; font-weight: 600;">
-                                            {% for user in data_store.users.values() if user.id == review.user_id %}
-                                            {{ user.username[0]|upper }}
-                                            {% endfor %}
+                                            {% if review.user %}
+                                            {{ review.user.username[0]|upper }}
+                                            {% else %}
+                                            U
+                                            {% endif %}
                                         </div>
                                         <div>
                                             <h6 class="mb-0">
-                                                {% for user in data_store.users.values() if user.id == review.user_id %}
-                                                {{ user.username }}
-                                                {% endfor %}
+                                                {% if review.user %}
+                                                {{ review.user.username }}
+                                                {% else %}
+                                                Unknown User
+                                                {% endif %}
                                             </h6>
                                             <div class="product-rating">
                                                 {% for i in range(5) %}

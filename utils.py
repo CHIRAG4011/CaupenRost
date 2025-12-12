@@ -1,8 +1,12 @@
 from flask import session
 from flask_mail import Message
-from app import mail
-from db import UserRepo, ProductRepo, OrderRepo
+from app import mail, USE_MONGODB
 import logging
+
+if USE_MONGODB:
+    from mongo_db import MongoUserRepo as UserRepo, MongoProductRepo as ProductRepo, MongoOrderRepo as OrderRepo
+else:
+    from db import UserRepo, ProductRepo, OrderRepo
 
 def get_current_user():
     """Get current logged-in user"""

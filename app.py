@@ -1,8 +1,6 @@
 import os
 import logging
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 try:
@@ -13,48 +11,62 @@ except ImportError:
 
 logging.basicConfig(level=logging.DEBUG)
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
-
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-database_url = os.environ.get("DATABASE_URL")
-if not database_url:
-    pg_host = os.environ.get("PGHOST")
-    pg_port = os.environ.get("PGPORT", "5432")
-    pg_user = os.environ.get("PGUSER")
-    pg_password = os.environ.get("PGPASSWORD", "")
-    pg_database = os.environ.get("PGDATABASE")
-    if pg_host and pg_user and pg_database:
-        from urllib.parse import quote_plus
-        password_encoded = quote_plus(pg_password) if pg_password else ""
-        database_url = f"postgresql://{pg_user}:{password_encoded}@{pg_host}:{pg_port}/{pg_database}"
+db = None
+USE_MONGODB = bool(os.environ.get('MONGO_URI'))
 
-if not database_url:
-    logging.warning("DATABASE_URL not set, using SQLite as fallback")
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
-    database_url = f"sqlite:///{os.path.join(basedir, 'instance', 'app.db')}"
-
-logging.info(f"Using database URL: {database_url[:50]}..." if len(database_url) > 50 else f"Using database URL: {database_url}")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
-if database_url.startswith("sqlite"):
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
+if USE_MONGODB:
+    logging.info("MongoDB mode enabled - using MONGO_URI")
+    try:
+        from mongo_db import get_mongo_db
+        mongo_db = get_mongo_db()
+        logging.info("MongoDB connection established successfully")
+    except Exception as e:
+        logging.error(f"Failed to connect to MongoDB: {e}")
+        raise
 else:
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-    }
+    from flask_sqlalchemy import SQLAlchemy
+    from sqlalchemy.orm import DeclarativeBase
 
-db.init_app(app)
+    class Base(DeclarativeBase):
+        pass
+
+    db = SQLAlchemy(model_class=Base)
+
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        pg_host = os.environ.get("PGHOST")
+        pg_port = os.environ.get("PGPORT", "5432")
+        pg_user = os.environ.get("PGUSER")
+        pg_password = os.environ.get("PGPASSWORD", "")
+        pg_database = os.environ.get("PGDATABASE")
+        if pg_host and pg_user and pg_database:
+            from urllib.parse import quote_plus
+            password_encoded = quote_plus(pg_password) if pg_password else ""
+            database_url = f"postgresql://{pg_user}:{password_encoded}@{pg_host}:{pg_port}/{pg_database}"
+
+    if not database_url:
+        logging.warning("DATABASE_URL not set, using SQLite as fallback")
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
+        database_url = f"sqlite:///{os.path.join(basedir, 'instance', 'app.db')}"
+
+    logging.info(f"Using database URL: {database_url[:50]}..." if len(database_url) > 50 else f"Using database URL: {database_url}")
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+    if database_url.startswith("sqlite"):
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
+    else:
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_recycle": 300,
+            "pool_pre_ping": True,
+        }
+
+    db.init_app(app)
 
 from flask_mail import Mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -73,8 +85,9 @@ def initialize_database():
 
 
 with app.app_context():
-    import models  # noqa: F401
-    db.create_all()
+    if not USE_MONGODB:
+        import models  # noqa: F401
+        db.create_all()
     initialize_database()
 
 from routes import *

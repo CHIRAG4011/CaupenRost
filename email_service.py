@@ -13,9 +13,20 @@ def generate_otp(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
 
+def get_otp_repo():
+    """Get the appropriate OTP repository based on database backend"""
+    import os
+    if os.environ.get('MONGO_URI'):
+        from mongo_db import MongoOTPRepo
+        return MongoOTPRepo
+    else:
+        from db import OTPRepo
+        return OTPRepo
+
+
 def store_otp(email, otp, purpose='verification', expiry_minutes=10):
     """Store OTP in database"""
-    from db import OTPRepo
+    OTPRepo = get_otp_repo()
     
     OTPRepo.delete_by_email_purpose(email, purpose)
     
@@ -30,7 +41,7 @@ def store_otp(email, otp, purpose='verification', expiry_minutes=10):
 
 def verify_otp(email, otp, purpose='verification'):
     """Verify OTP for given email and purpose"""
-    from db import OTPRepo
+    OTPRepo = get_otp_repo()
     
     stored = OTPRepo.find_by_email_purpose(email, purpose)
     

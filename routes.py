@@ -1,15 +1,23 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app
-from db import (UserRepo, ProductRepo, OrderRepo, CategoryRepo, ReviewRepo, 
-                AddressRepo, VisitorLogRepo)
+from app import app, USE_MONGODB
+import logging
+from datetime import datetime
+
+if USE_MONGODB:
+    from mongo_db import (MongoUserRepo as UserRepo, MongoProductRepo as ProductRepo, 
+                         MongoOrderRepo as OrderRepo, MongoCategoryRepo as CategoryRepo, 
+                         MongoReviewRepo as ReviewRepo, MongoAddressRepo as AddressRepo, 
+                         MongoVisitorLogRepo as VisitorLogRepo)
+else:
+    from db import (UserRepo, ProductRepo, OrderRepo, CategoryRepo, ReviewRepo, 
+                    AddressRepo, VisitorLogRepo)
+
 from data_store import add_visitor_log, get_weekly_visitors
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
                   get_cart_total, get_cart_count, clear_cart, send_order_confirmation_email,
                   calculate_order_stats, search_products, get_cart)
 from email_service import send_and_store_otp, verify_otp
-import logging
-from datetime import datetime
 
 @app.before_request
 def log_visitor():

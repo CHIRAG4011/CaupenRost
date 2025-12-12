@@ -68,18 +68,19 @@
                                 <strong>#{{ order.id }}</strong>
                             </td>
                             <td>
-                                {% for user in data_store.users.values() if user.id == order.user_id %}
+                                {% if order.user %}
                                 <div>
-                                    <strong>{{ user.username }}</strong>
-                                    <br><small class="text-muted">{{ user.email }}</small>
+                                    <strong>{{ order.user.username }}</strong>
+                                    <br><small class="text-muted">{{ order.user.email }}</small>
                                 </div>
-                                {% endfor %}
+                                {% else %}
+                                <div><strong>Unknown User</strong></div>
+                                {% endif %}
                             </td>
                             <td>
                                 <small>
                                     {% for item in order.items %}
-                                    {% set product = data_store.products.get(item.product_id) if item.product_id else none %}
-                                    {{ item.quantity }}x {{ product.name[:20] if product else "Unknown Product" }}{% if not loop.last %},<br>{% endif %}
+                                    {{ item.quantity }}x {{ item.get('name', 'Product')[:20] if item.get('name') else "Product" }}{% if not loop.last %},<br>{% endif %}
                                     {% endfor %}
                                 </small>
                             </td>
@@ -149,12 +150,14 @@
                 <div class="row">
                     <div class="col-md-6">
                         <h6>Customer Information</h6>
-                        {% for user in data_store.users.values() if user.id == order.user_id %}
+                        {% if order.user %}
                         <p>
-                            <strong>Name:</strong> {{ user.username }}<br>
-                            <strong>Email:</strong> {{ user.email }}
+                            <strong>Name:</strong> {{ order.user.username }}<br>
+                            <strong>Email:</strong> {{ order.user.email }}
                         </p>
-                        {% endfor %}
+                        {% else %}
+                        <p><strong>Unknown User</strong></p>
+                        {% endif %}
                         
                         <h6>Delivery Address</h6>
                         <p>{{ order.shipping_address }}</p>
@@ -192,9 +195,8 @@
                         </thead>
                         <tbody>
                             {% for item in order.items %}
-                            {% set product = data_store.products[item.product_id] %}
                             <tr>
-                                <td>{{ product.name }}</td>
+                                <td>{{ item.name if item.name else 'Product' }}</td>
                                 <td>{{ item.quantity }}</td>
                                 <td>₹{{ "%.2f"|format(item.price) }}</td>
                                 <td>₹{{ "%.2f"|format(item.quantity * item.price) }}</td>

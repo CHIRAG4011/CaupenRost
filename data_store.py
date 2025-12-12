@@ -1,13 +1,25 @@
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash
+import os
 
 data_store = {'otp_codes': {}}
 
 
+def get_repos():
+    """Get the appropriate repositories based on database backend"""
+    if os.environ.get('MONGO_URI'):
+        from mongo_db import MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
+        return MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
+    else:
+        from db import UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo
+        return UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo
+
+
 def init_data_store():
     """Initialize the database with sample data if empty"""
-    from db import UserRepo, CategoryRepo, ProductRepo
     import logging
+    
+    UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo = get_repos()
     
     try:
         if UserRepo.count() > 0:
@@ -111,7 +123,7 @@ def init_data_store():
 
 def add_visitor_log(ip_address, user_agent, page=None):
     """Add a visitor log entry"""
-    from db import VisitorLogRepo
+    _, _, _, VisitorLogRepo = get_repos()
     try:
         VisitorLogRepo.create({
             'ip_address': ip_address,
@@ -124,11 +136,11 @@ def add_visitor_log(ip_address, user_agent, page=None):
 
 def get_daily_visitors():
     """Get visitor count for today"""
-    from db import VisitorLogRepo
+    _, _, _, VisitorLogRepo = get_repos()
     return VisitorLogRepo.count_daily()
 
 
 def get_weekly_visitors():
     """Get visitor data for the past week"""
-    from db import VisitorLogRepo
+    _, _, _, VisitorLogRepo = get_repos()
     return VisitorLogRepo.get_weekly_data()

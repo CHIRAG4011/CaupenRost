@@ -1,0 +1,551 @@
+"""
+MongoDB Database Layer for CaupenRost
+This module provides MongoDB repository classes that mirror the SQLAlchemy repos.
+"""
+from datetime import datetime, timedelta
+from bson import ObjectId
+import os
+import logging
+
+_mongo_client = None
+_mongo_db = None
+
+
+def get_mongo_db():
+    """Get or create MongoDB connection"""
+    global _mongo_client, _mongo_db
+    
+    if _mongo_db is not None:
+        return _mongo_db
+    
+    mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/caupenrost')
+    
+    try:
+        from pymongo import MongoClient
+        _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+        _mongo_client.server_info()
+        
+        db_name = mongo_uri.split('/')[-1].split('?')[0] or 'caupenrost'
+        _mongo_db = _mongo_client[db_name]
+        logging.info(f"Connected to MongoDB database: {db_name}")
+        return _mongo_db
+    except Exception as e:
+        logging.error(f"Failed to connect to MongoDB: {e}")
+        raise
+
+
+def is_mongo_configured():
+    """Check if MongoDB is configured"""
+    return bool(os.environ.get('MONGO_URI'))
+
+
+class MongoUserRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['users']
+    
+    @staticmethod
+    def find_by_id(user_id):
+        from mongodb_models import MongoUser
+        try:
+            doc = MongoUserRepo._get_collection().find_one({'_id': ObjectId(str(user_id))})
+            return MongoUser.from_doc(doc)
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_username(username):
+        from mongodb_models import MongoUser
+        doc = MongoUserRepo._get_collection().find_one({'username': username})
+        return MongoUser.from_doc(doc)
+    
+    @staticmethod
+    def find_by_email(email):
+        from mongodb_models import MongoUser
+        doc = MongoUserRepo._get_collection().find_one({'email': email})
+        return MongoUser.from_doc(doc)
+    
+    @staticmethod
+    def find_by_username_or_email(value):
+        from mongodb_models import MongoUser
+        doc = MongoUserRepo._get_collection().find_one({
+            '$or': [{'username': value}, {'email': value}]
+        })
+        return MongoUser.from_doc(doc)
+    
+    @staticmethod
+    def exists_by_username_or_email(username, email):
+        doc = MongoUserRepo._get_collection().find_one({
+            '$or': [{'username': username}, {'email': email}]
+        })
+        return doc is not None
+    
+    @staticmethod
+    def create(user_data):
+        from mongodb_models import MongoUser
+        doc = {
+            'username': user_data.get('username'),
+            'email': user_data.get('email'),
+            'password_hash': user_data.get('password_hash'),
+            'is_admin': user_data.get('is_admin', False),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoUserRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoUser.from_doc(doc)
+    
+    @staticmethod
+    def update(user_id, update_data):
+        try:
+            MongoUserRepo._get_collection().update_one(
+                {'_id': ObjectId(str(user_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoUser
+        docs = MongoUserRepo._get_collection().find()
+        return [MongoUser.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def count():
+        return MongoUserRepo._get_collection().count_documents({})
+
+
+class MongoCategoryRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['categories']
+    
+    @staticmethod
+    def find_by_id(category_id):
+        from mongodb_models import MongoCategory
+        try:
+            doc = MongoCategoryRepo._get_collection().find_one({'_id': ObjectId(str(category_id))})
+            return MongoCategory.from_doc(doc)
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_name(name):
+        from mongodb_models import MongoCategory
+        doc = MongoCategoryRepo._get_collection().find_one({'name': name})
+        return MongoCategory.from_doc(doc)
+    
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoCategory
+        docs = MongoCategoryRepo._get_collection().find()
+        return [MongoCategory.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def find_active():
+        from mongodb_models import MongoCategory
+        docs = MongoCategoryRepo._get_collection().find({'is_active': True})
+        return [MongoCategory.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def create(category_data):
+        from mongodb_models import MongoCategory
+        doc = {
+            'name': category_data.get('name'),
+            'description': category_data.get('description', ''),
+            'image_url': category_data.get('image_url', ''),
+            'is_active': category_data.get('is_active', True),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoCategoryRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoCategory.from_doc(doc)
+    
+    @staticmethod
+    def update(category_id, update_data):
+        try:
+            MongoCategoryRepo._get_collection().update_one(
+                {'_id': ObjectId(str(category_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def delete(category_id):
+        try:
+            MongoCategoryRepo._get_collection().delete_one({'_id': ObjectId(str(category_id))})
+        except:
+            pass
+    
+    @staticmethod
+    def count():
+        return MongoCategoryRepo._get_collection().count_documents({})
+
+
+class MongoProductRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['products']
+    
+    @staticmethod
+    def _load_reviews(product):
+        """Load reviews for a product and wrap in ReviewsList for template compatibility"""
+        from mongodb_models import ReviewsList
+        if product:
+            reviews = MongoReviewRepo.find_by_product(product.id)
+            product.reviews = ReviewsList(reviews if reviews else [])
+        return product
+    
+    @staticmethod
+    def find_by_id(product_id):
+        from mongodb_models import MongoProduct
+        try:
+            doc = MongoProductRepo._get_collection().find_one({'_id': ObjectId(str(product_id))})
+            product = MongoProduct.from_doc(doc)
+            return MongoProductRepo._load_reviews(product)
+        except:
+            return None
+    
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoProduct
+        docs = MongoProductRepo._get_collection().find()
+        products = []
+        for doc in docs:
+            product = MongoProduct.from_doc(doc)
+            products.append(MongoProductRepo._load_reviews(product))
+        return products
+    
+    @staticmethod
+    def find_by_category(category):
+        from mongodb_models import MongoProduct
+        docs = MongoProductRepo._get_collection().find({'category': category})
+        products = []
+        for doc in docs:
+            product = MongoProduct.from_doc(doc)
+            products.append(MongoProductRepo._load_reviews(product))
+        return products
+    
+    @staticmethod
+    def search(query, category=None):
+        from mongodb_models import MongoProduct
+        filter_query = {
+            '$or': [
+                {'name': {'$regex': query, '$options': 'i'}},
+                {'description': {'$regex': query, '$options': 'i'}}
+            ]
+        }
+        if category and category != 'all':
+            filter_query['category'] = {'$regex': category, '$options': 'i'}
+        
+        docs = MongoProductRepo._get_collection().find(filter_query)
+        products = []
+        for doc in docs:
+            product = MongoProduct.from_doc(doc)
+            products.append(MongoProductRepo._load_reviews(product))
+        return products
+    
+    @staticmethod
+    def create(product_data):
+        from mongodb_models import MongoProduct, ReviewsList
+        doc = {
+            'name': product_data.get('name'),
+            'description': product_data.get('description'),
+            'price': float(product_data.get('price', 0)),
+            'category': product_data.get('category'),
+            'category_id': product_data.get('category_id'),
+            'image_url': product_data.get('image_url'),
+            'stock': int(product_data.get('stock', 0)),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoProductRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        product = MongoProduct.from_doc(doc)
+        product.reviews = ReviewsList()
+        return product
+    
+    @staticmethod
+    def update(product_id, update_data):
+        try:
+            if 'price' in update_data:
+                update_data['price'] = float(update_data['price'])
+            if 'stock' in update_data:
+                update_data['stock'] = int(update_data['stock'])
+            MongoProductRepo._get_collection().update_one(
+                {'_id': ObjectId(str(product_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def delete(product_id):
+        try:
+            MongoProductRepo._get_collection().delete_one({'_id': ObjectId(str(product_id))})
+            MongoReviewRepo.delete_by_product(product_id)
+        except:
+            pass
+    
+    @staticmethod
+    def find_limit(limit):
+        from mongodb_models import MongoProduct
+        docs = MongoProductRepo._get_collection().find().limit(limit)
+        products = []
+        for doc in docs:
+            product = MongoProduct.from_doc(doc)
+            products.append(MongoProductRepo._load_reviews(product))
+        return products
+    
+    @staticmethod
+    def count():
+        return MongoProductRepo._get_collection().count_documents({})
+
+
+class MongoOrderRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['orders']
+    
+    @staticmethod
+    def find_by_id(order_id):
+        from mongodb_models import MongoOrder
+        try:
+            doc = MongoOrderRepo._get_collection().find_one({'_id': ObjectId(str(order_id))})
+            return MongoOrder.from_doc(doc)
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_user(user_id):
+        from mongodb_models import MongoOrder
+        docs = MongoOrderRepo._get_collection().find({'user_id': str(user_id)}).sort('created_at', -1)
+        return [MongoOrder.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def find_all(sort_desc=True):
+        from mongodb_models import MongoOrder
+        sort_order = -1 if sort_desc else 1
+        docs = MongoOrderRepo._get_collection().find().sort('created_at', sort_order)
+        return [MongoOrder.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def create(order_data):
+        from mongodb_models import MongoOrder
+        doc = {
+            'user_id': str(order_data.get('user_id')),
+            'total': float(order_data.get('total', 0)),
+            'shipping_address': order_data.get('shipping_address'),
+            'status': order_data.get('status', 'pending'),
+            'payment_method': order_data.get('payment_method'),
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow(),
+            'items': order_data.get('items', [])
+        }
+        result = MongoOrderRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        order = MongoOrder.from_doc(doc)
+        order.user = MongoUserRepo.find_by_id(order.user_id)
+        return order
+    
+    @staticmethod
+    def update(order_id, update_data):
+        try:
+            update_data['updated_at'] = datetime.utcnow()
+            MongoOrderRepo._get_collection().update_one(
+                {'_id': ObjectId(str(order_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def count():
+        return MongoOrderRepo._get_collection().count_documents({})
+    
+    @staticmethod
+    def count_by_status(status):
+        return MongoOrderRepo._get_collection().count_documents({'status': status})
+    
+    @staticmethod
+    def sum_total():
+        pipeline = [{'$group': {'_id': None, 'total': {'$sum': '$total'}}}]
+        result = list(MongoOrderRepo._get_collection().aggregate(pipeline))
+        return result[0]['total'] if result else 0
+
+
+class MongoReviewRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['reviews']
+    
+    @staticmethod
+    def find_by_product(product_id):
+        from mongodb_models import MongoReview
+        docs = MongoReviewRepo._get_collection().find({'product_id': str(product_id)})
+        reviews = []
+        for doc in docs:
+            review = MongoReview.from_doc(doc)
+            if review:
+                review.user = MongoUserRepo.find_by_id(review.user_id)
+            reviews.append(review)
+        return reviews
+    
+    @staticmethod
+    def create(review_data):
+        from mongodb_models import MongoReview
+        doc = {
+            'product_id': str(review_data.get('product_id')),
+            'user_id': str(review_data.get('user_id')),
+            'rating': int(review_data.get('rating', 0)),
+            'comment': review_data.get('comment'),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoReviewRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        review = MongoReview.from_doc(doc)
+        review.user = MongoUserRepo.find_by_id(review.user_id)
+        return review
+    
+    @staticmethod
+    def delete_by_product(product_id):
+        return MongoReviewRepo._get_collection().delete_many({'product_id': str(product_id)}).deleted_count
+    
+    @staticmethod
+    def count():
+        return MongoReviewRepo._get_collection().count_documents({})
+
+
+class MongoAddressRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['addresses']
+    
+    @staticmethod
+    def find_by_id(address_id):
+        from mongodb_models import MongoAddress
+        try:
+            doc = MongoAddressRepo._get_collection().find_one({'_id': ObjectId(str(address_id))})
+            return MongoAddress.from_doc(doc)
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_user(user_id):
+        from mongodb_models import MongoAddress
+        docs = MongoAddressRepo._get_collection().find({'user_id': str(user_id)})
+        return [MongoAddress.from_doc(doc) for doc in docs]
+    
+    @staticmethod
+    def create(address_data):
+        from mongodb_models import MongoAddress
+        doc = {
+            'user_id': str(address_data.get('user_id')),
+            'name': address_data.get('name'),
+            'street': address_data.get('street'),
+            'city': address_data.get('city'),
+            'state': address_data.get('state'),
+            'zip_code': address_data.get('zip_code'),
+            'phone': address_data.get('phone'),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoAddressRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoAddress.from_doc(doc)
+    
+    @staticmethod
+    def count():
+        return MongoAddressRepo._get_collection().count_documents({})
+
+
+class MongoVisitorLogRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['visitor_logs']
+    
+    @staticmethod
+    def create(log_data):
+        doc = {
+            'ip_address': log_data.get('ip_address'),
+            'user_agent': log_data.get('user_agent'),
+            'page': log_data.get('page'),
+            'timestamp': datetime.utcnow()
+        }
+        MongoVisitorLogRepo._get_collection().insert_one(doc)
+    
+    @staticmethod
+    def count_daily():
+        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        pipeline = [
+            {'$match': {'timestamp': {'$gte': today}}},
+            {'$group': {'_id': '$ip_address'}},
+            {'$count': 'count'}
+        ]
+        result = list(MongoVisitorLogRepo._get_collection().aggregate(pipeline))
+        return result[0]['count'] if result else 0
+    
+    @staticmethod
+    def get_weekly_data():
+        weekly_data = {}
+        for i in range(7):
+            date = datetime.utcnow() - timedelta(days=6-i)
+            start = date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = start + timedelta(days=1)
+            
+            pipeline = [
+                {'$match': {'timestamp': {'$gte': start, '$lt': end}}},
+                {'$group': {'_id': '$ip_address'}},
+                {'$count': 'count'}
+            ]
+            result = list(MongoVisitorLogRepo._get_collection().aggregate(pipeline))
+            weekly_data[start.strftime('%Y-%m-%d')] = result[0]['count'] if result else 0
+        
+        return weekly_data
+
+
+class MongoOTPRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['otp_codes']
+    
+    @staticmethod
+    def find_by_email_purpose(email, purpose):
+        from mongodb_models import MongoOTPCode
+        doc = MongoOTPRepo._get_collection().find_one({'email': email, 'purpose': purpose})
+        return MongoOTPCode.from_doc(doc)
+    
+    @staticmethod
+    def create(otp_data):
+        from mongodb_models import MongoOTPCode
+        doc = {
+            'email': otp_data.get('email'),
+            'purpose': otp_data.get('purpose'),
+            'otp': otp_data.get('otp'),
+            'attempts': otp_data.get('attempts', 0),
+            'created_at': datetime.utcnow(),
+            'expires_at': otp_data.get('expires_at')
+        }
+        result = MongoOTPRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoOTPCode.from_doc(doc)
+    
+    @staticmethod
+    def delete_by_email_purpose(email, purpose):
+        MongoOTPRepo._get_collection().delete_many({'email': email, 'purpose': purpose})
+    
+    @staticmethod
+    def update(otp_id, update_data):
+        try:
+            MongoOTPRepo._get_collection().update_one(
+                {'_id': ObjectId(str(otp_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+    
+    @staticmethod
+    def delete(otp_id):
+        try:
+            MongoOTPRepo._get_collection().delete_one({'_id': ObjectId(str(otp_id))})
+        except:
+            pass
