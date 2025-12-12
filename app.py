@@ -1,7 +1,8 @@
 import os
 import logging
 from flask import Flask
-from flask_pymongo import PyMongo
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 try:
@@ -12,19 +13,48 @@ except ImportError:
 
 logging.basicConfig(level=logging.DEBUG)
 
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(model_class=Base)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-mongo_uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/caupenrost")
-if mongo_uri.endswith('/'):
-    mongo_uri = mongo_uri + "caupenrost"
-elif '/caupenrost' not in mongo_uri and '?' not in mongo_uri:
-    mongo_uri = mongo_uri + "/caupenrost"
-app.config["MONGO_URI"] = mongo_uri
-logging.info(f"Using MongoDB at: {mongo_uri}")
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    pg_host = os.environ.get("PGHOST")
+    pg_port = os.environ.get("PGPORT", "5432")
+    pg_user = os.environ.get("PGUSER")
+    pg_password = os.environ.get("PGPASSWORD", "")
+    pg_database = os.environ.get("PGDATABASE")
+    if pg_host and pg_user and pg_database:
+        from urllib.parse import quote_plus
+        password_encoded = quote_plus(pg_password) if pg_password else ""
+        database_url = f"postgresql://{pg_user}:{password_encoded}@{pg_host}:{pg_port}/{pg_database}"
 
-mongo = PyMongo(app)
+if not database_url:
+    logging.warning("DATABASE_URL not set, using SQLite as fallback")
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
+    database_url = f"sqlite:///{os.path.join(basedir, 'instance', 'app.db')}"
+
+logging.info(f"Using database URL: {database_url[:50]}..." if len(database_url) > 50 else f"Using database URL: {database_url}")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+if database_url.startswith("sqlite"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
+else:
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+
+db.init_app(app)
 
 from flask_mail import Mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
@@ -36,11 +66,15 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', '')
 
 mail = Mail(app)
 
+
 def initialize_database():
     from data_store import init_data_store
     init_data_store()
 
+
 with app.app_context():
+    import models  # noqa: F401
+    db.create_all()
     initialize_database()
 
 from routes import *

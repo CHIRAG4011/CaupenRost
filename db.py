@@ -1,339 +1,486 @@
-from bson import ObjectId
-from datetime import datetime
-from mongodb_models import (
-    MongoUser, MongoCategory, MongoProduct, MongoOrder, 
-    MongoReview, MongoAddress, MongoVisitorLog, MongoOTPCode
-)
+from datetime import datetime, timedelta
+from sqlalchemy import func, or_
 
 
 def get_db():
-    from app import mongo
-    return mongo.db
+    from app import db
+    return db
 
 
 class UserRepo:
     @staticmethod
     def find_by_id(user_id):
+        from models import User
         db = get_db()
         try:
-            doc = db.users.find_one({'_id': ObjectId(user_id)})
-            return MongoUser.from_doc(doc)
-        except:
+            return db.session.get(User, int(user_id))
+        except (ValueError, TypeError):
             return None
     
     @staticmethod
     def find_by_username(username):
-        db = get_db()
-        doc = db.users.find_one({'username': username})
-        return MongoUser.from_doc(doc)
+        from models import User
+        return User.query.filter_by(username=username).first()
     
     @staticmethod
     def find_by_email(email):
-        db = get_db()
-        doc = db.users.find_one({'email': email})
-        return MongoUser.from_doc(doc)
+        from models import User
+        return User.query.filter_by(email=email).first()
     
     @staticmethod
     def find_by_username_or_email(value):
-        db = get_db()
-        doc = db.users.find_one({'$or': [{'username': value}, {'email': value}]})
-        return MongoUser.from_doc(doc)
+        from models import User
+        return User.query.filter(
+            or_(User.username == value, User.email == value)
+        ).first()
     
     @staticmethod
     def exists_by_username_or_email(username, email):
-        db = get_db()
-        doc = db.users.find_one({'$or': [{'username': username}, {'email': email}]})
-        return doc is not None
+        from models import User
+        return User.query.filter(
+            or_(User.username == username, User.email == email)
+        ).first() is not None
     
     @staticmethod
     def create(user_data):
+        from models import User
         db = get_db()
-        user_data['created_at'] = datetime.utcnow()
-        result = db.users.insert_one(user_data)
-        user_data['_id'] = result.inserted_id
-        return MongoUser.from_doc(user_data)
+        user = User(
+            username=user_data.get('username'),
+            email=user_data.get('email'),
+            password_hash=user_data.get('password_hash'),
+            is_admin=user_data.get('is_admin', False)
+        )
+        db.session.add(user)
+        db.session.commit()
+        return user
     
     @staticmethod
     def update(user_id, update_data):
+        from models import User
         db = get_db()
-        db.users.update_one({'_id': ObjectId(user_id)}, {'$set': update_data})
+        user = db.session.get(User, int(user_id))
+        if user:
+            for key, value in update_data.items():
+                setattr(user, key, value)
+            db.session.commit()
     
     @staticmethod
     def find_all():
-        db = get_db()
-        docs = db.users.find()
-        return [MongoUser.from_doc(doc) for doc in docs]
+        from models import User
+        return User.query.all()
     
     @staticmethod
     def count():
-        db = get_db()
-        return db.users.count_documents({})
+        from models import User
+        return User.query.count()
 
 
 class CategoryRepo:
     @staticmethod
     def find_by_id(category_id):
+        from models import Category
         db = get_db()
         try:
-            doc = db.categories.find_one({'_id': ObjectId(category_id)})
-            return MongoCategory.from_doc(doc)
-        except:
+            return db.session.get(Category, int(category_id))
+        except (ValueError, TypeError):
             return None
     
     @staticmethod
     def find_by_name(name):
-        db = get_db()
-        doc = db.categories.find_one({'name': name})
-        return MongoCategory.from_doc(doc)
+        from models import Category
+        return Category.query.filter_by(name=name).first()
     
     @staticmethod
     def find_active():
-        db = get_db()
-        docs = db.categories.find({'is_active': True})
-        return [MongoCategory.from_doc(doc) for doc in docs]
+        from models import Category
+        return Category.query.filter_by(is_active=True).all()
     
     @staticmethod
     def find_all():
-        db = get_db()
-        docs = db.categories.find()
-        return [MongoCategory.from_doc(doc) for doc in docs]
+        from models import Category
+        return Category.query.all()
     
     @staticmethod
     def create(category_data):
+        from models import Category
         db = get_db()
-        category_data['created_at'] = datetime.utcnow()
-        category_data['is_active'] = category_data.get('is_active', True)
-        result = db.categories.insert_one(category_data)
-        category_data['_id'] = result.inserted_id
-        return MongoCategory.from_doc(category_data)
+        category = Category(
+            name=category_data.get('name'),
+            description=category_data.get('description', ''),
+            image_url=category_data.get('image_url', ''),
+            is_active=category_data.get('is_active', True)
+        )
+        db.session.add(category)
+        db.session.commit()
+        return category
     
     @staticmethod
     def update(category_id, update_data):
+        from models import Category
         db = get_db()
-        db.categories.update_one({'_id': ObjectId(category_id)}, {'$set': update_data})
+        category = db.session.get(Category, int(category_id))
+        if category:
+            for key, value in update_data.items():
+                setattr(category, key, value)
+            db.session.commit()
     
     @staticmethod
     def delete(category_id):
+        from models import Category
         db = get_db()
-        db.categories.delete_one({'_id': ObjectId(category_id)})
+        category = db.session.get(Category, int(category_id))
+        if category:
+            db.session.delete(category)
+            db.session.commit()
     
     @staticmethod
     def exists_by_name_exclude(name, exclude_id):
-        db = get_db()
-        query = {'name': {'$regex': f'^{name}$', '$options': 'i'}}
+        from models import Category
+        query = Category.query.filter(func.lower(Category.name) == func.lower(name))
         if exclude_id:
-            query['_id'] = {'$ne': ObjectId(exclude_id)}
-        doc = db.categories.find_one(query)
-        return doc is not None
+            query = query.filter(Category.id != int(exclude_id))
+        return query.first() is not None
     
     @staticmethod
     def count():
-        db = get_db()
-        return db.categories.count_documents({})
+        from models import Category
+        return Category.query.count()
 
 
 class ProductRepo:
     @staticmethod
     def find_by_id(product_id):
+        from models import Product
         db = get_db()
         try:
-            doc = db.products.find_one({'_id': ObjectId(product_id)})
-            return MongoProduct.from_doc(doc)
-        except:
+            return db.session.get(Product, int(product_id))
+        except (ValueError, TypeError):
             return None
     
     @staticmethod
     def find_all():
-        db = get_db()
-        docs = db.products.find()
-        return [MongoProduct.from_doc(doc) for doc in docs]
+        from models import Product
+        return Product.query.all()
     
     @staticmethod
     def find_by_category(category_name):
-        db = get_db()
-        docs = db.products.find({'category': category_name})
-        return [MongoProduct.from_doc(doc) for doc in docs]
+        from models import Product
+        return Product.query.filter_by(category=category_name).all()
     
     @staticmethod
     def find_limit(limit):
-        db = get_db()
-        docs = db.products.find().limit(limit)
-        return [MongoProduct.from_doc(doc) for doc in docs]
+        from models import Product
+        return Product.query.limit(limit).all()
     
     @staticmethod
-    def search(query, category=None):
-        db = get_db()
-        filter_query = {}
+    def search(query_str, category=None):
+        from models import Product
+        query = Product.query
         
         if category and category != 'all':
-            filter_query['category'] = {'$regex': category, '$options': 'i'}
+            query = query.filter(Product.category.ilike(f'%{category}%'))
         
-        if query:
-            filter_query['$or'] = [
-                {'name': {'$regex': query, '$options': 'i'}},
-                {'description': {'$regex': query, '$options': 'i'}}
-            ]
+        if query_str:
+            query = query.filter(
+                or_(
+                    Product.name.ilike(f'%{query_str}%'),
+                    Product.description.ilike(f'%{query_str}%')
+                )
+            )
         
-        docs = db.products.find(filter_query)
-        return [MongoProduct.from_doc(doc) for doc in docs]
+        return query.all()
     
     @staticmethod
     def create(product_data):
+        from models import Product
         db = get_db()
-        product_data['created_at'] = datetime.utcnow()
-        result = db.products.insert_one(product_data)
-        product_data['_id'] = result.inserted_id
-        return MongoProduct.from_doc(product_data)
+        product = Product(
+            name=product_data.get('name'),
+            description=product_data.get('description'),
+            price=product_data.get('price', 0),
+            category=product_data.get('category'),
+            category_id=product_data.get('category_id'),
+            image_url=product_data.get('image_url'),
+            stock=product_data.get('stock', 0)
+        )
+        db.session.add(product)
+        db.session.commit()
+        return product
     
     @staticmethod
     def update(product_id, update_data):
+        from models import Product
         db = get_db()
-        db.products.update_one({'_id': ObjectId(product_id)}, {'$set': update_data})
+        product = db.session.get(Product, int(product_id))
+        if product:
+            for key, value in update_data.items():
+                setattr(product, key, value)
+            db.session.commit()
     
     @staticmethod
     def delete(product_id):
+        from models import Product
         db = get_db()
-        db.products.delete_one({'_id': ObjectId(product_id)})
+        product = db.session.get(Product, int(product_id))
+        if product:
+            db.session.delete(product)
+            db.session.commit()
     
     @staticmethod
     def count():
-        db = get_db()
-        return db.products.count_documents({})
+        from models import Product
+        return Product.query.count()
+
+
+def _serialize_order_items(order):
+    """Helper to serialize order items without mutating the relationship"""
+    items_list = []
+    for item in order.items.all():
+        items_list.append({
+            'product_id': str(item.product_id),
+            'quantity': item.quantity,
+            'price': item.price
+        })
+    order._serialized_items = items_list
+    return order
+
+
+class OrderWrapper:
+    """Wrapper class to provide MongoDB-like access to order with serialized items"""
+    def __init__(self, order, items_list):
+        self._order = order
+        self.items = items_list
+        
+    def __getattr__(self, name):
+        return getattr(self._order, name)
 
 
 class OrderRepo:
     @staticmethod
     def find_by_id(order_id):
+        from models import Order
         db = get_db()
         try:
-            doc = db.orders.find_one({'_id': ObjectId(order_id)})
-            return MongoOrder.from_doc(doc)
-        except:
+            order = db.session.get(Order, int(order_id))
+            if order:
+                items_list = [
+                    {
+                        'product_id': str(item.product_id),
+                        'quantity': item.quantity,
+                        'price': item.price
+                    }
+                    for item in order.items.all()
+                ]
+                return OrderWrapper(order, items_list)
+            return None
+        except (ValueError, TypeError):
             return None
     
     @staticmethod
     def find_by_user(user_id, sort_desc=True):
-        db = get_db()
-        sort_order = -1 if sort_desc else 1
-        docs = db.orders.find({'user_id': user_id}).sort('created_at', sort_order)
-        return [MongoOrder.from_doc(doc) for doc in docs]
+        from models import Order
+        query = Order.query.filter_by(user_id=int(user_id))
+        if sort_desc:
+            query = query.order_by(Order.created_at.desc())
+        else:
+            query = query.order_by(Order.created_at.asc())
+        orders = query.all()
+        result = []
+        for order in orders:
+            items_list = [
+                {
+                    'product_id': str(item.product_id),
+                    'quantity': item.quantity,
+                    'price': item.price
+                }
+                for item in order.items.all()
+            ]
+            result.append(OrderWrapper(order, items_list))
+        return result
     
     @staticmethod
     def find_all(sort_desc=True):
-        db = get_db()
-        sort_order = -1 if sort_desc else 1
-        docs = db.orders.find().sort('created_at', sort_order)
-        return [MongoOrder.from_doc(doc) for doc in docs]
+        from models import Order
+        query = Order.query
+        if sort_desc:
+            query = query.order_by(Order.created_at.desc())
+        else:
+            query = query.order_by(Order.created_at.asc())
+        orders = query.all()
+        result = []
+        for order in orders:
+            items_list = [
+                {
+                    'product_id': str(item.product_id),
+                    'quantity': item.quantity,
+                    'price': item.price
+                }
+                for item in order.items.all()
+            ]
+            result.append(OrderWrapper(order, items_list))
+        return result
     
     @staticmethod
     def find_recent(limit=10):
-        db = get_db()
-        docs = db.orders.find().sort('created_at', -1).limit(limit)
-        return [MongoOrder.from_doc(doc) for doc in docs]
+        from models import Order
+        orders = Order.query.order_by(Order.created_at.desc()).limit(limit).all()
+        result = []
+        for order in orders:
+            items_list = [
+                {
+                    'product_id': str(item.product_id),
+                    'quantity': item.quantity,
+                    'price': item.price
+                }
+                for item in order.items.all()
+            ]
+            result.append(OrderWrapper(order, items_list))
+        return result
     
     @staticmethod
     def create(order_data):
+        from models import Order, OrderItem
         db = get_db()
-        order_data['created_at'] = datetime.utcnow()
-        order_data['updated_at'] = datetime.utcnow()
-        result = db.orders.insert_one(order_data)
-        order_data['_id'] = result.inserted_id
-        return MongoOrder.from_doc(order_data)
+        order = Order(
+            user_id=int(order_data.get('user_id')),
+            total=order_data.get('total', 0),
+            shipping_address=order_data.get('shipping_address'),
+            status=order_data.get('status', 'pending'),
+            payment_method=order_data.get('payment_method')
+        )
+        db.session.add(order)
+        db.session.flush()
+        
+        items_data = order_data.get('items', [])
+        for item_data in items_data:
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=int(item_data.get('product_id')),
+                quantity=item_data.get('quantity'),
+                price=item_data.get('price')
+            )
+            db.session.add(order_item)
+        
+        db.session.commit()
+        
+        return OrderWrapper(order, items_data)
     
     @staticmethod
     def update(order_id, update_data):
+        from models import Order
         db = get_db()
-        update_data['updated_at'] = datetime.utcnow()
-        db.orders.update_one({'_id': ObjectId(order_id)}, {'$set': update_data})
+        order = db.session.get(Order, int(order_id))
+        if order:
+            for key, value in update_data.items():
+                if key != 'items':
+                    setattr(order, key, value)
+            order.updated_at = datetime.utcnow()
+            db.session.commit()
     
     @staticmethod
     def count():
-        db = get_db()
-        return db.orders.count_documents({})
+        from models import Order
+        return Order.query.count()
     
     @staticmethod
     def count_by_status(status):
-        db = get_db()
-        return db.orders.count_documents({'status': status})
+        from models import Order
+        return Order.query.filter_by(status=status).count()
     
     @staticmethod
     def sum_total():
-        db = get_db()
-        pipeline = [{'$group': {'_id': None, 'total': {'$sum': '$total'}}}]
-        result = list(db.orders.aggregate(pipeline))
-        return result[0]['total'] if result else 0
+        from models import Order
+        result = Order.query.with_entities(func.sum(Order.total)).scalar()
+        return result or 0
 
 
 class ReviewRepo:
     @staticmethod
     def find_by_product(product_id):
-        db = get_db()
-        docs = db.reviews.find({'product_id': product_id})
-        return [MongoReview.from_doc(doc) for doc in docs]
+        from models import Review
+        return Review.query.filter_by(product_id=int(product_id)).all()
     
     @staticmethod
     def create(review_data):
+        from models import Review
         db = get_db()
-        review_data['created_at'] = datetime.utcnow()
-        result = db.reviews.insert_one(review_data)
-        review_data['_id'] = result.inserted_id
-        return MongoReview.from_doc(review_data)
+        review = Review(
+            product_id=int(review_data.get('product_id')),
+            user_id=int(review_data.get('user_id')),
+            rating=review_data.get('rating'),
+            comment=review_data.get('comment')
+        )
+        db.session.add(review)
+        db.session.commit()
+        return review
     
     @staticmethod
     def delete_by_product(product_id):
+        from models import Review
         db = get_db()
-        result = db.reviews.delete_many({'product_id': product_id})
-        return result.deleted_count
+        count = Review.query.filter_by(product_id=int(product_id)).delete()
+        db.session.commit()
+        return count
 
 
 class AddressRepo:
     @staticmethod
     def find_by_id(address_id):
+        from models import Address
         db = get_db()
         try:
-            doc = db.addresses.find_one({'_id': ObjectId(address_id)})
-            return MongoAddress.from_doc(doc)
-        except:
+            return db.session.get(Address, int(address_id))
+        except (ValueError, TypeError):
             return None
     
     @staticmethod
     def find_by_user(user_id):
-        db = get_db()
-        docs = db.addresses.find({'user_id': user_id})
-        return [MongoAddress.from_doc(doc) for doc in docs]
+        from models import Address
+        return Address.query.filter_by(user_id=int(user_id)).all()
     
     @staticmethod
     def create(address_data):
+        from models import Address
         db = get_db()
-        address_data['created_at'] = datetime.utcnow()
-        result = db.addresses.insert_one(address_data)
-        address_data['_id'] = result.inserted_id
-        return MongoAddress.from_doc(address_data)
+        address = Address(
+            user_id=int(address_data.get('user_id')),
+            name=address_data.get('name'),
+            street=address_data.get('street'),
+            city=address_data.get('city'),
+            state=address_data.get('state'),
+            zip_code=address_data.get('zip_code'),
+            phone=address_data.get('phone')
+        )
+        db.session.add(address)
+        db.session.commit()
+        return address
 
 
 class VisitorLogRepo:
     @staticmethod
     def create(log_data):
+        from models import VisitorLog
         db = get_db()
-        log_data['timestamp'] = datetime.utcnow()
-        db.visitor_logs.insert_one(log_data)
+        log = VisitorLog(
+            ip_address=log_data.get('ip_address'),
+            user_agent=log_data.get('user_agent'),
+            page=log_data.get('page')
+        )
+        db.session.add(log)
+        db.session.commit()
     
     @staticmethod
     def count_daily():
-        db = get_db()
+        from models import VisitorLog
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        pipeline = [
-            {'$match': {'timestamp': {'$gte': today}}},
-            {'$group': {'_id': '$ip_address'}},
-            {'$count': 'count'}
-        ]
-        result = list(db.visitor_logs.aggregate(pipeline))
-        return result[0]['count'] if result else 0
+        return VisitorLog.query.filter(
+            VisitorLog.timestamp >= today
+        ).with_entities(VisitorLog.ip_address).distinct().count()
     
     @staticmethod
     def get_weekly_data():
-        from datetime import timedelta
-        db = get_db()
+        from models import VisitorLog
         weekly_data = {}
         
         for i in range(7):
@@ -341,13 +488,11 @@ class VisitorLogRepo:
             start = date.replace(hour=0, minute=0, second=0, microsecond=0)
             end = start + timedelta(days=1)
             
-            pipeline = [
-                {'$match': {'timestamp': {'$gte': start, '$lt': end}}},
-                {'$group': {'_id': '$ip_address'}},
-                {'$count': 'count'}
-            ]
-            result = list(db.visitor_logs.aggregate(pipeline))
-            count = result[0]['count'] if result else 0
+            count = VisitorLog.query.filter(
+                VisitorLog.timestamp >= start,
+                VisitorLog.timestamp < end
+            ).with_entities(VisitorLog.ip_address).distinct().count()
+            
             weekly_data[start.strftime('%Y-%m-%d')] = count
         
         return weekly_data
@@ -356,29 +501,46 @@ class VisitorLogRepo:
 class OTPRepo:
     @staticmethod
     def find_by_email_purpose(email, purpose):
-        db = get_db()
-        doc = db.otp_codes.find_one({'email': email, 'purpose': purpose})
-        return MongoOTPCode.from_doc(doc)
+        from models import OTPCode
+        return OTPCode.query.filter_by(email=email, purpose=purpose).first()
     
     @staticmethod
     def delete_by_email_purpose(email, purpose):
+        from models import OTPCode
         db = get_db()
-        db.otp_codes.delete_many({'email': email, 'purpose': purpose})
+        OTPCode.query.filter_by(email=email, purpose=purpose).delete()
+        db.session.commit()
     
     @staticmethod
     def create(otp_data):
+        from models import OTPCode
         db = get_db()
-        otp_data['created_at'] = datetime.utcnow()
-        result = db.otp_codes.insert_one(otp_data)
-        otp_data['_id'] = result.inserted_id
-        return MongoOTPCode.from_doc(otp_data)
+        otp = OTPCode(
+            email=otp_data.get('email'),
+            purpose=otp_data.get('purpose'),
+            otp=otp_data.get('otp'),
+            attempts=otp_data.get('attempts', 0),
+            expires_at=otp_data.get('expires_at')
+        )
+        db.session.add(otp)
+        db.session.commit()
+        return otp
     
     @staticmethod
     def update(otp_id, update_data):
+        from models import OTPCode
         db = get_db()
-        db.otp_codes.update_one({'_id': ObjectId(otp_id)}, {'$set': update_data})
+        otp = db.session.get(OTPCode, int(otp_id))
+        if otp:
+            for key, value in update_data.items():
+                setattr(otp, key, value)
+            db.session.commit()
     
     @staticmethod
     def delete(otp_id):
+        from models import OTPCode
         db = get_db()
-        db.otp_codes.delete_one({'_id': ObjectId(otp_id)})
+        otp = db.session.get(OTPCode, int(otp_id))
+        if otp:
+            db.session.delete(otp)
+            db.session.commit()

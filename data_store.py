@@ -13,7 +13,7 @@ def init_data_store():
         if UserRepo.count() > 0:
             return
     except Exception as e:
-        logging.warning(f"MongoDB not available, skipping data initialization: {e}")
+        logging.warning(f"Database not available, skipping data initialization: {e}")
         return
 
     UserRepo.create({
