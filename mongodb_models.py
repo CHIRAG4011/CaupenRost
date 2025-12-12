@@ -167,6 +167,10 @@ class MongoOrder:
             self._user = MongoUserRepo.find_by_id(self.user_id)
         return self._user
     
+    @user.setter
+    def user(self, value):
+        self._user = value
+    
     def to_dict(self):
         return {
             'user_id': self.user_id,
@@ -197,6 +201,7 @@ class MongoReview:
         self.rating = data.get('rating', 0)
         self.comment = data.get('comment')
         self.created_at = data.get('created_at', datetime.utcnow())
+        self.user = None
     
     def to_dict(self):
         return {
