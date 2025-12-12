@@ -8,10 +8,11 @@ if USE_MONGODB:
     from mongo_db import (MongoUserRepo as UserRepo, MongoProductRepo as ProductRepo, 
                          MongoOrderRepo as OrderRepo, MongoCategoryRepo as CategoryRepo, 
                          MongoReviewRepo as ReviewRepo, MongoAddressRepo as AddressRepo, 
-                         MongoVisitorLogRepo as VisitorLogRepo)
+                         MongoVisitorLogRepo as VisitorLogRepo,
+                         MongoTicketRepo as TicketRepo, MongoTicketMessageRepo as TicketMessageRepo)
 else:
     from db import (UserRepo, ProductRepo, OrderRepo, CategoryRepo, ReviewRepo, 
-                    AddressRepo, VisitorLogRepo)
+                    AddressRepo, VisitorLogRepo, TicketRepo, TicketMessageRepo)
 
 from data_store import add_visitor_log, get_weekly_visitors
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
@@ -988,3 +989,179 @@ def toggle_admin(user_id):
     action = 'granted' if not target_user.is_admin else 'removed'
     flash(f'Admin privileges {action} for {target_user.username}.', 'success')
     return redirect(url_for('admin_users'))
+
+
+# ============ SUPPORT TICKET ROUTES ============
+
+@app.route('/support')
+def support_center():
+    """Support center - list user's tickets"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to access support center.', 'error')
+        return redirect(url_for('login'))
+    
+    tickets = TicketRepo.find_by_user(user.id)
+    return render_template('support/tickets.html', tickets=tickets)
+
+
+@app.route('/support/new', methods=['GET', 'POST'])
+def create_ticket():
+    """Create a new support ticket"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to create a support ticket.', 'error')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        ticket_type = request.form.get('ticket_type')
+        subject = request.form.get('subject', '').strip()
+        description = request.form.get('description', '').strip()
+        order_id = request.form.get('order_id') or None
+        priority = request.form.get('priority', 'normal')
+        
+        if not ticket_type or not subject or not description:
+            flash('Please fill in all required fields.', 'error')
+            orders = OrderRepo.find_by_user(user.id)
+            return render_template('support/create_ticket.html', orders=orders)
+        
+        ticket = TicketRepo.create({
+            'user_id': user.id,
+            'order_id': order_id,
+            'ticket_type': ticket_type,
+            'subject': subject,
+            'description': description,
+            'priority': priority
+        })
+        
+        flash('Your support ticket has been created. We will respond shortly.', 'success')
+        return redirect(url_for('view_ticket', ticket_id=ticket.id))
+    
+    orders = OrderRepo.find_by_user(user.id)
+    return render_template('support/create_ticket.html', orders=orders)
+
+
+@app.route('/support/ticket/<ticket_id>', methods=['GET', 'POST'])
+def view_ticket(ticket_id):
+    """View and respond to a support ticket"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to view tickets.', 'error')
+        return redirect(url_for('login'))
+    
+    ticket = TicketRepo.find_by_id(ticket_id)
+    if not ticket:
+        flash('Ticket not found.', 'error')
+        return redirect(url_for('support_center'))
+    
+    if str(ticket.user_id) != str(user.id) and not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('support_center'))
+    
+    if request.method == 'POST':
+        message = request.form.get('message', '').strip()
+        if message:
+            TicketMessageRepo.create({
+                'ticket_id': ticket_id,
+                'author_id': user.id,
+                'message': message,
+                'is_admin_reply': user.is_admin
+            })
+            flash('Your message has been sent.', 'success')
+            return redirect(url_for('view_ticket', ticket_id=ticket_id))
+    
+    messages = TicketMessageRepo.find_by_ticket(ticket_id)
+    return render_template('support/view_ticket.html', ticket=ticket, messages=messages)
+
+
+@app.route('/support/order/<order_id>')
+def create_order_ticket(order_id):
+    """Create a ticket for a specific order"""
+    user = get_current_user()
+    if not user:
+        flash('Please login to create a support ticket.', 'error')
+        return redirect(url_for('login'))
+    
+    order = OrderRepo.find_by_id(order_id)
+    if not order or str(order.user_id) != str(user.id):
+        flash('Order not found.', 'error')
+        return redirect(url_for('user_orders'))
+    
+    orders = OrderRepo.find_by_user(user.id)
+    return render_template('support/create_ticket.html', orders=orders, selected_order=order)
+
+
+# ============ ADMIN TICKET ROUTES ============
+
+@app.route('/admin/tickets')
+def admin_tickets():
+    """Admin view of all support tickets"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    
+    status_filter = request.args.get('status', '')
+    type_filter = request.args.get('type', '')
+    
+    tickets = TicketRepo.find_all(
+        status=status_filter if status_filter else None,
+        ticket_type=type_filter if type_filter else None
+    )
+    
+    open_count = TicketRepo.count_by_status('open')
+    in_progress_count = TicketRepo.count_by_status('in_progress')
+    
+    return render_template('admin/tickets.html', 
+                          tickets=tickets, 
+                          open_count=open_count,
+                          in_progress_count=in_progress_count,
+                          current_status=status_filter,
+                          current_type=type_filter)
+
+
+@app.route('/admin/ticket/<ticket_id>', methods=['GET', 'POST'])
+def admin_view_ticket(ticket_id):
+    """Admin view and manage a support ticket"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    
+    ticket = TicketRepo.find_by_id(ticket_id)
+    if not ticket:
+        flash('Ticket not found.', 'error')
+        return redirect(url_for('admin_tickets'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'reply':
+            message = request.form.get('message', '').strip()
+            if message:
+                TicketMessageRepo.create({
+                    'ticket_id': ticket_id,
+                    'author_id': user.id,
+                    'message': message,
+                    'is_admin_reply': True
+                })
+                if ticket.status == 'open':
+                    TicketRepo.update(ticket_id, {'status': 'in_progress'})
+                flash('Reply sent successfully.', 'success')
+        
+        elif action == 'update_status':
+            new_status = request.form.get('status')
+            if new_status in ['open', 'in_progress', 'resolved', 'closed']:
+                TicketRepo.update(ticket_id, {'status': new_status})
+                flash(f'Ticket status updated to {new_status}.', 'success')
+        
+        elif action == 'update_priority':
+            new_priority = request.form.get('priority')
+            if new_priority in ['low', 'normal', 'high', 'urgent']:
+                TicketRepo.update(ticket_id, {'priority': new_priority})
+                flash(f'Ticket priority updated to {new_priority}.', 'success')
+        
+        return redirect(url_for('admin_view_ticket', ticket_id=ticket_id))
+    
+    messages = TicketMessageRepo.find_by_ticket(ticket_id)
+    return render_template('admin/view_ticket.html', ticket=ticket, messages=messages)

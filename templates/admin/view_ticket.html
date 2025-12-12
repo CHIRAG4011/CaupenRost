@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket #{{ ticket.id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ url_for('admin_tickets') }}" class="btn btn-outline-secondary">
+            <i data-feather="arrow-left" class="me-1"></i>Back to Tickets
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Ticket #{{ ticket.id }}</h5>
+                    <div>
+                        <span class="badge {{ ticket.get_status_badge_class() }} me-2">{{ ticket.status.replace('_', ' ').title() }}</span>
+                        <span class="badge {{ ticket.get_priority_badge_class() }}">{{ ticket.priority.title() }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h4>{{ ticket.subject }}</h4>
+                    <div class="mb-3">
+                        {% if ticket.ticket_type == 'damaged_order' %}
+                        <span class="badge bg-danger">Damaged Order</span>
+                        {% elif ticket.ticket_type == 'custom_order' %}
+                        <span class="badge bg-info">Custom Order</span>
+                        {% elif ticket.ticket_type == 'assistance' %}
+                        <span class="badge bg-warning text-dark">Assistance</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ ticket.ticket_type.replace('_', ' ').title() if ticket.ticket_type else 'Other' }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="bg-light p-3 rounded mb-3">
+                        <p class="mb-0" style="white-space: pre-wrap;">{{ ticket.description }}</p>
+                    </div>
+                    <small class="text-muted">Created: {{ ticket.created_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i data-feather="message-square" class="me-2"></i>Conversation</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                        <div class="d-flex mb-3 {% if message.is_admin_reply %}flex-row-reverse{% endif %}">
+                            <div class="{% if message.is_admin_reply %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded" style="max-width: 80%;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>{% if message.is_admin_reply %}Admin: {{ message.author.username if message.author else 'Support' }}{% else %}{{ message.author.username if message.author else 'Customer' }}{% endif %}</strong>
+                                </div>
+                                <p class="mb-1" style="white-space: pre-wrap;">{{ message.message }}</p>
+                                <small class="{% if message.is_admin_reply %}text-white-50{% else %}text-muted{% endif %}">{{ message.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No messages yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i data-feather="send" class="me-2"></i>Reply to Customer</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="action" value="reply">
+                        <div class="mb-3">
+                            <textarea class="form-control" name="message" rows="4" placeholder="Type your reply..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="send" class="me-1"></i>Send Reply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Customer Info</h5>
+                </div>
+                <div class="card-body">
+                    {% if ticket.user %}
+                    <p><strong>Username:</strong> {{ ticket.user.username }}</p>
+                    <p><strong>Email:</strong> {{ ticket.user.email }}</p>
+                    {% else %}
+                    <p class="text-muted">Customer information not available</p>
+                    {% endif %}
+                    {% if ticket.order_id %}
+                    <hr>
+                    <p><strong>Related Order:</strong> <a href="{{ url_for('admin_orders') }}">#{{ ticket.order_id }}</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_status">
+                        <div class="mb-3">
+                            <select name="status" class="form-select">
+                                <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                                <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary w-100">Update Status</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Update Priority</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_priority">
+                        <div class="mb-3">
+                            <select name="priority" class="form-select">
+                                <option value="low" {% if ticket.priority == 'low' %}selected{% endif %}>Low</option>
+                                <option value="normal" {% if ticket.priority == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="high" {% if ticket.priority == 'high' %}selected{% endif %}>High</option>
+                                <option value="urgent" {% if ticket.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-warning w-100">Update Priority</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

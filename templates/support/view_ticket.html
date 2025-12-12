@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket #{{ ticket.id }} - CaupenRost{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <a href="{{ url_for('support_center') }}" class="btn btn-outline-secondary">
+            <i data-feather="arrow-left" class="me-1"></i>Back to Support Center
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Ticket #{{ ticket.id }}</h5>
+                    <div>
+                        <span class="badge {{ ticket.get_status_badge_class() }} me-2">{{ ticket.status.replace('_', ' ').title() }}</span>
+                        <span class="badge {{ ticket.get_priority_badge_class() }}">{{ ticket.priority.title() }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h4>{{ ticket.subject }}</h4>
+                    <div class="mb-3">
+                        {% if ticket.ticket_type == 'damaged_order' %}
+                        <span class="badge bg-danger">Damaged Order</span>
+                        {% elif ticket.ticket_type == 'custom_order' %}
+                        <span class="badge bg-info">Custom Order</span>
+                        {% elif ticket.ticket_type == 'assistance' %}
+                        <span class="badge bg-warning text-dark">Assistance</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ ticket.ticket_type.replace('_', ' ').title() }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="bg-light p-3 rounded mb-3">
+                        <p class="mb-0" style="white-space: pre-wrap;">{{ ticket.description }}</p>
+                    </div>
+                    <small class="text-muted">Created: {{ ticket.created_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i data-feather="message-square" class="me-2"></i>Conversation</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                        <div class="d-flex mb-3 {% if message.is_admin_reply %}flex-row-reverse{% endif %}">
+                            <div class="{% if message.is_admin_reply %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded" style="max-width: 80%;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>{% if message.is_admin_reply %}Support Team{% else %}{{ message.author.username if message.author else 'You' }}{% endif %}</strong>
+                                </div>
+                                <p class="mb-1" style="white-space: pre-wrap;">{{ message.message }}</p>
+                                <small class="{% if message.is_admin_reply %}text-white-50{% else %}text-muted{% endif %}">{{ message.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No messages yet. We will respond to your ticket shortly.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if ticket.status not in ['closed', 'resolved'] %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i data-feather="edit" class="me-2"></i>Reply</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <textarea class="form-control" name="message" rows="4" placeholder="Type your message here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i data-feather="send" class="me-1"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i data-feather="info" class="me-2"></i>This ticket is {{ ticket.status }}. If you need further assistance, please create a new ticket.
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Ticket Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted">Status:</td>
+                            <td><span class="badge {{ ticket.get_status_badge_class() }}">{{ ticket.status.replace('_', ' ').title() }}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Priority:</td>
+                            <td><span class="badge {{ ticket.get_priority_badge_class() }}">{{ ticket.priority.title() }}</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Type:</td>
+                            <td>{{ ticket.ticket_type.replace('_', ' ').title() }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Created:</td>
+                            <td>{{ ticket.created_at.strftime('%b %d, %Y') }}</td>
+                        </tr>
+                        {% if ticket.order_id %}
+                        <tr>
+                            <td class="text-muted">Order:</td>
+                            <td><a href="{{ url_for('order_detail', order_id=ticket.order_id) }}">#{{ ticket.order_id }}</a></td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

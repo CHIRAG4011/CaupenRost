@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Support Center - CaupenRost{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i data-feather="headphones" class="me-2"></i>Support Center</h2>
+            <p class="text-muted mb-0">View and manage your support tickets</p>
+        </div>
+        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
+            <i data-feather="plus" class="me-1"></i>New Ticket
+        </a>
+    </div>
+
+    {% if tickets %}
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Type</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td><strong>#{{ ticket.id }}</strong></td>
+                        <td>
+                            {% if ticket.ticket_type == 'damaged_order' %}
+                            <span class="badge bg-danger">Damaged Order</span>
+                            {% elif ticket.ticket_type == 'custom_order' %}
+                            <span class="badge bg-info">Custom Order</span>
+                            {% elif ticket.ticket_type == 'assistance' %}
+                            <span class="badge bg-warning text-dark">Assistance</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ ticket.ticket_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ ticket.subject[:50] if ticket.subject|length > 50 else ticket.subject }}{% if ticket.subject|length > 50 %}...{% endif %}</td>
+                        <td><span class="badge {{ ticket.get_status_badge_class() }}">{{ ticket.status.replace('_', ' ').title() }}</span></td>
+                        <td><span class="badge {{ ticket.get_priority_badge_class() }}">{{ ticket.priority.title() }}</span></td>
+                        <td>{{ ticket.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i data-feather="eye" class="icon-sm"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i data-feather="inbox" style="width: 64px; height: 64px;" class="text-muted mb-3"></i>
+        <h4>No Support Tickets</h4>
+        <p class="text-muted">You haven't created any support tickets yet.</p>
+        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
+            <i data-feather="plus" class="me-1"></i>Create Your First Ticket
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

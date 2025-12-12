@@ -95,6 +95,7 @@
                             </li>
                             <li><a class="dropdown-item py-2" href="{{ url_for('profile') }}"><i class="fas fa-user me-2 text-muted"></i>My Profile</a></li>
                             <li><a class="dropdown-item py-2" href="{{ url_for('user_orders') }}"><i class="fas fa-box me-2 text-muted"></i>My Orders</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ url_for('support_center') }}"><i class="fas fa-headset me-2 text-muted"></i>Support Center</a></li>
                             {% if current_user.is_admin %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item py-2" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog me-2 text-muted"></i>Admin Dashboard</a></li>
