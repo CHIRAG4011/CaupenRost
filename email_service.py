@@ -38,20 +38,20 @@ def verify_otp(email, otp, purpose='verification'):
         return False, "No verification code found. Please request a new one."
     
     if datetime.utcnow() > stored.expires_at:
-        OTPRepo.delete(stored._id)
+        OTPRepo.delete(stored.id)
         return False, "Verification code has expired. Please request a new one."
     
     stored.attempts += 1
     
     if stored.attempts > 5:
-        OTPRepo.delete(stored._id)
+        OTPRepo.delete(stored.id)
         return False, "Too many attempts. Please request a new verification code."
     
     if stored.otp != otp:
-        OTPRepo.update(stored._id, {'attempts': stored.attempts})
+        OTPRepo.update(stored.id, {'attempts': stored.attempts})
         return False, f"Invalid code. {5 - stored.attempts} attempts remaining."
     
-    OTPRepo.delete(stored._id)
+    OTPRepo.delete(stored.id)
     return True, "Verification successful."
 
 
