@@ -422,6 +422,11 @@ class ReviewRepo:
         count = Review.query.filter_by(product_id=int(product_id)).delete()
         db.session.commit()
         return count
+    
+    @staticmethod
+    def count():
+        from models import Review
+        return Review.query.count()
 
 
 class AddressRepo:
@@ -455,6 +460,11 @@ class AddressRepo:
         db.session.add(address)
         db.session.commit()
         return address
+    
+    @staticmethod
+    def count():
+        from models import Address
+        return Address.query.count()
 
 
 class VisitorLogRepo:

@@ -779,9 +779,9 @@ def admin_analytics():
     stats = calculate_order_stats()
     products = ProductRepo.find_all()
     orders = OrderRepo.find_all()
-    users_count = len(UserRepo.find_all())
-    reviews_count = len(ReviewRepo.find_all())
-    addresses_count = len(AddressRepo.find_all())
+    users_count = UserRepo.count()
+    reviews_count = ReviewRepo.count()
+    addresses_count = AddressRepo.count()
     
     return render_template('admin/analytics.html', 
                          weekly_visitors=weekly_visitors,
