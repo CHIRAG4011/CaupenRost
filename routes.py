@@ -778,11 +778,19 @@ def admin_analytics():
     weekly_visitors = get_weekly_visitors()
     stats = calculate_order_stats()
     products = ProductRepo.find_all()
+    orders = OrderRepo.find_all()
+    users_count = len(UserRepo.find_all())
+    reviews_count = len(ReviewRepo.find_all())
+    addresses_count = len(AddressRepo.find_all())
     
     return render_template('admin/analytics.html', 
                          weekly_visitors=weekly_visitors,
                          stats=stats,
-                         products=products)
+                         products=products,
+                         orders=orders,
+                         users_count=users_count,
+                         reviews_count=reviews_count,
+                         addresses_count=addresses_count)
 
 @app.route('/admin/users')
 def admin_users():

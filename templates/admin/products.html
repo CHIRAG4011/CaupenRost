@@ -182,7 +182,7 @@
                             <label for="edit_category" class="form-label">Category</label>
                             <select class="form-select" id="edit_category" name="category" required>
                                 <option value="">Select Category</option>
-                                {% for category in data_store['categories'].values() %}
+                                {% for category in categories %}
                                 {% if category.is_active %}
                                 <option value="{{ category.name }}">{{ category.name }}</option>
                                 {% endif %}
