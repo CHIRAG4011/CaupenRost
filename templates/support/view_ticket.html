@@ -114,7 +114,7 @@
                         {% if ticket.order_id %}
                         <tr>
                             <td class="text-muted">Order:</td>
-                            <td><a href="{{ url_for('order_detail', order_id=ticket.order_id) }}">#{{ ticket.order_id }}</a></td>
+                            <td><a href="{{ url_for('order_tracking', order_id=ticket.order_id) }}">#{{ ticket.order_id }}</a></td>
                         </tr>
                         {% endif %}
                     </table>
