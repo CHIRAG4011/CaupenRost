@@ -1065,7 +1065,7 @@ def view_ticket(ticket_id):
                 'ticket_id': ticket_id,
                 'author_id': user.id,
                 'message': message,
-                'is_admin_reply': user.is_admin
+                'is_admin_reply': False
             })
             flash('Your message has been sent.', 'success')
             return redirect(url_for('view_ticket', ticket_id=ticket_id))
