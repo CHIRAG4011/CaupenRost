@@ -71,8 +71,8 @@ def send_otp_email(to_email, otp, purpose='verification'):
     try:
         mail_server = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
         mail_port = int(os.environ.get('MAIL_PORT', '587'))
-        mail_username = os.environ.get('MAIL_USERNAME', '')
-        mail_password = os.environ.get('MAIL_PASSWORD', '')
+        mail_username = os.environ.get('MAIL_USERNAME') or os.environ.get('GMAIL_EMAIL', '')
+        mail_password = os.environ.get('MAIL_PASSWORD') or os.environ.get('GMAIL_APP_PASSWORD', '')
         mail_sender = os.environ.get('MAIL_DEFAULT_SENDER', mail_username)
         
         logging.debug(f"Mail server: {mail_server}:{mail_port}, Username configured: {bool(mail_username)}")
