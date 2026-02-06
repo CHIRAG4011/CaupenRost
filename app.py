@@ -16,18 +16,20 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 db = None
-USE_MONGODB = bool(os.environ.get('MONGO_URI'))
+USE_MONGODB = bool(os.environ.get('MONGO_URI')) or (os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL'))
 
 if USE_MONGODB:
-    logging.info("MongoDB mode enabled - using MONGO_URI")
+    logging.info("MongoDB mode enabled")
     try:
         from mongo_db import get_mongo_db
         mongo_db = get_mongo_db()
         logging.info("MongoDB connection established successfully")
     except Exception as e:
         logging.error(f"Failed to connect to MongoDB: {e}")
-        raise
-else:
+        USE_MONGODB = False
+        logging.info("Falling back to SQLAlchemy due to MongoDB connection failure")
+
+if not USE_MONGODB:
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.orm import DeclarativeBase
 
@@ -37,6 +39,9 @@ else:
     db = SQLAlchemy(model_class=Base)
 
     database_url = os.environ.get("DATABASE_URL")
+    if database_url and 'mongodb' in database_url:
+        database_url = None # Force fallback for SQLAlchemy
+    
     if not database_url:
         pg_host = os.environ.get("PGHOST")
         pg_port = os.environ.get("PGPORT", "5432")
@@ -72,9 +77,9 @@ from flask_mail import Mail
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', '')
+app.config['MAIL_USERNAME'] = (os.environ.get('MAIL_USERNAME') or os.environ.get('GMAIL_EMAIL') or '').strip()
+app.config['MAIL_PASSWORD'] = (os.environ.get('MAIL_PASSWORD') or os.environ.get('GMAIL_APP_PASSWORD') or '').strip()
+app.config['MAIL_DEFAULT_SENDER'] = (os.environ.get('MAIL_DEFAULT_SENDER') or app.config['MAIL_USERNAME']).strip()
 
 mail = Mail(app)
 

@@ -69,32 +69,22 @@ def verify_otp(email, otp, purpose='verification'):
 def send_otp_email(to_email, otp, purpose='verification'):
     """Send OTP email using Gmail SMTP"""
     try:
-        # Debugging environment variables directly
-        env_vars = {
-            'MAIL_USERNAME': os.environ.get('MAIL_USERNAME'),
-            'GMAIL_EMAIL': os.environ.get('GMAIL_EMAIL'),
-            'MAIL_PASSWORD': os.environ.get('MAIL_PASSWORD'),
-            'GMAIL_APP_PASSWORD': os.environ.get('GMAIL_APP_PASSWORD')
-        }
-        logging.debug(f"Environment check: { {k: bool(v) for k, v in env_vars.items()} }")
-
         mail_server = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
         mail_port = int(os.environ.get('MAIL_PORT', '587'))
         mail_username = os.environ.get('MAIL_USERNAME') or os.environ.get('GMAIL_EMAIL') or ''
         mail_password = os.environ.get('MAIL_PASSWORD') or os.environ.get('GMAIL_APP_PASSWORD') or ''
         mail_sender = os.environ.get('MAIL_DEFAULT_SENDER', mail_username)
         
+        # Clear out any potential trailing spaces
+        mail_username = mail_username.strip()
+        mail_password = mail_password.strip()
+        mail_sender = mail_sender.strip() if mail_sender else mail_username
+
         logging.debug(f"Mail server: {mail_server}:{mail_port}, Username: {mail_username}, Password set: {bool(mail_password)}")
         
         if not mail_username or not mail_password:
             logging.warning("Mail credentials not configured - LOCAL DEV MODE: OTP displayed in logs")
             logging.info(f"=== LOCAL DEV MODE === OTP for {to_email} ({purpose}): {otp}")
-            print(f"\n{'='*50}")
-            print(f"LOCAL DEV MODE - Email not sent")
-            print(f"OTP Code: {otp}")
-            print(f"Email: {to_email}")
-            print(f"Purpose: {purpose}")
-            print(f"{'='*50}\n")
             return True
         
         if purpose == 'registration':
