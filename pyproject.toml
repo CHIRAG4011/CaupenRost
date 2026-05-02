@@ -21,4 +21,6 @@ dependencies = [
     "sqlalchemy>=2.0.42",
     "pymongo>=4.15.5",
     "flask-pymongo>=3.0.1",
+    "resend>=2.29.0",
+    "bson>=0.5.10",
 ]

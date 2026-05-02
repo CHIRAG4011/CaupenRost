@@ -18,7 +18,11 @@ def get_mongo_db():
     if _mongo_db is not None:
         return _mongo_db
     
-    mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/caupenrost')
+    mongo_uri = (
+        os.environ.get('MONGO_URI') or
+        (os.environ.get('DATABASE_URL') if os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL', '') else None) or
+        'mongodb://localhost:27017/caupenrost'
+    )
     
     try:
         from pymongo import MongoClient

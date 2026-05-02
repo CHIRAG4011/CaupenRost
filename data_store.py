@@ -5,9 +5,16 @@ import os
 data_store = {'otp_codes': {}}
 
 
+def _is_mongo():
+    """Check if MongoDB backend is active"""
+    return bool(os.environ.get('MONGO_URI')) or (
+        os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL', '')
+    )
+
+
 def get_repos():
     """Get the appropriate repositories based on database backend"""
-    if os.environ.get('MONGO_URI'):
+    if _is_mongo():
         from mongo_db import MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
         return MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
     else:
