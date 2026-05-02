@@ -414,6 +414,98 @@ class MongoTicketMessage:
         return cls(doc)
 
 
+class MongoAnnouncement:
+    collection_name = 'announcements'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.text = data.get('text', '')
+        self.link_url = data.get('link_url', '')
+        self.link_text = data.get('link_text', '')
+        self.bg_color = data.get('bg_color', '#8B4513')
+        self.text_color = data.get('text_color', '#ffffff')
+        self.icon = data.get('icon', 'fas fa-bullhorn')
+        self.is_active = data.get('is_active', True)
+        self.is_dismissible = data.get('is_dismissible', True)
+        self.priority = data.get('priority', 1)
+        self.starts_at = data.get('starts_at')
+        self.ends_at = data.get('ends_at')
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def to_dict(self):
+        return {
+            'text': self.text, 'link_url': self.link_url, 'link_text': self.link_text,
+            'bg_color': self.bg_color, 'text_color': self.text_color, 'icon': self.icon,
+            'is_active': self.is_active, 'is_dismissible': self.is_dismissible,
+            'priority': self.priority, 'starts_at': self.starts_at, 'ends_at': self.ends_at,
+            'created_at': self.created_at
+        }
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
+class MongoCoupon:
+    collection_name = 'coupons'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.code = data.get('code', '').upper()
+        self.description = data.get('description', '')
+        self.discount_type = data.get('discount_type', 'percentage')
+        self.discount_value = data.get('discount_value', 0)
+        self.min_order_amount = data.get('min_order_amount', 0)
+        self.max_discount = data.get('max_discount', 0)
+        self.max_uses = data.get('max_uses', 0)
+        self.uses_count = data.get('uses_count', 0)
+        self.is_active = data.get('is_active', True)
+        self.expires_at = data.get('expires_at')
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def is_valid(self, cart_total):
+        """Check if coupon is valid for a given cart total"""
+        if not self.is_active:
+            return False, "This coupon is inactive."
+        if self.expires_at and datetime.utcnow() > self.expires_at:
+            return False, "This coupon has expired."
+        if self.max_uses > 0 and self.uses_count >= self.max_uses:
+            return False, "This coupon has reached its usage limit."
+        if cart_total < self.min_order_amount:
+            return False, f"Minimum order amount of ₹{self.min_order_amount:.0f} required."
+        return True, "Valid"
+
+    def calculate_discount(self, cart_total):
+        """Calculate discount amount"""
+        if self.discount_type == 'percentage':
+            discount = cart_total * (self.discount_value / 100)
+            if self.max_discount > 0:
+                discount = min(discount, self.max_discount)
+        else:
+            discount = min(self.discount_value, cart_total)
+        return round(discount, 2)
+
+    def to_dict(self):
+        return {
+            'code': self.code, 'description': self.description,
+            'discount_type': self.discount_type, 'discount_value': self.discount_value,
+            'min_order_amount': self.min_order_amount, 'max_discount': self.max_discount,
+            'max_uses': self.max_uses, 'uses_count': self.uses_count,
+            'is_active': self.is_active, 'expires_at': self.expires_at,
+            'created_at': self.created_at
+        }
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
 class CartItem:
     def __init__(self, product_id, quantity, price):
         self.product_id = product_id

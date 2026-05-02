@@ -30,12 +30,50 @@
                     <span><i class="fas fa-envelope me-2"></i>hello@caupenrost.com</span>
                 </div>
                 <div class="d-flex align-items-center gap-4">
+                    {% if top_announcement %}
+                    <span>
+                        <i class="{{ top_announcement.icon }} me-2"></i>{{ top_announcement.text }}
+                        {% if top_announcement.link_url %}
+                        <a href="{{ top_announcement.link_url }}" class="ms-1 text-white fw-semibold">{{ top_announcement.link_text or 'Learn more' }} →</a>
+                        {% endif %}
+                    </span>
+                    {% else %}
                     <span><i class="fas fa-truck me-2"></i>Free Delivery on orders above ₹500</span>
                     <span><i class="fas fa-qrcode me-2"></i>UPI Payment Available</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Announcement Banner (dismissible, below nav) -->
+    {% if top_announcement and top_announcement.is_dismissible %}
+    <div id="announcementBanner" class="text-center py-2 px-3 d-none"
+         style="background:{{ top_announcement.bg_color }};color:{{ top_announcement.text_color }};font-size:0.95rem;">
+        <i class="{{ top_announcement.icon }} me-2"></i>
+        <strong>{{ top_announcement.text }}</strong>
+        {% if top_announcement.link_url %}
+        <a href="{{ top_announcement.link_url }}" class="ms-2 fw-bold" style="color:{{ top_announcement.text_color }};text-decoration:underline;">
+            {{ top_announcement.link_text or 'Learn more' }}
+        </a>
+        {% endif %}
+        <button type="button" class="btn-close btn-close-white ms-3" style="filter:{% if top_announcement.text_color == '#000000' %}none{% else %}invert(1){% endif %};"
+                onclick="dismissBanner()" aria-label="Close"></button>
+    </div>
+    <script>
+    (function() {
+        var key = 'ann_dismissed_{{ top_announcement.id }}';
+        if (!localStorage.getItem(key)) {
+            var banner = document.getElementById('announcementBanner');
+            if (banner) banner.classList.remove('d-none');
+        }
+    })();
+    function dismissBanner() {
+        localStorage.setItem('ann_dismissed_{{ top_announcement.id }}', '1');
+        document.getElementById('announcementBanner').style.display = 'none';
+    }
+    </script>
+    {% endif %}
 
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-brown sticky-top" id="mainNav">

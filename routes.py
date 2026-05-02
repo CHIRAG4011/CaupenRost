@@ -10,11 +10,15 @@ if USE_MONGODB:
                          MongoReviewRepo as ReviewRepo, MongoAddressRepo as AddressRepo, 
                          MongoVisitorLogRepo as VisitorLogRepo,
                          MongoTicketRepo as TicketRepo, MongoTicketMessageRepo as TicketMessageRepo,
-                         MongoRoleRepo as RoleRepo)
+                         MongoRoleRepo as RoleRepo,
+                         MongoAnnouncementRepo as AnnouncementRepo,
+                         MongoCouponRepo as CouponRepo)
 else:
     from db import (UserRepo, ProductRepo, OrderRepo, CategoryRepo, ReviewRepo, 
                     AddressRepo, VisitorLogRepo, TicketRepo, TicketMessageRepo)
     RoleRepo = None
+    AnnouncementRepo = None
+    CouponRepo = None
 
 from data_store import add_visitor_log, get_weekly_visitors
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
@@ -209,12 +213,27 @@ def place_order():
         return redirect(url_for('checkout'))
     
     cart_total = get_cart_total()
-    delivery_fee = 50.00
+    delivery_fee = 0.00 if cart_total >= 500 else 50.00
     tax_amount = (cart_total + delivery_fee) * 0.18
-    final_amount = cart_total + delivery_fee + tax_amount
-    
+
+    # Apply coupon discount if any
+    coupon_code = session.get('applied_coupon_code')
+    coupon_discount = float(session.get('applied_coupon_discount', 0))
+    if coupon_code and CouponRepo:
+        coupon = CouponRepo.find_by_code(coupon_code)
+        if coupon:
+            valid, _ = coupon.is_valid(cart_total)
+            if valid:
+                coupon_discount = coupon.calculate_discount(cart_total)
+            else:
+                coupon_discount = 0
+                session.pop('applied_coupon_code', None)
+                session.pop('applied_coupon_discount', None)
+
+    final_amount = cart_total + delivery_fee + tax_amount - coupon_discount
     if payment_method == 'cash_on_delivery':
         final_amount += 20.00
+    final_amount = max(final_amount, 1.0)
     
     for product_id_str, item_data in cart_data.items():
         product = ProductRepo.find_by_id(product_id_str)
@@ -226,7 +245,9 @@ def place_order():
     session['pending_order'] = {
         'shipping_address': shipping_address,
         'payment_method': payment_method,
-        'final_amount': final_amount
+        'final_amount': final_amount,
+        'coupon_code': coupon_code if coupon_discount > 0 else None,
+        'coupon_discount': coupon_discount
     }
     
     if send_and_store_otp(user.email, 'order'):
@@ -294,16 +315,26 @@ def verify_order_otp():
                 'shipping_address': pending['shipping_address'],
                 'status': status,
                 'payment_method': pending['payment_method'],
-                'items': order_items
+                'items': order_items,
+                'coupon_code': pending.get('coupon_code'),
+                'coupon_discount': pending.get('coupon_discount', 0)
             })
-            
+
+            # Track coupon usage
+            if pending.get('coupon_code') and CouponRepo:
+                coupon = CouponRepo.find_by_code(pending['coupon_code'])
+                if coupon:
+                    CouponRepo.increment_uses(coupon.id)
+
             try:
                 send_order_confirmation_email(user.email, order)
             except Exception as e:
                 logging.warning(f"Failed to send confirmation email: {e}")
-            
+
             clear_cart()
             session.pop('pending_order', None)
+            session.pop('applied_coupon_code', None)
+            session.pop('applied_coupon_discount', None)
             
             if pending['payment_method'] == 'cash_on_delivery':
                 flash(f'Order #{order.id} placed successfully! Payment will be collected on delivery.', 'success')
@@ -1120,6 +1151,186 @@ def admin_tickets():
                           in_progress_count=in_progress_count,
                           current_status=status_filter,
                           current_type=type_filter)
+
+
+@app.route('/apply_coupon', methods=['POST'])
+def apply_coupon():
+    """Apply a coupon code to the session"""
+    code = request.form.get('coupon_code', '').strip().upper()
+    if not code:
+        flash('Please enter a coupon code.', 'error')
+        return redirect(url_for('checkout'))
+    if not CouponRepo:
+        flash('Coupons are not available.', 'error')
+        return redirect(url_for('checkout'))
+
+    coupon = CouponRepo.find_by_code(code)
+    if not coupon:
+        flash(f'Coupon "{code}" not found.', 'error')
+        return redirect(url_for('checkout'))
+
+    cart_total = get_cart_total()
+    valid, msg = coupon.is_valid(cart_total)
+    if not valid:
+        flash(msg, 'error')
+        return redirect(url_for('checkout'))
+
+    discount = coupon.calculate_discount(cart_total)
+    session['applied_coupon_code'] = coupon.code
+    session['applied_coupon_discount'] = discount
+
+    if coupon.discount_type == 'percentage':
+        flash(f'Coupon "{code}" applied! You save {coupon.discount_value:.0f}% (₹{discount:.2f}) on your order.', 'success')
+    else:
+        flash(f'Coupon "{code}" applied! You save ₹{discount:.2f} on your order.', 'success')
+    return redirect(url_for('checkout'))
+
+
+@app.route('/remove_coupon', methods=['POST'])
+def remove_coupon():
+    """Remove applied coupon from session"""
+    session.pop('applied_coupon_code', None)
+    session.pop('applied_coupon_discount', None)
+    flash('Coupon removed.', 'info')
+    return redirect(url_for('checkout'))
+
+
+@app.route('/admin/announcements')
+def admin_announcements():
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    if not AnnouncementRepo:
+        flash('Announcements require MongoDB.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    announcements = AnnouncementRepo.find_all()
+    return render_template('admin/announcements.html', announcements=announcements)
+
+
+@app.route('/admin/announcements/add', methods=['POST'])
+def admin_add_announcement():
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+
+    from datetime import datetime as dt
+    starts_at = None
+    ends_at = None
+    try:
+        if request.form.get('starts_at'):
+            starts_at = dt.strptime(request.form['starts_at'], '%Y-%m-%d')
+        if request.form.get('ends_at'):
+            ends_at = dt.strptime(request.form['ends_at'], '%Y-%m-%d')
+    except:
+        pass
+
+    AnnouncementRepo.create({
+        'text': request.form.get('text', '').strip(),
+        'link_url': request.form.get('link_url', '').strip(),
+        'link_text': request.form.get('link_text', '').strip(),
+        'bg_color': request.form.get('bg_color', '#8B4513'),
+        'text_color': request.form.get('text_color', '#ffffff'),
+        'icon': request.form.get('icon', 'fas fa-bullhorn'),
+        'is_active': True,
+        'is_dismissible': bool(request.form.get('is_dismissible')),
+        'priority': int(request.form.get('priority', 1)),
+        'starts_at': starts_at,
+        'ends_at': ends_at
+    })
+    flash('Announcement created!', 'success')
+    return redirect(url_for('admin_announcements'))
+
+
+@app.route('/admin/announcements/toggle/<ann_id>', methods=['POST'])
+def admin_toggle_announcement(ann_id):
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    ann = AnnouncementRepo.find_by_id(ann_id)
+    if ann:
+        AnnouncementRepo.update(ann_id, {'is_active': not ann.is_active})
+        flash(f'Announcement {"activated" if not ann.is_active else "paused"}.', 'success')
+    return redirect(url_for('admin_announcements'))
+
+
+@app.route('/admin/announcements/delete/<ann_id>', methods=['POST'])
+def admin_delete_announcement(ann_id):
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    AnnouncementRepo.delete(ann_id)
+    flash('Announcement deleted.', 'success')
+    return redirect(url_for('admin_announcements'))
+
+
+@app.route('/admin/coupons')
+def admin_coupons():
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    if not CouponRepo:
+        flash('Coupons require MongoDB.', 'error')
+        return redirect(url_for('admin_dashboard'))
+    coupons = CouponRepo.find_all()
+    return render_template('admin/coupons.html', coupons=coupons, now=datetime.utcnow())
+
+
+@app.route('/admin/coupons/add', methods=['POST'])
+def admin_add_coupon():
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    code = request.form.get('code', '').strip().upper()
+    if not code:
+        flash('Coupon code is required.', 'error')
+        return redirect(url_for('admin_coupons'))
+    if CouponRepo.find_by_code(code):
+        flash(f'Coupon "{code}" already exists.', 'error')
+        return redirect(url_for('admin_coupons'))
+    CouponRepo.create({
+        'code': code,
+        'description': request.form.get('description', '').strip(),
+        'discount_type': request.form.get('discount_type', 'percentage'),
+        'discount_value': request.form.get('discount_value', 0),
+        'min_order_amount': request.form.get('min_order_amount', 0),
+        'max_discount': request.form.get('max_discount', 0),
+        'max_uses': request.form.get('max_uses', 0),
+        'expires_at': request.form.get('expires_at', '')
+    })
+    flash(f'Coupon "{code}" created!', 'success')
+    return redirect(url_for('admin_coupons'))
+
+
+@app.route('/admin/coupons/toggle/<coupon_id>', methods=['POST'])
+def admin_toggle_coupon(coupon_id):
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    coupon = CouponRepo.find_by_id(coupon_id)
+    if coupon:
+        CouponRepo.update(coupon_id, {'is_active': not coupon.is_active})
+        flash(f'Coupon "{coupon.code}" {"activated" if not coupon.is_active else "deactivated"}.', 'success')
+    return redirect(url_for('admin_coupons'))
+
+
+@app.route('/admin/coupons/delete/<coupon_id>', methods=['POST'])
+def admin_delete_coupon(coupon_id):
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    coupon = CouponRepo.find_by_id(coupon_id)
+    if coupon:
+        CouponRepo.delete(coupon_id)
+        flash(f'Coupon "{coupon.code}" deleted.', 'success')
+    return redirect(url_for('admin_coupons'))
 
 
 @app.route('/admin/order/<order_id>')

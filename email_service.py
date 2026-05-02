@@ -106,9 +106,17 @@ def _build_html(otp, purpose):
     """
 
 
+def _check_email_config():
+    """Log email configuration status on first use"""
+    api_key = os.environ.get('RESEND_API_KEY', '').strip()
+    configured = bool(api_key)
+    logging.info(f"Email config check — RESEND_API_KEY configured: {configured}")
+    return api_key
+
+
 def send_otp_email(to_email, otp, purpose='verification'):
     """Send OTP email using Resend"""
-    api_key = os.environ.get('RESEND_API_KEY', '').strip()
+    api_key = _check_email_config()
 
     if not api_key:
         logging.warning("RESEND_API_KEY not configured — OTP displayed in logs only")

@@ -108,7 +108,6 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="payment-methods">
-                            <!-- QR Payment Option -->
                             <div class="form-check mb-0">
                                 <input class="form-check-input" type="radio" name="payment_method" value="qr_payment" id="qr_payment" checked>
                                 <label class="form-check-label w-100" for="qr_payment">
@@ -122,8 +121,6 @@
                                     </div>
                                 </label>
                             </div>
-                            
-                            <!-- Cash on Delivery Option -->
                             <div class="form-check mb-0">
                                 <input class="form-check-input" type="radio" name="payment_method" value="cash_on_delivery" id="cash_on_delivery">
                                 <label class="form-check-label w-100" for="cash_on_delivery">
@@ -139,7 +136,6 @@
                             </div>
                         </div>
                         
-                        <!-- QR Payment Details -->
                         <div id="qr_payment_details" class="mt-4 p-4 rounded-3" style="background: rgba(40, 167, 69, 0.05); border: 1px dashed #28a745;">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
@@ -147,8 +143,8 @@
                                     <ol class="mb-0 ps-3">
                                         <li class="mb-2">Click "Place Order" to continue</li>
                                         <li class="mb-2">Scan QR code with any UPI app</li>
-                                        <li class="mb-2">Complete payment instantly</li>
-                                        <li>Order confirmed automatically</li>
+                                        <li class="mb-2">Upload payment screenshot</li>
+                                        <li>Order confirmed after verification</li>
                                     </ol>
                                 </div>
                                 <div class="col-md-6 text-center">
@@ -161,7 +157,6 @@
                             </div>
                         </div>
                         
-                        <!-- COD Details -->
                         <div id="cash_delivery_details" class="mt-4 p-4 rounded-3" style="background: rgba(255, 193, 7, 0.1); border: 1px dashed #ffc107; display: none;">
                             <div class="d-flex align-items-start">
                                 <i class="fas fa-info-circle text-warning me-3 mt-1"></i>
@@ -192,7 +187,6 @@
                     </div>
                 </div>
                 
-                <!-- Submit Button -->
                 <button type="submit" class="btn btn-brown btn-lg w-100 py-3" id="placeOrderBtn">
                     <i class="fas fa-lock me-2"></i>Place Order Securely
                 </button>
@@ -210,6 +204,50 @@
                     <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
                 </div>
                 <div class="card-body p-4">
+
+                    <!-- Coupon Code Section -->
+                    <div class="mb-4">
+                        {% set applied_coupon = session.get('applied_coupon_code') %}
+                        {% set coupon_discount = session.get('applied_coupon_discount', 0) %}
+
+                        {% if applied_coupon %}
+                        <!-- Coupon Applied -->
+                        <div class="p-3 rounded-3 border border-success mb-2" style="background:rgba(25,135,84,.05);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-tag text-success me-2"></i>
+                                    <strong class="text-success" style="letter-spacing:2px;">{{ applied_coupon }}</strong>
+                                    <div class="small text-muted mt-1">Saving ₹{{ "%.2f"|format(coupon_discount|float) }}</div>
+                                </div>
+                                <form method="POST" action="{{ url_for('remove_coupon') }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- Coupon Input -->
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Have a coupon?</label>
+                        <form method="POST" action="{{ url_for('apply_coupon') }}" class="d-flex gap-2">
+                            <input type="text" name="coupon_code" class="form-control form-control-sm"
+                                   placeholder="Enter coupon code" style="text-transform:uppercase;letter-spacing:1px;">
+                            <button type="submit" class="btn btn-outline-brown btn-sm px-3 flex-shrink-0">
+                                <i class="fas fa-tag me-1"></i>Apply
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-3">
+
+                    <!-- Price Breakdown -->
+                    {% set delivery = 0 if cart_total >= 500 else 50 %}
+                    {% set subtotal_with_delivery = cart_total + delivery %}
+                    {% set tax = subtotal_with_delivery * 0.18 %}
+                    {% set applied_discount = session.get('applied_coupon_discount', 0)|float %}
+                    {% set final_total = subtotal_with_delivery + tax - applied_discount %}
+
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Items ({{ cart_count }})</span>
                         <span>₹{{ "%.0f"|format(cart_total) }}</span>
@@ -221,27 +259,34 @@
                             <span class="badge bg-success ms-1">FREE</span>
                             {% endif %}
                         </span>
-                        <span>
-                            {% if cart_total >= 500 %}₹0{% else %}₹50{% endif %}
-                        </span>
+                        <span>{% if cart_total >= 500 %}₹0{% else %}₹50{% endif %}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">GST (18%)</span>
-                        <span>₹{{ "%.0f"|format((cart_total + (0 if cart_total >= 500 else 50)) * 0.18) }}</span>
+                        <span>₹{{ "%.0f"|format(tax) }}</span>
                     </div>
-                    
+
+                    {% if applied_discount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span><i class="fas fa-tag me-1"></i>Coupon Discount</span>
+                        <span>- ₹{{ "%.2f"|format(applied_discount) }}</span>
+                    </div>
+                    {% endif %}
+
                     <hr>
-                    
-                    <div class="d-flex justify-content-between mb-4">
+
+                    <div class="d-flex justify-content-between mb-1">
                         <span class="h5 mb-0">Total</span>
-                        <span class="h4 text-brown mb-0">
-                            {% set delivery = 0 if cart_total >= 500 else 50 %}
-                            ₹{{ "%.0f"|format((cart_total + delivery) * 1.18) }}
-                        </span>
+                        <span class="h4 text-brown mb-0">₹{{ "%.0f"|format([final_total, 1]|max) }}</span>
                     </div>
-                    
+                    {% if applied_discount > 0 %}
+                    <div class="text-success text-end small">
+                        <i class="fas fa-check-circle me-1"></i>You save ₹{{ "%.2f"|format(applied_discount) }}!
+                    </div>
+                    {% endif %}
+
                     <!-- Order Items Preview -->
-                    <div class="border-top pt-3">
+                    <div class="border-top pt-3 mt-3">
                         <small class="text-muted d-block mb-2">Order Items:</small>
                         <div style="max-height: 200px; overflow-y: auto;">
                             {% for item in session.get('cart', {}).items() %}
@@ -298,15 +343,8 @@ function validateCheckoutForm() {
     const addressRadios = document.querySelectorAll('input[name="address_id"]');
     const newAddressField = document.getElementById('new_address');
     const newAddressRadio = document.getElementById('newAddress');
-    
     let hasSelectedAddress = false;
-    
-    addressRadios.forEach(radio => {
-        if (radio.checked) {
-            hasSelectedAddress = true;
-        }
-    });
-    
+    addressRadios.forEach(radio => { if (radio.checked) hasSelectedAddress = true; });
     if (newAddressRadio && newAddressRadio.checked) {
         if (!newAddressField.value.trim()) {
             alert('Please enter a delivery address.');
@@ -315,47 +353,29 @@ function validateCheckoutForm() {
         }
         hasSelectedAddress = true;
     }
-    
     if (!hasSelectedAddress && (!newAddressField || !newAddressField.value.trim())) {
         alert('Please provide a delivery address to continue.');
-        if (newAddressField) {
-            newAddressField.focus();
-        }
+        if (newAddressField) newAddressField.focus();
         return false;
     }
-    
     return true;
 }
-
 function toggleNewAddress(show) {
     const form = document.getElementById('newAddressForm');
     const field = document.getElementById('new_address');
-    if (show) {
-        form.style.display = 'block';
-        field.required = true;
-    } else {
-        form.style.display = 'none';
-        field.required = false;
-    }
+    if (show) { form.style.display = 'block'; field.required = true; }
+    else { form.style.display = 'none'; field.required = false; }
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
     const qrDetails = document.getElementById('qr_payment_details');
     const cashDetails = document.getElementById('cash_delivery_details');
-    
     paymentMethods.forEach(method => {
         method.addEventListener('change', function() {
-            if (this.value === 'qr_payment') {
-                qrDetails.style.display = 'block';
-                cashDetails.style.display = 'none';
-            } else if (this.value === 'cash_on_delivery') {
-                qrDetails.style.display = 'none';
-                cashDetails.style.display = 'block';
-            }
+            if (this.value === 'qr_payment') { qrDetails.style.display = 'block'; cashDetails.style.display = 'none'; }
+            else { qrDetails.style.display = 'none'; cashDetails.style.display = 'block'; }
         });
     });
-    
     const addressRadios = document.querySelectorAll('input[name="address_id"]');
     addressRadios.forEach(radio => {
         radio.addEventListener('change', function() {
@@ -364,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (newAddressRadio) newAddressRadio.checked = false;
         });
     });
-    
     const addressOptions = document.querySelectorAll('.address-option');
     addressOptions.forEach(option => {
         option.addEventListener('click', function() {
@@ -372,6 +391,9 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.borderColor = 'var(--brown-primary)';
         });
     });
+    // Uppercase coupon input
+    const couponInput = document.querySelector('input[name="coupon_code"]');
+    if (couponInput) couponInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 });
 </script>
 {% endblock %}

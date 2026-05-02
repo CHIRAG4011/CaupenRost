@@ -757,6 +757,157 @@ class MongoRoleRepo:
         return MongoRoleRepo._get_collection().count_documents({})
 
 
+class MongoAnnouncementRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['announcements']
+
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoAnnouncement
+        docs = MongoAnnouncementRepo._get_collection().find().sort('priority', -1)
+        return [MongoAnnouncement.from_doc(doc) for doc in docs]
+
+    @staticmethod
+    def find_active():
+        from mongodb_models import MongoAnnouncement
+        now = datetime.utcnow()
+        query = {'is_active': True, '$or': [{'ends_at': None}, {'ends_at': {'$gt': now}}],
+                 '$or': [{'starts_at': None}, {'starts_at': {'$lte': now}}]}
+        docs = MongoAnnouncementRepo._get_collection().find({'is_active': True}).sort('priority', -1)
+        return [MongoAnnouncement.from_doc(doc) for doc in docs]
+
+    @staticmethod
+    def find_by_id(ann_id):
+        from mongodb_models import MongoAnnouncement
+        try:
+            doc = MongoAnnouncementRepo._get_collection().find_one({'_id': ObjectId(str(ann_id))})
+            return MongoAnnouncement.from_doc(doc)
+        except:
+            return None
+
+    @staticmethod
+    def create(data):
+        from mongodb_models import MongoAnnouncement
+        doc = {
+            'text': data.get('text', ''),
+            'link_url': data.get('link_url', ''),
+            'link_text': data.get('link_text', ''),
+            'bg_color': data.get('bg_color', '#8B4513'),
+            'text_color': data.get('text_color', '#ffffff'),
+            'icon': data.get('icon', 'fas fa-bullhorn'),
+            'is_active': data.get('is_active', True),
+            'is_dismissible': data.get('is_dismissible', True),
+            'priority': int(data.get('priority', 1)),
+            'starts_at': data.get('starts_at'),
+            'ends_at': data.get('ends_at'),
+            'created_at': datetime.utcnow()
+        }
+        result = MongoAnnouncementRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoAnnouncement.from_doc(doc)
+
+    @staticmethod
+    def update(ann_id, update_data):
+        try:
+            MongoAnnouncementRepo._get_collection().update_one(
+                {'_id': ObjectId(str(ann_id))}, {'$set': update_data})
+        except:
+            pass
+
+    @staticmethod
+    def delete(ann_id):
+        try:
+            MongoAnnouncementRepo._get_collection().delete_one({'_id': ObjectId(str(ann_id))})
+        except:
+            pass
+
+    @staticmethod
+    def count():
+        return MongoAnnouncementRepo._get_collection().count_documents({})
+
+
+class MongoCouponRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['coupons']
+
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoCoupon
+        docs = MongoCouponRepo._get_collection().find().sort('created_at', -1)
+        return [MongoCoupon.from_doc(doc) for doc in docs]
+
+    @staticmethod
+    def find_by_id(coupon_id):
+        from mongodb_models import MongoCoupon
+        try:
+            doc = MongoCouponRepo._get_collection().find_one({'_id': ObjectId(str(coupon_id))})
+            return MongoCoupon.from_doc(doc)
+        except:
+            return None
+
+    @staticmethod
+    def find_by_code(code):
+        from mongodb_models import MongoCoupon
+        doc = MongoCouponRepo._get_collection().find_one({'code': code.strip().upper()})
+        return MongoCoupon.from_doc(doc)
+
+    @staticmethod
+    def create(data):
+        from mongodb_models import MongoCoupon
+        from datetime import timedelta
+        expires_at = None
+        if data.get('expires_at'):
+            try:
+                expires_at = datetime.strptime(data['expires_at'], '%Y-%m-%d')
+            except:
+                pass
+        doc = {
+            'code': data.get('code', '').strip().upper(),
+            'description': data.get('description', ''),
+            'discount_type': data.get('discount_type', 'percentage'),
+            'discount_value': float(data.get('discount_value', 0)),
+            'min_order_amount': float(data.get('min_order_amount', 0)),
+            'max_discount': float(data.get('max_discount', 0)),
+            'max_uses': int(data.get('max_uses', 0)),
+            'uses_count': 0,
+            'is_active': True,
+            'expires_at': expires_at,
+            'created_at': datetime.utcnow()
+        }
+        result = MongoCouponRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoCoupon.from_doc(doc)
+
+    @staticmethod
+    def update(coupon_id, update_data):
+        try:
+            MongoCouponRepo._get_collection().update_one(
+                {'_id': ObjectId(str(coupon_id))}, {'$set': update_data})
+        except:
+            pass
+
+    @staticmethod
+    def increment_uses(coupon_id):
+        try:
+            MongoCouponRepo._get_collection().update_one(
+                {'_id': ObjectId(str(coupon_id))}, {'$inc': {'uses_count': 1}})
+        except:
+            pass
+
+    @staticmethod
+    def delete(coupon_id):
+        try:
+            MongoCouponRepo._get_collection().delete_one({'_id': ObjectId(str(coupon_id))})
+        except:
+            pass
+
+    @staticmethod
+    def count():
+        return MongoCouponRepo._get_collection().count_documents({})
+
+
 def setup_indexes():
     """Create MongoDB indexes for performance and TTL"""
     try:

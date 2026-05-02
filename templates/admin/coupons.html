@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block title %}Coupon Management - CaupenRost Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-brown"><i class="fas fa-ticket-alt me-2"></i>Coupon Management</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Dashboard
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="text-brown fs-2 fw-bold">{{ coupons|length }}</div>
+                <div class="text-muted small">Total Coupons</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="text-success fs-2 fw-bold">{{ coupons|selectattr('is_active')|list|length }}</div>
+                <div class="text-muted small">Active</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="text-primary fs-2 fw-bold">{{ coupons|sum(attribute='uses_count') }}</div>
+                <div class="text-muted small">Total Uses</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="text-warning fs-2 fw-bold">{{ coupons|rejectattr('is_active')|list|length }}</div>
+                <div class="text-muted small">Inactive</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Create Coupon Form (Big and Beautiful) -->
+        <div class="col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-brown text-white py-3">
+                    <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Coupon</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('admin_add_coupon') }}">
+
+                        <!-- Coupon Code -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold fs-6">Coupon Code <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-brown text-white"><i class="fas fa-ticket-alt"></i></span>
+                                <input type="text" name="code" class="form-control form-control-lg fw-bold"
+                                       placeholder="e.g. SAVE20" required
+                                       style="text-transform:uppercase;letter-spacing:2px;font-size:1.3rem;">
+                                <button type="button" class="btn btn-outline-secondary" onclick="generateCode()">
+                                    <i class="fas fa-dice"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Customers will enter this code at checkout</small>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Description</label>
+                            <input type="text" name="description" class="form-control form-control-lg"
+                                   placeholder="e.g. 20% off weekend special">
+                        </div>
+
+                        <!-- Discount Type -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Discount Type <span class="text-danger">*</span></label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check discount-type-card p-3 border rounded-3 text-center" style="cursor:pointer;">
+                                        <input class="form-check-input d-none" type="radio" name="discount_type"
+                                               value="percentage" id="typePercent" checked>
+                                        <label for="typePercent" style="cursor:pointer;">
+                                            <div class="fs-2 text-brown"><i class="fas fa-percent"></i></div>
+                                            <div class="fw-semibold">Percentage</div>
+                                            <small class="text-muted">e.g. 10% off</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check discount-type-card p-3 border rounded-3 text-center" style="cursor:pointer;">
+                                        <input class="form-check-input d-none" type="radio" name="discount_type"
+                                               value="fixed" id="typeFixed">
+                                        <label for="typeFixed" style="cursor:pointer;">
+                                            <div class="fs-2 text-brown"><i class="fas fa-rupee-sign"></i></div>
+                                            <div class="fw-semibold">Fixed Amount</div>
+                                            <small class="text-muted">e.g. ₹50 off</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discount Value -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Discount Value <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text" id="discountSymbol">%</span>
+                                <input type="number" name="discount_value" class="form-control form-control-lg"
+                                       placeholder="20" min="0.01" step="0.01" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Min Order (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" name="min_order_amount" class="form-control"
+                                           placeholder="0" min="0" step="1" value="0">
+                                </div>
+                                <small class="text-muted">0 = no minimum</small>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Max Discount (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" name="max_discount" class="form-control"
+                                           placeholder="0" min="0" step="1" value="0">
+                                </div>
+                                <small class="text-muted">0 = no cap</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Max Uses</label>
+                                <input type="number" name="max_uses" class="form-control"
+                                       placeholder="0" min="0" value="0">
+                                <small class="text-muted">0 = unlimited</small>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Expires On</label>
+                                <input type="date" name="expires_at" class="form-control">
+                                <small class="text-muted">Leave blank = never</small>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview Card -->
+                        <div class="mb-4 p-4 rounded-3 text-center" style="background:linear-gradient(135deg,#8B4513 0%,#a0522d 100%);">
+                            <div class="text-white small mb-1 opacity-75">Coupon Preview</div>
+                            <div class="bg-white rounded-3 p-3 d-inline-block shadow" style="min-width:200px;">
+                                <div class="text-brown fw-bold fs-4 letter-spacing" id="previewCode" style="letter-spacing:3px;">CODE</div>
+                                <div class="text-muted small" id="previewDesc">Enter details above</div>
+                                <div class="badge bg-brown mt-1" id="previewDiscount">Discount</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-brown btn-lg w-100 py-3">
+                            <i class="fas fa-plus me-2"></i>Create Coupon
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coupons Table -->
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Coupons</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if not coupons %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-ticket-alt fa-4x mb-3 opacity-25"></i>
+                        <p class="fs-5">No coupons yet</p>
+                        <small>Create your first coupon to attract more customers!</small>
+                    </div>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Usage</th>
+                                    <th>Status</th>
+                                    <th>Expires</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for coupon in coupons %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-brown" style="letter-spacing:2px;font-size:1rem;">
+                                            {{ coupon.code }}
+                                        </div>
+                                        {% if coupon.description %}
+                                        <small class="text-muted">{{ coupon.description }}</small>
+                                        {% endif %}
+                                        {% if coupon.min_order_amount > 0 %}
+                                        <br><small class="text-muted">Min: ₹{{ "%.0f"|format(coupon.min_order_amount) }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success fs-6">
+                                            {% if coupon.discount_type == 'percentage' %}
+                                                {{ "%.0f"|format(coupon.discount_value) }}% OFF
+                                            {% else %}
+                                                ₹{{ "%.0f"|format(coupon.discount_value) }} OFF
+                                            {% endif %}
+                                        </span>
+                                        {% if coupon.max_discount > 0 and coupon.discount_type == 'percentage' %}
+                                        <br><small class="text-muted">Max ₹{{ "%.0f"|format(coupon.max_discount) }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold">{{ coupon.uses_count }}</div>
+                                        <small class="text-muted">
+                                            {% if coupon.max_uses > 0 %}/ {{ coupon.max_uses }}{% else %}unlimited{% endif %}
+                                        </small>
+                                        {% if coupon.max_uses > 0 %}
+                                        <div class="progress mt-1" style="height:4px;width:60px;">
+                                            <div class="progress-bar bg-brown" style="width:{{ [((coupon.uses_count/coupon.max_uses)*100)|int, 100]|min }}%"></div>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if coupon.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                        {% if coupon.expires_at and coupon.expires_at < now %}
+                                        <span class="badge bg-danger ms-1">Expired</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if coupon.expires_at %}
+                                            {{ coupon.expires_at.strftime('%d %b %Y') }}
+                                            {% else %}Never{% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <form method="POST" action="{{ url_for('admin_toggle_coupon', coupon_id=coupon.id) }}">
+                                                {% if coupon.is_active %}
+                                                <button class="btn btn-sm btn-outline-warning" title="Deactivate">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                                {% else %}
+                                                <button class="btn btn-sm btn-outline-success" title="Activate">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                {% endif %}
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin_delete_coupon', coupon_id=coupon.id) }}"
+                                                  onsubmit="return confirm('Delete coupon {{ coupon.code }}?')">
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- How Coupons Work -->
+            <div class="card mt-3">
+                <div class="card-header"><h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>How Coupons Work</h6></div>
+                <div class="card-body small text-muted">
+                    <div class="row">
+                        <div class="col-6">
+                            <ul class="mb-0 ps-3">
+                                <li>Customers enter the code at checkout</li>
+                                <li><strong>Percentage</strong>: e.g. SAVE20 = 20% off</li>
+                                <li><strong>Fixed</strong>: e.g. FLAT50 = ₹50 off</li>
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul class="mb-0 ps-3">
+                                <li>Set <strong>min order</strong> to encourage larger orders</li>
+                                <li>Set <strong>max discount</strong> to cap savings</li>
+                                <li><strong>Max uses = 0</strong> means unlimited</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function generateCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    document.querySelector('input[name=code]').value = code;
+    updatePreview();
+}
+
+function updatePreview() {
+    const code = document.querySelector('input[name=code]').value.toUpperCase() || 'CODE';
+    const desc = document.querySelector('input[name=description]').value || 'Discount coupon';
+    const val = document.querySelector('input[name=discount_value]').value || '0';
+    const type = document.querySelector('input[name=discount_type]:checked').value;
+    document.getElementById('previewCode').textContent = code;
+    document.getElementById('previewDesc').textContent = desc;
+    document.getElementById('previewDiscount').textContent = type === 'percentage' ? val + '% OFF' : '₹' + val + ' OFF';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Discount type card styling
+    document.querySelectorAll('input[name=discount_type]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.discount-type-card').forEach(c => c.style.borderColor = '');
+            this.closest('.discount-type-card').style.borderColor = '#8B4513';
+            document.getElementById('discountSymbol').textContent = this.value === 'percentage' ? '%' : '₹';
+            updatePreview();
+        });
+    });
+    // Highlight initial selection
+    document.getElementById('typePercent').closest('.discount-type-card').style.borderColor = '#8B4513';
+
+    // Live preview updates
+    ['input[name=code]', 'input[name=description]', 'input[name=discount_value]'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.addEventListener('input', updatePreview);
+    });
+    document.querySelector('input[name=code]').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+    updatePreview();
+});
+</script>
+{% endblock %}

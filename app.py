@@ -91,6 +91,21 @@ with app.app_context():
             logging.warning(f"Index setup failed: {e}")
     initialize_database()
 
+@app.context_processor
+def inject_active_announcement():
+    """Inject the top active announcement into all templates"""
+    try:
+        if USE_MONGODB:
+            from mongo_db import MongoAnnouncementRepo
+            active = MongoAnnouncementRepo.find_active()
+            top_announcement = active[0] if active else None
+        else:
+            top_announcement = None
+    except:
+        top_announcement = None
+    return {'top_announcement': top_announcement}
+
+
 from routes import *
 
 if __name__ == '__main__':
