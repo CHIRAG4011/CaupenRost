@@ -73,16 +73,6 @@ if not USE_MONGODB:
 
     db.init_app(app)
 
-from flask_mail import Mail
-app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = (os.environ.get('MAIL_USERNAME') or os.environ.get('GMAIL_EMAIL') or '').strip()
-app.config['MAIL_PASSWORD'] = (os.environ.get('MAIL_PASSWORD') or os.environ.get('GMAIL_APP_PASSWORD') or '').strip()
-app.config['MAIL_DEFAULT_SENDER'] = (os.environ.get('MAIL_DEFAULT_SENDER') or app.config['MAIL_USERNAME']).strip()
-
-mail = Mail(app)
-
 
 def initialize_database():
     from data_store import init_data_store
