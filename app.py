@@ -83,6 +83,12 @@ with app.app_context():
     if not USE_MONGODB:
         import models  # noqa: F401
         db.create_all()
+    else:
+        try:
+            from mongo_db import setup_indexes
+            setup_indexes()
+        except Exception as e:
+            logging.warning(f"Index setup failed: {e}")
     initialize_database()
 
 from routes import *

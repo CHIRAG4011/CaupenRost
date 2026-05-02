@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Role Management - CaupenRost{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-brown">
+            <i class="fas fa-user-tag me-2"></i>Role Management
+        </h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Existing Roles -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-brown text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Roles</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Role Name</th>
+                                    <th>Description</th>
+                                    <th>Permissions</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for role in roles %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-brown">{{ role.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ role.description or '—' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if role.permissions %}
+                                            {% for perm in role.permissions %}
+                                            <span class="badge bg-light text-dark border me-1">{{ perm }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                        <span class="text-muted small">No permissions</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if role.is_system %}
+                                        <span class="badge bg-info">System</span>
+                                        {% else %}
+                                        <span class="badge bg-purple" style="background:#7c3aed!important">Custom</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not role.is_system %}
+                                        <form method="POST" action="{{ url_for('admin_delete_role', role_id=role.id) }}"
+                                              onsubmit="return confirm('Delete role {{ role.name }}?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted small">Protected</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add New Role -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Role</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_add_role') }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Role Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. delivery_partner" required>
+                            <small class="text-muted">Spaces will be replaced with underscores</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="What can this role do?"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Permissions</label>
+                            <input type="text" name="permissions" class="form-control" placeholder="orders, products, analytics">
+                            <small class="text-muted">Comma-separated list of permissions</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold d-block">Quick Permission Templates</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="document.querySelector('[name=permissions]').value='orders'">
+                                    Orders Only
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="document.querySelector('[name=permissions]').value='orders, products'">
+                                    Orders + Products
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="document.querySelector('[name=permissions]').value='all'">
+                                    Full Access
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-brown w-100">
+                            <i class="fas fa-plus me-2"></i>Create Role
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Roles</h6>
+                </div>
+                <div class="card-body small text-muted">
+                    <ul class="mb-0 ps-3">
+                        <li><strong>admin</strong> — Full access to all features</li>
+                        <li><strong>manager</strong> — Orders, products, analytics</li>
+                        <li><strong>staff</strong> — View and update orders only</li>
+                        <li><strong>customer</strong> — Regular shopping account</li>
+                        <li>Create custom roles for specific needs</li>
+                        <li>Assign roles to users from the Users page</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

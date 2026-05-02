@@ -677,3 +677,97 @@ class MongoTicketMessageRepo:
         msg = MongoTicketMessage.from_doc(doc)
         msg.author = MongoUserRepo.find_by_id(msg.author_id)
         return msg
+
+
+class MongoRoleRepo:
+    SYSTEM_ROLES = [
+        {'name': 'admin', 'description': 'Full access to all admin features', 'permissions': ['all'], 'is_system': True},
+        {'name': 'manager', 'description': 'Manage orders, products and view analytics', 'permissions': ['orders', 'products', 'analytics'], 'is_system': True},
+        {'name': 'staff', 'description': 'View and update orders only', 'permissions': ['orders'], 'is_system': True},
+        {'name': 'customer', 'description': 'Regular customer account', 'permissions': [], 'is_system': True},
+    ]
+
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['roles']
+
+    @staticmethod
+    def ensure_system_roles():
+        from mongodb_models import MongoRole
+        for role_data in MongoRoleRepo.SYSTEM_ROLES:
+            existing = MongoRoleRepo._get_collection().find_one({'name': role_data['name']})
+            if not existing:
+                doc = {**role_data, 'created_at': datetime.utcnow()}
+                MongoRoleRepo._get_collection().insert_one(doc)
+
+    @staticmethod
+    def find_all():
+        from mongodb_models import MongoRole
+        docs = MongoRoleRepo._get_collection().find().sort('name', 1)
+        return [MongoRole.from_doc(doc) for doc in docs]
+
+    @staticmethod
+    def find_by_id(role_id):
+        from mongodb_models import MongoRole
+        try:
+            doc = MongoRoleRepo._get_collection().find_one({'_id': ObjectId(str(role_id))})
+            return MongoRole.from_doc(doc)
+        except:
+            return None
+
+    @staticmethod
+    def find_by_name(name):
+        from mongodb_models import MongoRole
+        doc = MongoRoleRepo._get_collection().find_one({'name': name})
+        return MongoRole.from_doc(doc)
+
+    @staticmethod
+    def create(role_data):
+        from mongodb_models import MongoRole
+        doc = {
+            'name': role_data.get('name'),
+            'description': role_data.get('description', ''),
+            'permissions': role_data.get('permissions', []),
+            'is_system': False,
+            'created_at': datetime.utcnow()
+        }
+        result = MongoRoleRepo._get_collection().insert_one(doc)
+        doc['_id'] = result.inserted_id
+        return MongoRole.from_doc(doc)
+
+    @staticmethod
+    def update(role_id, update_data):
+        try:
+            MongoRoleRepo._get_collection().update_one(
+                {'_id': ObjectId(str(role_id))},
+                {'$set': update_data}
+            )
+        except:
+            pass
+
+    @staticmethod
+    def delete(role_id):
+        try:
+            MongoRoleRepo._get_collection().delete_one({'_id': ObjectId(str(role_id)), 'is_system': False})
+        except:
+            pass
+
+    @staticmethod
+    def count():
+        return MongoRoleRepo._get_collection().count_documents({})
+
+
+def setup_indexes():
+    """Create MongoDB indexes for performance and TTL"""
+    try:
+        db = get_mongo_db()
+        db['otp_codes'].create_index('expires_at', expireAfterSeconds=0)
+        db['otp_codes'].create_index([('email', 1), ('purpose', 1)])
+        db['visitor_logs'].create_index('timestamp')
+        db['orders'].create_index([('user_id', 1), ('created_at', -1)])
+        db['users'].create_index('email', unique=True)
+        db['users'].create_index('username', unique=True)
+        MongoRoleRepo.ensure_system_roles()
+        logging.info("MongoDB indexes and system roles initialized")
+    except Exception as e:
+        logging.warning(f"Index setup warning: {e}")

@@ -108,14 +108,14 @@
                             </td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-brown" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#orderModal{{ order.id }}">
+                                    <a href="{{ url_for('admin_order_detail', order_id=order.id) }}"
+                                       class="btn btn-sm btn-brown" title="Full Details">
                                         <i class="fas fa-eye"></i>
-                                    </button>
+                                    </a>
                                     <button class="btn btn-sm btn-outline-primary" 
                                             data-bs-toggle="modal" 
-                                            data-bs-target="#statusModal{{ order.id }}">
+                                            data-bs-target="#statusModal{{ order.id }}"
+                                            title="Quick Status Update">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </div>

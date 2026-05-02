@@ -3,27 +3,32 @@
 {% block title %}User Management - CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-users"></i> User Management</h2>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        <h2 class="text-brown"><i class="fas fa-users me-2"></i>User Management</h2>
+        <div>
+            <a href="{{ url_for('admin_roles') }}" class="btn btn-outline-brown me-2">
+                <i class="fas fa-user-tag me-1"></i>Manage Roles
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">All Users</h5>
+        <div class="card-header bg-brown text-white">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Users ({{ users|length }})</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th>ID</th>
-                            <th>Username</th>
+                            <th>User</th>
                             <th>Email</th>
-                            <th>Admin Status</th>
+                            <th>Role</th>
+                            <th>Admin</th>
                             <th>Joined</th>
                             <th>Actions</th>
                         </tr>
@@ -31,34 +36,62 @@
                     <tbody>
                         {% for user in users %}
                         <tr>
-                            <td>{{ user.id }}</td>
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.email }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-brown text-white d-flex align-items-center justify-content-center"
+                                         style="width:36px;height:36px;font-size:0.9rem;flex-shrink:0;">
+                                        {{ user.username[0].upper() }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user.id == current_user.id %}
+                                        <span class="badge bg-secondary ms-1">You</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td><small class="text-muted">{{ user.email }}</small></td>
+                            <td>
+                                <span class="badge
+                                    {% if user.role == 'admin' %}bg-danger
+                                    {% elif user.role == 'manager' %}bg-warning text-dark
+                                    {% elif user.role == 'staff' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ (user.role or 'customer') | title }}
+                                </span>
+                            </td>
                             <td>
                                 {% if user.is_admin %}
-                                    <span class="badge bg-success">Admin</span>
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Admin</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">User</span>
+                                <span class="badge bg-light text-dark border">User</span>
                                 {% endif %}
                             </td>
-                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td><small>{{ user.created_at.strftime('%d %b %Y') }}</small></td>
                             <td>
                                 {% if user.id != current_user.id %}
-                                <form method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}" 
-                                      style="display: inline;" 
-                                      onsubmit="return confirm('Are you sure you want to change admin privileges for {{ user.username }}?')">
-                                    {% if user.is_admin %}
-                                        <button type="submit" class="btn btn-sm btn-warning">
-                                            <i class="fas fa-user-minus"></i> Remove Admin
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <!-- Toggle Admin -->
+                                    <form method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}"
+                                          onsubmit="return confirm('Change admin status for {{ user.username }}?')">
+                                        {% if user.is_admin %}
+                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Remove Admin">
+                                            <i class="fas fa-user-minus"></i>
                                         </button>
-                                    {% else %}
-                                        <button type="submit" class="btn btn-sm btn-success">
-                                            <i class="fas fa-user-plus"></i> Make Admin
+                                        {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Make Admin">
+                                            <i class="fas fa-user-plus"></i>
                                         </button>
-                                    {% endif %}
-                                </form>
+                                        {% endif %}
+                                    </form>
+                                    <!-- Assign Role -->
+                                    <button class="btn btn-sm btn-outline-primary" title="Assign Role"
+                                            data-bs-toggle="modal" data-bs-target="#roleModal{{ user.id }}">
+                                        <i class="fas fa-user-tag"></i>
+                                    </button>
+                                </div>
                                 {% else %}
-                                <span class="text-muted">You</span>
+                                <span class="text-muted small">—</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -70,13 +103,51 @@
     </div>
 
     <div class="alert alert-info mt-4">
-        <h6><i class="fas fa-info-circle"></i> Admin Management Guide</h6>
+        <h6><i class="fas fa-info-circle me-2"></i>Admin Management</h6>
         <ul class="mb-0">
-            <li>Only admins can access this page and manage other users</li>
-            <li>You cannot remove admin privileges from yourself</li>
-            <li>Admin users have access to the admin dashboard, product management, order management, and analytics</li>
-            <li>Regular users can only access their own profile, orders, and shopping features</li>
+            <li>Click <i class="fas fa-user-plus"></i> to grant admin access, <i class="fas fa-user-minus"></i> to remove it</li>
+            <li>Click <i class="fas fa-user-tag"></i> to assign a custom role to a user</li>
+            <li>You cannot modify your own admin status</li>
         </ul>
     </div>
 </div>
+
+<!-- Role Assignment Modals -->
+{% for user in users %}
+{% if user.id != current_user.id %}
+<div class="modal fade" id="roleModal{{ user.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Assign Role to {{ user.username }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_assign_role', user_id=user.id) }}">
+                <div class="modal-body">
+                    <p class="text-muted">Current role: <strong>{{ (user.role or 'customer') | title }}</strong></p>
+                    <label class="form-label fw-semibold">Select New Role</label>
+                    <select name="role" class="form-select">
+                        {% for role_name in ['admin', 'manager', 'staff', 'customer'] %}
+                        <option value="{{ role_name }}" {% if user.role == role_name %}selected{% endif %}>
+                            {{ role_name | title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="alert alert-warning mt-3 mb-0 small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Setting role to <strong>admin</strong> will also grant admin dashboard access.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brown">
+                        <i class="fas fa-save me-1"></i>Assign Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endblock %}

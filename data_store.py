@@ -6,14 +6,12 @@ data_store = {'otp_codes': {}}
 
 
 def _is_mongo():
-    """Check if MongoDB backend is active"""
     return bool(os.environ.get('MONGO_URI')) or (
         os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL', '')
     )
 
 
 def get_repos():
-    """Get the appropriate repositories based on database backend"""
     if _is_mongo():
         from mongo_db import MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
         return MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
@@ -23,11 +21,9 @@ def get_repos():
 
 
 def init_data_store():
-    """Initialize the database with sample data if empty"""
     import logging
-    
     UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo = get_repos()
-    
+
     try:
         user_count = UserRepo.count()
         category_count = CategoryRepo.count()
@@ -36,19 +32,23 @@ def init_data_store():
         logging.warning(f"Database not available, skipping data initialization: {e}")
         return
 
-    if user_count == 0:
-        logging.info("Creating admin user...")
-        UserRepo.create({
-            'username': 'admin',
-            'email': 'opgaming565710@gmail.com',
-            'password_hash': generate_password_hash('admin123'),
-            'is_admin': True
-        })
-    
+    admin_email = 'admin@caupenrost.com'
+    if user_count == 0 or not UserRepo.find_by_email(admin_email):
+        existing = UserRepo.find_by_email(admin_email)
+        if not existing:
+            logging.info("Creating admin user...")
+            UserRepo.create({
+                'username': 'admin',
+                'email': admin_email,
+                'password_hash': generate_password_hash('admin123'),
+                'is_admin': True,
+                'role': 'admin'
+            })
+
     if category_count > 0 and product_count > 0:
         logging.info("Database already has categories and products, skipping sample data.")
         return
-    
+
     categories_data = [{
         'name': 'Bread',
         'description': 'Fresh artisan breads, rolls, and baked goods made daily with premium ingredients.',
@@ -74,58 +74,50 @@ def init_data_store():
 
     products_data = [{
         'name': 'Artisan Sourdough Bread',
-        'description': 'Traditional sourdough bread made with our signature starter, fermented for 24 hours for that perfect tangy flavor.',
-        'price': 89.99,
-        'category': 'Bread',
+        'description': 'Traditional sourdough bread made with our signature starter, fermented for 24 hours.',
+        'price': 89.99, 'category': 'Bread',
         'image_url': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 15
     }, {
         'name': 'Fresh Croissants',
-        'description': 'Buttery, flaky croissants made fresh daily with premium French butter. Perfect for breakfast or afternoon tea.',
-        'price': 129.99,
-        'category': 'Pastries',
+        'description': 'Buttery, flaky croissants made fresh daily with premium French butter.',
+        'price': 129.99, 'category': 'Pastries',
         'image_url': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 24
     }, {
         'name': 'Chocolate Chip Muffins',
-        'description': 'Moist and fluffy muffins loaded with premium chocolate chips. A family favorite!',
-        'price': 159.99,
-        'category': 'Muffins',
+        'description': 'Moist and fluffy muffins loaded with premium chocolate chips.',
+        'price': 159.99, 'category': 'Muffins',
         'image_url': 'https://images.unsplash.com/photo-1587241321921-91a834d6d191?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 18
     }, {
         'name': 'Danish Pastries',
-        'description': 'Traditional Danish pastries with various fillings including cream cheese, fruit preserves, and custard.',
-        'price': 189.99,
-        'category': 'Pastries',
+        'description': 'Traditional Danish pastries with various fillings including cream cheese and fruit preserves.',
+        'price': 189.99, 'category': 'Pastries',
         'image_url': 'https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 12
     }, {
         'name': 'Whole Wheat Rolls',
-        'description': 'Healthy whole wheat dinner rolls, perfect for any meal. Made with organic flour and seeds.',
-        'price': 69.99,
-        'category': 'Bread',
+        'description': 'Healthy whole wheat dinner rolls, perfect for any meal.',
+        'price': 69.99, 'category': 'Bread',
         'image_url': 'https://images.unsplash.com/photo-1508737804141-4c3b688e2546?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 20
     }, {
         'name': 'Cinnamon Rolls',
-        'description': 'Soft, gooey cinnamon rolls with cream cheese frosting. Baked fresh every morning.',
-        'price': 149.99,
-        'category': 'Pastries',
+        'description': 'Soft, gooey cinnamon rolls with cream cheese frosting.',
+        'price': 149.99, 'category': 'Pastries',
         'image_url': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 16
     }, {
         'name': 'Artisan Bagels',
-        'description': 'Hand-rolled bagels available in various flavors: plain, sesame, poppy seed, and everything.',
-        'price': 99.99,
-        'category': 'Bread',
+        'description': 'Hand-rolled bagels available in various flavors.',
+        'price': 99.99, 'category': 'Bread',
         'image_url': 'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 22
     }, {
         'name': 'Fruit Tarts',
         'description': 'Beautiful individual fruit tarts with pastry cream and fresh seasonal fruits.',
-        'price': 229.99,
-        'category': 'Desserts',
+        'price': 229.99, 'category': 'Desserts',
         'image_url': 'https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
         'stock': 8
     }]
@@ -148,25 +140,18 @@ def init_data_store():
 
 
 def add_visitor_log(ip_address, user_agent, page=None):
-    """Add a visitor log entry"""
     _, _, _, VisitorLogRepo = get_repos()
     try:
-        VisitorLogRepo.create({
-            'ip_address': ip_address,
-            'user_agent': user_agent,
-            'page': page
-        })
+        VisitorLogRepo.create({'ip_address': ip_address, 'user_agent': user_agent, 'page': page})
     except:
         pass
 
 
 def get_daily_visitors():
-    """Get visitor count for today"""
     _, _, _, VisitorLogRepo = get_repos()
     return VisitorLogRepo.count_daily()
 
 
 def get_weekly_visitors():
-    """Get visitor data for the past week"""
     _, _, _, VisitorLogRepo = get_repos()
     return VisitorLogRepo.get_weekly_data()

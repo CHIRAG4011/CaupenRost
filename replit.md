@@ -1,7 +1,7 @@
 # CaupenRost
 
 ## Overview
-CaupenRost is a Flask-based e-commerce web application for an online bakery, rebranded from "Sweet Crumbs Bakery." It offers a complete shopping experience with product browsing, cart management, order placement, user authentication, and administrative tools. Key features include a bakery-themed design (brown and cream), search and filtering for products, order tracking, user profile management, and comprehensive admin functionalities. The application uses Indian Rupee (INR) for all transactions and features a custom QR code payment system.
+CaupenRost is a Flask-based e-commerce web application for an online bakery. It offers a complete shopping experience with product browsing, cart management, order placement, user authentication, and comprehensive administrative tools. The application uses Indian Rupee (INR) for all transactions and features a custom QR code payment system with screenshot upload proof.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -11,70 +11,86 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Architecture
 - **Template Engine**: Jinja2 with Flask.
 - **CSS Framework**: Bootstrap 5 for responsiveness.
-- **Custom Styling**: CSS custom properties for a bakery theme.
+- **Custom Styling**: CSS custom properties for a bakery theme (brown and cream).
 - **JavaScript**: Vanilla JS for interactive elements, Chart.js for analytics, Font Awesome for icons.
-- **Typography**: Google Fonts (Playfair Display, Poppins, Dancing Script) for a premium look.
-- **UI/UX Decisions**: Modernized design with CSS custom properties, gradients, shadows, gold accents, top announcement bar, redesigned hero section with animations, trust strip, enhanced product cards, testimonials, category previews, and an improved footer. Enhanced cart and checkout pages with step indicators and clear payment options.
+- **Typography**: Google Fonts (Playfair Display, Poppins, Dancing Script).
+- **UI/UX**: Modernized design with gradients, gold accents, step indicators, animated hero, trust strip, testimonials, category previews.
 
 ### Backend Architecture
 - **Web Framework**: Flask with modular organization.
 - **Session Management**: Flask sessions for cart and authentication.
-- **Email System**: Flask-Mail for order confirmations and notifications.
-- **Data Models**: Object-oriented models for User, Product, Order, Review, Address, and Category.
+- **Email System**: Resend API (via `resend` package) — no Gmail/SMTP needed. Uses `RESEND_API_KEY` secret.
+- **Data Models**: Object-oriented models for User, Product, Order, Review, Address, Category, Role, OTPCode, Ticket, TicketMessage.
 - **Authentication**: Werkzeug password hashing, session-based user management, role-based access control.
-- **Security**: Configurable session secret key, input validation, and access control.
+- **OTP System**: OTPs stored in MongoDB `otp_codes` collection with TTL index (auto-expire).
 
 ### Data Storage
-- **Dual Database Support**: Supports SQLAlchemy (PostgreSQL/SQLite) and MongoDB.
-- **SQLAlchemy Mode**: Default using Flask-SQLAlchemy.
-- **MongoDB Mode**: Enabled via `MONGO_URI` environment variable, using separate repository classes.
-- **Dynamic Backend Selection**: Conditional imports based on `USE_MONGODB` flag.
+- **Primary**: MongoDB Atlas via `DATABASE_URL` environment variable (mongodb+srv URI).
+- **Detection**: `USE_MONGODB = 'mongodb' in DATABASE_URL` (also checks `MONGO_URI`).
+- **Collections**: users, products, categories, orders, reviews, addresses, visitor_logs, otp_codes, roles, tickets, ticket_messages.
+- **Indexes**: TTL index on `otp_codes.expires_at`, compound indexes on orders/users.
 
 ### Application Structure
-- **Modular Design**: Separated concerns (routes, models, utilities).
-- **Admin Interface**: Dedicated templates and routes for management of products, orders, users, and categories.
+- `app.py` — Flask app factory, MongoDB index setup, data initialization.
+- `routes.py` — All URL routes (1300+ lines).
+- `mongo_db.py` — MongoDB repository classes.
+- `mongodb_models.py` — MongoDB model classes.
+- `data_store.py` — Data seeding (idempotent — skips if data already exists).
+- `email_service.py` — OTP generation, storage, and sending via Resend API.
+- `utils.py` — Cart helpers, session utilities.
 
-### Key Features
-- **Product Management**: Full CRUD operations for products and categories via admin panel, with dynamic category integration and product filtering.
-- **QR Code Payment**: Custom UPI QR code payment system integrated with manual confirmation, alongside Cash on Delivery (COD).
-- **Analytics Dashboard**: Chart.js integration for admin analytics.
-- **Comprehensive Deployment Guide**: `DEPLOYMENT_GUIDE.md` with instructions for various hosting platforms.
+## Key Features
+
+### Admin Panel (`/admin/...`)
+- **Dashboard** — Stats, quick actions including "Manage Roles" button.
+- **Orders list** (`/admin/orders`) — Table with "View Details" button linking to full order page.
+- **Order detail** (`/admin/order/<id>`) — NEW: Full order info, item breakdown with images, payment proof screenshot viewer, customer info, status update form.
+- **Users** (`/admin/users`) — Shows role badge per user, assign role modal, toggle admin button.
+- **Roles** (`/admin/roles`) — NEW: Create/delete custom roles; system roles (admin, manager, staff, customer) protected from deletion.
+- **Products, Categories, Analytics, Support Tickets** — full CRUD.
+
+### Custom Roles System
+- Stored in MongoDB `roles` collection.
+- System roles: `admin`, `manager`, `staff`, `customer`.
+- Custom roles can be created with custom permissions.
+- Users have `role` field (string) alongside `is_admin` (bool) for backward compatibility.
+- Admins assign roles to users from the Users page (modal dialog).
+
+### Payment Proof Upload
+- QR payment page (`/qr_payment`) — Redesigned with drag-and-drop file upload zone.
+- Users upload payment screenshot after paying via UPI/QR.
+- Saved to `static/uploads/payment_proofs/` as `<order_id>_<hex>.ext`.
+- `payment_proof_url` and `payment_proof_uploaded_at` stored in MongoDB order document.
+- Order status auto-set to `payment_proof_submitted`.
+- Admin sees proof image in order detail page with download link.
+
+### OTPs
+- Stored in MongoDB `otp_codes` collection with `expires_at` field.
+- TTL index on `expires_at` auto-deletes expired OTPs.
+- 10-minute expiry, max 5 attempts before lockout.
+- Sent via Resend API (`RESEND_API_KEY` secret).
+
+### Data Seeding (Idempotent)
+- `init_data_store()` in `data_store.py` runs on startup.
+- Admin user (`admin@caupenrost.com`, password `admin123`) only created if not already in DB.
+- Products/categories only seeded if counts are 0.
+- MongoDB indexes and system roles created via `setup_indexes()` in `mongo_db.py`.
 
 ## External Dependencies
 
 ### Python Packages
-- **Flask**: Core web framework.
-- **Flask-Mail**: Email capabilities.
-- **Werkzeug**: Password hashing and WSGI.
+- **Flask, Flask-SQLAlchemy, Werkzeug** — Core framework.
+- **pymongo** — MongoDB driver.
+- **resend** — Email sending via Resend API.
 
-### Frontend Libraries
-- **Bootstrap 5**: CSS framework (via CDN).
-- **Font Awesome 6**: Icon library (via CDN).
-- **Chart.js**: JavaScript charting library.
-- **Intl.NumberFormat**: JavaScript for Indian Rupee formatting (`en-IN` locale).
+### Frontend Libraries (CDN)
+- Bootstrap 5, Font Awesome 6, Chart.js, Google Fonts.
 
-### Email Service
-- **Gmail SMTP**: Used for sending OTP and notification emails, requires Google App Password.
+### Environment Variables / Secrets
+- `DATABASE_URL` — MongoDB Atlas connection string (mongodb+srv://...).
+- `RESEND_API_KEY` — Resend API key for email sending.
+- `SESSION_SECRET` — Flask session secret key.
 
-### Database Configuration
-- **SQLAlchemy**: Supports PostgreSQL or SQLite.
-- **MongoDB**: Option to use MongoDB Atlas.
-
-### Image Resources
-- **Unsplash**: External hosting for product photos and promotional imagery.
-
-### Typography
-- **Google Fonts**: Playfair Display, Poppins, Dancing Script.
-
-## Recent Changes (December 2025)
-
-### Local Development & MongoDB Compatibility
-- **Improved data initialization**: Categories and products are now seeded independently, with backfill logic for category_id
-- **Enhanced MongoDB support**: Added missing methods (exists_by_name_exclude, find_recent, get_product_count)
-- **CLI database seeding**: Updated init_data.py with --reset and --mongo flags for flexible database management
-- **Order item compatibility**: Fixed order tracking to handle both dict and object-based item access
-- **Updated LOCAL_SETUP_GUIDE.md**: Comprehensive instructions for SQLite, PostgreSQL, and MongoDB backends
-
-### Email Configuration
-- Uses Gmail SMTP for OTP verification emails
-- Requires MAIL_USERNAME and MAIL_PASSWORD secrets to be set
+### File Storage
+- `static/uploads/payment_proofs/` — Payment screenshot uploads.
+- `static/images/payment_qr.jpg` — UPI QR code image.

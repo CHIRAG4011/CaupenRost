@@ -6,109 +6,98 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-brown text-white text-center">
+            <div class="card shadow">
+                <div class="card-header bg-brown text-white text-center py-3">
                     <h4 class="mb-0">
                         <i class="fas fa-qrcode me-2"></i>Complete Your Payment
                     </h4>
                 </div>
-                <div class="card-body text-center">
-                    <!-- Order Summary -->
-                    <div class="alert alert-info mb-4">
-                        <h5><strong>Order #{{ order_id }}</strong></h5>
-                        <p class="mb-0">Amount to Pay: <strong class="text-brown">₹{{ "%.2f"|format(amount) }}</strong></p>
-                    </div>
-                    
-                    <!-- QR Code Section -->
-                    <div class="qr-section mb-4">
-                        <h5 class="text-brown mb-3">Scan QR Code to Pay</h5>
-                        <div class="qr-code-container mb-3">
-                            <img src="{{ url_for('static', filename='images/payment_qr.jpg') }}" 
-                                 alt="Payment QR Code" 
-                                 class="img-fluid" 
-                                 style="max-width: 300px; border: 2px solid #8B4513; border-radius: 10px;">
-                        </div>
-                        <p class="text-muted mb-3">7016377439@fam</p>
-                        <div class="alert alert-success">
-                            <i class="fas fa-mobile-alt me-2"></i>
-                            Open any UPI app and scan this QR code to pay ₹{{ "%.2f"|format(amount) }}
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Instructions -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6 class="text-brown mb-3">Step 1: Scan QR Code</h6>
-                            <ul class="list-unstyled text-start small">
-                                <li><i class="fas fa-mobile-alt text-primary me-2"></i>Open Google Pay, PhonePe, or any UPI app</li>
-                                <li><i class="fas fa-qrcode text-primary me-2"></i>Scan the QR code shown above</li>
-                                <li><i class="fas fa-rupee-sign text-primary me-2"></i>Verify the amount: ₹{{ "%.2f"|format(amount) }}</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="text-brown mb-3">Step 2: Complete Payment</h6>
-                            <ul class="list-unstyled text-start small">
-                                <li><i class="fas fa-check-circle text-success me-2"></i>Enter your UPI PIN</li>
-                                <li><i class="fas fa-paper-plane text-success me-2"></i>Send the payment</li>
-                                <li><i class="fas fa-thumbs-up text-success me-2"></i>Click "I've Paid" button below</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="d-flex justify-content-center gap-3 mb-3">
-                        <button type="button" class="btn btn-success btn-lg" onclick="confirmPayment()">
-                            <i class="fas fa-check-circle me-2"></i>I've Paid
-                        </button>
-                        <a href="{{ url_for('checkout') }}" class="btn btn-outline-secondary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Checkout
-                        </a>
-                    </div>
-                    
-                    <!-- Support Information -->
-                    <div class="alert alert-warning">
-                        <strong><i class="fas fa-info-circle me-2"></i>Important:</strong>
-                        Only click "I've Paid" after successfully completing the payment. 
-                        Your order will be confirmed once payment is received.
-                    </div>
-                    
-                    <div class="small text-muted">
-                        <p><strong>Need help?</strong> Contact us at opgaming565710@gmail.com or call support</p>
-                        <p>Payment should reflect instantly. If you face any issues, please contact our support team.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                <div class="card-body p-4">
 
-<!-- Success Modal -->
-<div class="modal fade" id="paymentConfirmModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-check-circle me-2"></i>Payment Confirmed!
-                </h5>
-            </div>
-            <div class="modal-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                    <!-- Order Summary -->
+                    <div class="alert alert-info mb-4 text-center">
+                        <h5 class="mb-1"><strong>Order #{{ order_id }}</strong></h5>
+                        <p class="mb-0 fs-5">Amount to Pay: <strong class="text-brown">₹{{ "%.2f"|format(amount) }}</strong></p>
+                    </div>
+
+                    <!-- Step Indicators -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:0.85rem;">1</div>
+                            <span class="small fw-semibold">Scan QR</span>
+                            <div style="width:40px;height:2px;background:#dee2e6;"></div>
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:0.85rem;">2</div>
+                            <span class="small fw-semibold">Pay</span>
+                            <div style="width:40px;height:2px;background:#dee2e6;"></div>
+                            <div class="rounded-circle bg-brown text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:0.85rem;">3</div>
+                            <span class="small fw-semibold text-brown">Upload Proof</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- QR Code -->
+                        <div class="col-md-5 text-center">
+                            <h6 class="text-brown mb-3">Scan to Pay</h6>
+                            <div class="p-2 border rounded d-inline-block mb-2">
+                                <img src="{{ url_for('static', filename='images/payment_qr.jpg') }}"
+                                     alt="Payment QR Code"
+                                     class="img-fluid"
+                                     style="max-width:220px;">
+                            </div>
+                            <p class="text-muted small mb-0">UPI ID: <strong>7016377439@fam</strong></p>
+                            <div class="alert alert-success mt-2 py-2 small">
+                                <i class="fas fa-mobile-alt me-1"></i>
+                                Open any UPI app · Scan · Pay <strong>₹{{ "%.2f"|format(amount) }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Upload Proof -->
+                        <div class="col-md-7">
+                            <h6 class="text-brown mb-3">Upload Payment Screenshot</h6>
+                            <form method="POST" action="{{ url_for('upload_payment_proof', order_id=order_id) }}"
+                                  enctype="multipart/form-data" id="proofForm">
+
+                                <!-- Drop Zone -->
+                                <div id="dropZone" class="border-2 border-dashed rounded p-3 text-center mb-3"
+                                     style="border:2px dashed #8B4513;cursor:pointer;transition:all .2s;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;"
+                                     onclick="document.getElementById('proofFile').click()">
+                                    <div id="dropPlaceholder">
+                                        <i class="fas fa-cloud-upload-alt fa-2x text-brown mb-2"></i>
+                                        <p class="mb-1 fw-semibold">Click or drag screenshot here</p>
+                                        <small class="text-muted">PNG, JPG, GIF, WEBP accepted</small>
+                                    </div>
+                                    <div id="previewContainer" style="display:none;">
+                                        <img id="previewImg" src="" alt="Preview"
+                                             style="max-height:100px;max-width:100%;border-radius:8px;">
+                                        <p id="previewName" class="mb-0 mt-1 small text-success fw-semibold"></p>
+                                    </div>
+                                </div>
+                                <input type="file" name="payment_proof" id="proofFile"
+                                       accept="image/*" style="display:none;" required>
+
+                                <div class="alert alert-warning py-2 small mb-3">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Please upload a clear screenshot of your payment confirmation from your UPI app.
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                        <i class="fas fa-check-circle me-2"></i>Submit Payment Proof
+                                    </button>
+                                    <a href="{{ url_for('checkout') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Checkout
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border mt-4 small text-muted text-center">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Your order will be confirmed after admin verifies your payment screenshot.
+                        Need help? Contact us at <strong>opgaming565710@gmail.com</strong>
+                    </div>
                 </div>
-                <h4 class="text-success mb-3">Thank You!</h4>
-                <p>Your payment has been confirmed and your order is now being processed.</p>
-                <div class="alert alert-light">
-                    <strong>Order #{{ order_id }}</strong><br>
-                    <small>You will receive updates via email</small>
-                </div>
-            </div>
-            <div class="modal-footer justify-content-center">
-                <a href="{{ url_for('order_tracking', order_id=order_id) }}" class="btn btn-brown">
-                    <i class="fas fa-eye me-2"></i>Track Order
-                </a>
-                <a href="{{ url_for('index') }}" class="btn btn-outline-brown">
-                    Continue Shopping
-                </a>
             </div>
         </div>
     </div>
@@ -117,41 +106,48 @@
 
 {% block extra_scripts %}
 <script>
-function confirmPayment() {
-    if (!confirm('Have you successfully completed the payment of ₹{{ "%.2f"|format(amount) }}?')) {
-        return;
+const proofFile = document.getElementById('proofFile');
+const dropZone = document.getElementById('dropZone');
+const dropPlaceholder = document.getElementById('dropPlaceholder');
+const previewContainer = document.getElementById('previewContainer');
+const previewImg = document.getElementById('previewImg');
+const previewName = document.getElementById('previewName');
+const submitBtn = document.getElementById('submitBtn');
+
+proofFile.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+        const file = this.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewName.textContent = file.name;
+            dropPlaceholder.style.display = 'none';
+            previewContainer.style.display = 'block';
+            dropZone.style.borderColor = '#28a745';
+        };
+        reader.readAsDataURL(file);
     }
-    
-    // Show loading state
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Confirming...';
-    
-    fetch('/confirm_payment/{{ order_id }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success modal
-            const modal = new bootstrap.Modal(document.getElementById('paymentConfirmModal'));
-            modal.show();
-        } else {
-            alert('Error: ' + (data.error || 'Failed to confirm payment'));
-            button.disabled = false;
-            button.innerHTML = originalText;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error confirming payment. Please try again.');
-        button.disabled = false;
-        button.innerHTML = originalText;
-    });
-}
+});
+
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.style.background = '#fef3e2';
+});
+dropZone.addEventListener('dragleave', function() {
+    this.style.background = '';
+});
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.background = '';
+    if (e.dataTransfer.files.length) {
+        proofFile.files = e.dataTransfer.files;
+        proofFile.dispatchEvent(new Event('change'));
+    }
+});
+
+document.getElementById('proofForm').addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+});
 </script>
 {% endblock %}

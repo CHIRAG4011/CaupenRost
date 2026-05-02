@@ -9,10 +9,12 @@ if USE_MONGODB:
                          MongoOrderRepo as OrderRepo, MongoCategoryRepo as CategoryRepo, 
                          MongoReviewRepo as ReviewRepo, MongoAddressRepo as AddressRepo, 
                          MongoVisitorLogRepo as VisitorLogRepo,
-                         MongoTicketRepo as TicketRepo, MongoTicketMessageRepo as TicketMessageRepo)
+                         MongoTicketRepo as TicketRepo, MongoTicketMessageRepo as TicketMessageRepo,
+                         MongoRoleRepo as RoleRepo)
 else:
     from db import (UserRepo, ProductRepo, OrderRepo, CategoryRepo, ReviewRepo, 
                     AddressRepo, VisitorLogRepo, TicketRepo, TicketMessageRepo)
+    RoleRepo = None
 
 from data_store import add_visitor_log, get_weekly_visitors
 from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
@@ -819,7 +821,7 @@ def admin_users():
         return redirect(url_for('index'))
     
     users = UserRepo.find_all()
-    return render_template('admin/users.html', users=users)
+    return render_template('admin/users.html', users=users, current_user=user)
 
 @app.route('/admin/categories')
 def admin_categories():
@@ -1118,6 +1120,171 @@ def admin_tickets():
                           in_progress_count=in_progress_count,
                           current_status=status_filter,
                           current_type=type_filter)
+
+
+@app.route('/admin/order/<order_id>')
+def admin_order_detail(order_id):
+    """Admin detailed order view page"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+
+    order = OrderRepo.find_by_id(order_id)
+    if not order:
+        flash('Order not found.', 'error')
+        return redirect(url_for('admin_orders'))
+
+    order_items = []
+    for item in order.items:
+        if isinstance(item, dict):
+            product_id = item.get('product_id')
+            quantity = item.get('quantity', 1)
+            price = item.get('price', 0)
+            name = item.get('name', 'Product')
+        else:
+            product_id = getattr(item, 'product_id', None)
+            quantity = getattr(item, 'quantity', 1)
+            price = getattr(item, 'price', 0)
+            name = getattr(item, 'name', 'Product')
+
+        product = ProductRepo.find_by_id(product_id)
+        order_items.append({
+            'product': product,
+            'name': name,
+            'quantity': quantity,
+            'price': price,
+            'total': quantity * price
+        })
+
+    return render_template('admin/order_detail.html', order=order, order_items=order_items)
+
+
+@app.route('/upload_payment_proof/<order_id>', methods=['POST'])
+def upload_payment_proof(order_id):
+    """Upload payment proof screenshot for QR/UPI orders"""
+    import os, uuid
+    from werkzeug.utils import secure_filename
+
+    user = get_current_user()
+    if not user:
+        flash('Please login to continue.', 'error')
+        return redirect(url_for('login'))
+
+    order = OrderRepo.find_by_id(order_id)
+    if not order or str(order.user_id) != str(user.id):
+        flash('Order not found.', 'error')
+        return redirect(url_for('index'))
+
+    file = request.files.get('payment_proof')
+    if not file or file.filename == '':
+        flash('Please select a screenshot to upload.', 'error')
+        return redirect(url_for('qr_payment'))
+
+    allowed = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed:
+        flash('Invalid file type. Please upload an image (PNG, JPG, GIF, WEBP).', 'error')
+        return redirect(url_for('qr_payment'))
+
+    upload_dir = os.path.join('static', 'uploads', 'payment_proofs')
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"{order_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    file.save(os.path.join(upload_dir, filename))
+
+    proof_url = f"uploads/payment_proofs/{filename}"
+    OrderRepo.update(order_id, {
+        'payment_proof_url': proof_url,
+        'payment_proof_uploaded_at': datetime.utcnow(),
+        'status': 'payment_proof_submitted'
+    })
+
+    session.pop('payment_order_id', None)
+    session.pop('payment_amount', None)
+
+    flash(f'Payment screenshot uploaded! Order #{order_id} is now pending admin verification.', 'success')
+    return redirect(url_for('order_tracking', order_id=order_id))
+
+
+@app.route('/admin/roles')
+def admin_roles():
+    """Admin role management page"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+    if not RoleRepo:
+        flash('Roles require MongoDB backend.', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    roles = RoleRepo.find_all()
+    return render_template('admin/roles.html', roles=roles)
+
+
+@app.route('/admin/roles/add', methods=['POST'])
+def admin_add_role():
+    """Add a custom role"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+
+    name = request.form.get('name', '').strip().lower().replace(' ', '_')
+    description = request.form.get('description', '').strip()
+    permissions = [p.strip() for p in request.form.get('permissions', '').split(',') if p.strip()]
+
+    if not name:
+        flash('Role name is required.', 'error')
+        return redirect(url_for('admin_roles'))
+
+    if RoleRepo and RoleRepo.find_by_name(name):
+        flash(f'Role "{name}" already exists.', 'error')
+        return redirect(url_for('admin_roles'))
+
+    RoleRepo.create({'name': name, 'description': description, 'permissions': permissions})
+    flash(f'Role "{name}" created successfully!', 'success')
+    return redirect(url_for('admin_roles'))
+
+
+@app.route('/admin/roles/delete/<role_id>', methods=['POST'])
+def admin_delete_role(role_id):
+    """Delete a custom role"""
+    user = get_current_user()
+    if not user or not user.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+
+    role = RoleRepo.find_by_id(role_id) if RoleRepo else None
+    if not role:
+        flash('Role not found.', 'error')
+        return redirect(url_for('admin_roles'))
+    if role.is_system:
+        flash('System roles cannot be deleted.', 'error')
+        return redirect(url_for('admin_roles'))
+
+    RoleRepo.delete(role_id)
+    flash(f'Role "{role.name}" deleted.', 'success')
+    return redirect(url_for('admin_roles'))
+
+
+@app.route('/admin/assign_role/<user_id>', methods=['POST'])
+def admin_assign_role(user_id):
+    """Assign a role to a user"""
+    current = get_current_user()
+    if not current or not current.is_admin:
+        flash('Access denied.', 'error')
+        return redirect(url_for('index'))
+
+    role_name = request.form.get('role', '').strip()
+    target = UserRepo.find_by_id(user_id)
+    if not target:
+        flash('User not found.', 'error')
+        return redirect(url_for('admin_users'))
+
+    is_admin = role_name == 'admin'
+    UserRepo.update(user_id, {'role': role_name, 'is_admin': is_admin})
+    flash(f'Role "{role_name}" assigned to {target.username}.', 'success')
+    return redirect(url_for('admin_users'))
 
 
 @app.route('/admin/ticket/<ticket_id>', methods=['GET', 'POST'])
