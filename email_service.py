@@ -5,7 +5,7 @@ import logging
 import resend
 from datetime import datetime, timedelta
 
-FROM_ADDRESS = "CaupenRost <help@caupenrost.com>"
+FROM_ADDRESS = "CaupenRost <help@caupenrost.shop>"
 
 
 def generate_otp(length=6):
@@ -103,7 +103,7 @@ def _footer():
     return """
     <tr>
       <td style="background:#0d0b09;padding:24px 40px;text-align:center;border-top:1px solid #2a2010;">
-        <p style="margin:0 0 8px;color:#6b5a3e;font-size:12px;">Questions? Contact us at <a href="mailto:help@caupenrost.com" style="color:#d4a843;text-decoration:none;">help@caupenrost.com</a></p>
+        <p style="margin:0 0 8px;color:#6b5a3e;font-size:12px;">Questions? Contact us at <a href="mailto:help@caupenrost.shop" style="color:#d4a843;text-decoration:none;">help@caupenrost.shop</a></p>
         <p style="margin:0;color:#4a3a28;font-size:11px;">&copy; 2026 CaupenRost. All rights reserved.</p>
       </td>
     </tr>"""
@@ -163,7 +163,7 @@ def send_otp_email(to_email, otp, purpose='verification'):
     elif purpose == 'order':
         title = "Confirm Your Order"
         intro = "You're almost there! Enter the code below to confirm and place your order."
-        note = "If you didn't initiate this order, please contact us at help@caupenrost.com."
+        note = "If you didn't initiate this order, please contact us at help@caupenrost.shop."
         accent = '#28a745'
         icon = '🛒'
     else:
@@ -206,7 +206,7 @@ def send_welcome_email(to_email, username):
             <li>Reach out via our support centre</li>
           </ul>
         </div>
-        <p style="margin:0;color:#6b5a3e;font-size:13px;">Need help? Write to us at <a href="mailto:help@caupenrost.com" style="color:#d4a843;text-decoration:none;">help@caupenrost.com</a></p>
+        <p style="margin:0;color:#6b5a3e;font-size:13px;">Need help? Write to us at <a href="mailto:help@caupenrost.shop" style="color:#d4a843;text-decoration:none;">help@caupenrost.shop</a></p>
       </td>
     </tr>"""
     html = _wrap(_header('🎉') + body + _footer())
@@ -223,7 +223,7 @@ def send_welcome_back_email(to_email, username):
           You have successfully logged in to CaupenRost. Enjoy browsing our fresh artisan bakes.
         </p>
         <p style="margin:0;color:#6b5a3e;font-size:13px;">
-          Didn't log in? Contact us immediately at <a href="mailto:help@caupenrost.com" style="color:#d4a843;text-decoration:none;">help@caupenrost.com</a>
+          Didn't log in? Contact us immediately at <a href="mailto:help@caupenrost.shop" style="color:#d4a843;text-decoration:none;">help@caupenrost.shop</a>
         </p>
       </td>
     </tr>"""
@@ -283,7 +283,7 @@ def send_order_confirmation_email(to_email, order):
         </table>
         <p style="margin:0;color:#6b5a3e;font-size:13px;line-height:1.6;">
           Track your order status in your <a href="#" style="color:#d4a843;text-decoration:none;">account dashboard</a>.<br>
-          Questions? <a href="mailto:help@caupenrost.com" style="color:#d4a843;text-decoration:none;">help@caupenrost.com</a>
+          Questions? <a href="mailto:help@caupenrost.shop" style="color:#d4a843;text-decoration:none;">help@caupenrost.shop</a>
         </p>
       </td>
     </tr>"""
@@ -337,7 +337,7 @@ def send_order_status_email(to_email, username, order):
         </table>
         <p style="margin:0;color:#6b5a3e;font-size:13px;line-height:1.6;">
           View full details in your <a href="#" style="color:#d4a843;text-decoration:none;">order dashboard</a>.<br>
-          Need help? <a href="mailto:help@caupenrost.com" style="color:#d4a843;text-decoration:none;">help@caupenrost.com</a>
+          Need help? <a href="mailto:help@caupenrost.shop" style="color:#d4a843;text-decoration:none;">help@caupenrost.shop</a>
         </p>
       </td>
     </tr>"""
