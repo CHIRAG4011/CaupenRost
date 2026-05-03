@@ -21,10 +21,12 @@ else:
     CouponRepo = None
 
 from data_store import add_visitor_log, get_weekly_visitors
-from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity, 
-                  get_cart_total, get_cart_count, clear_cart, send_order_confirmation_email,
+from utils import (get_current_user, add_to_cart, remove_from_cart, update_cart_quantity,
+                  get_cart_total, get_cart_count, clear_cart,
                   calculate_order_stats, search_products, get_cart)
-from email_service import send_and_store_otp, verify_otp
+from email_service import (send_and_store_otp, verify_otp,
+                           send_welcome_email, send_welcome_back_email,
+                           send_order_confirmation_email, send_order_status_email)
 
 @app.before_request
 def log_visitor():
@@ -496,7 +498,12 @@ def verify_registration_otp():
                 'password_hash': generate_password_hash(pending['password'] or ''),
                 'is_admin': False
             })
-            
+
+            try:
+                send_welcome_email(pending['email'], pending['username'])
+            except Exception as e:
+                logging.warning(f"Failed to send welcome email: {e}")
+
             session.pop('pending_registration', None)
             flash('Email verified! Registration successful. Please login.', 'success')
             return redirect(url_for('login'))
@@ -564,12 +571,18 @@ def verify_login_otp():
             return render_template('auth/verify_otp.html', purpose='login', email=pending['email'])
         
         success, message = verify_otp(pending['email'], otp, 'login')
-        
+
         if success:
             session['user_id'] = pending['user_id']
             next_page = pending.get('next')
             session.pop('pending_login', None)
             flash('Login successful!', 'success')
+            try:
+                logged_in_user = UserRepo.find_by_id(pending['user_id'])
+                if logged_in_user:
+                    send_welcome_back_email(logged_in_user.email, logged_in_user.username)
+            except Exception as e:
+                logging.warning(f"Failed to send welcome-back email: {e}")
             return redirect(next_page or url_for('index'))
         else:
             flash(message, 'error')
@@ -820,8 +833,15 @@ def admin_update_order_status(order_id):
     if order:
         new_status = request.form.get('status')
         OrderRepo.update(order_id, {'status': new_status})
+        order.status = new_status
         flash('Order status updated successfully!', 'success')
-    
+        try:
+            customer = UserRepo.find_by_id(order.user_id)
+            if customer:
+                send_order_status_email(customer.email, customer.username, order)
+        except Exception as e:
+            logging.warning(f"Failed to send order status email: {e}")
+
     return redirect(url_for('admin_orders'))
 
 @app.route('/admin/analytics')

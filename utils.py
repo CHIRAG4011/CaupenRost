@@ -1,6 +1,5 @@
 import os
 import logging
-import resend
 from flask import session
 from app import USE_MONGODB
 
@@ -97,47 +96,6 @@ def clear_cart():
     session['cart'] = {}
     session.modified = True
 
-
-def send_order_confirmation_email(user_email, order):
-    """Send order confirmation email via Resend"""
-    api_key = os.environ.get('RESEND_API_KEY', '').strip()
-    if not api_key:
-        logging.warning("RESEND_API_KEY not set — skipping order confirmation email")
-        return False
-
-    html = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0;">CaupenRost</h1>
-        </div>
-        <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #333;">Order Confirmed!</h2>
-            <p style="color: #666; font-size: 16px;">Thank you for your order at CaupenRost!</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr><td style="padding: 8px; color: #666;">Order ID:</td><td style="padding: 8px; font-weight: bold;">#{order.id}</td></tr>
-                <tr><td style="padding: 8px; color: #666;">Total:</td><td style="padding: 8px; font-weight: bold;">&#8377;{order.total:.2f}</td></tr>
-                <tr><td style="padding: 8px; color: #666;">Status:</td><td style="padding: 8px; font-weight: bold;">{order.status.title()}</td></tr>
-                <tr><td style="padding: 8px; color: #666;">Delivery to:</td><td style="padding: 8px;">{order.shipping_address}</td></tr>
-            </table>
-            <p style="color: #666; font-size: 14px;">You can track your order status in your account dashboard.</p>
-            <p style="color: #999; font-size: 12px;">Thank you for choosing CaupenRost!</p>
-        </div>
-    </div>
-    """
-
-    try:
-        resend.api_key = api_key
-        resend.Emails.send({
-            "from": "CaupenRost <onboarding@resend.dev>",
-            "to": [user_email],
-            "subject": f"Order Confirmation - #{order.id}",
-            "html": html,
-        })
-        logging.info(f"Order confirmation email sent to {user_email}")
-        return True
-    except Exception as e:
-        logging.error(f"Failed to send order confirmation email: {e}")
-        return False
 
 
 def calculate_order_stats():
