@@ -91,9 +91,40 @@ with app.app_context():
             logging.warning(f"Index setup failed: {e}")
     initialize_database()
 
+SETTING_DEFAULTS = {
+    'site_name': 'CaupenRost',
+    'site_tagline': 'Freshly baked goods made with love',
+    'contact_phone': '+91 7016377439',
+    'contact_email': 'hello@caupenrost.com',
+    'hero_badge': 'Trusted by 1000+ Happy Customers',
+    'hero_title': 'Freshly Baked',
+    'hero_highlight': 'Happiness',
+    'hero_title_end': 'Delivered',
+    'hero_subtitle': 'Discover the magic of artisan baked goods made with love, premium ingredients, and traditional recipes passed down through generations.',
+    'free_delivery_min': '500',
+    'about_year': 'Since 2020',
+    'about_lead': 'CaupenRost began with a simple dream - to bring the joy of freshly baked goods to every home.',
+    'about_text': 'What started as a small home bakery has grown into a beloved community treasure. Our passion for baking and commitment to quality ingredients sets us apart. Every item is made with traditional techniques and the finest ingredients sourced locally.',
+    'cta_title': 'Ready to Taste the Difference?',
+    'cta_subtitle': 'Order now and experience the joy of freshly baked goodness delivered to your doorstep!',
+    'footer_text': '© 2025 CaupenRost. Made with love in India. All rights reserved.',
+    'testimonial_1_name': 'Priya Sharma',
+    'testimonial_1_role': 'Regular Customer',
+    'testimonial_1_text': 'The chocolate truffle cake was absolutely divine! Fresh, moist, and perfectly sweet. Will definitely order again for every celebration!',
+    'testimonial_1_img': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    'testimonial_2_name': 'Rahul Mehta',
+    'testimonial_2_role': 'Food Enthusiast',
+    'testimonial_2_text': 'Best bakery in town! The croissants are flaky and buttery just like in Paris. Quick delivery and excellent packaging too.',
+    'testimonial_2_img': '/static/images/testimonial_saree_woman.png',
+    'testimonial_3_name': 'Anita Desai',
+    'testimonial_3_role': 'Happy Parent',
+    'testimonial_3_text': 'Ordered a custom birthday cake and it exceeded all expectations! Beautiful design and the taste was even better. Highly recommend!',
+    'testimonial_3_img': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+}
+
 @app.context_processor
 def inject_active_announcement():
-    """Inject the top active announcement into all templates"""
+    """Inject the top active announcement and site settings into all templates"""
     try:
         if USE_MONGODB:
             from mongo_db import MongoAnnouncementRepo
@@ -103,7 +134,19 @@ def inject_active_announcement():
             top_announcement = None
     except:
         top_announcement = None
-    return {'top_announcement': top_announcement}
+
+    try:
+        if USE_MONGODB:
+            from mongo_db import MongoSettingRepo
+            saved = MongoSettingRepo.get_all()
+            site_settings = dict(SETTING_DEFAULTS)
+            site_settings.update(saved)
+        else:
+            site_settings = dict(SETTING_DEFAULTS)
+    except:
+        site_settings = dict(SETTING_DEFAULTS)
+
+    return {'top_announcement': top_announcement, 'site_settings': site_settings}
 
 
 from routes import *

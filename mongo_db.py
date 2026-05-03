@@ -698,6 +698,29 @@ class MongoSettingRepo:
     def count():
         return MongoSettingRepo._get_collection().count_documents({})
 
+    @staticmethod
+    def get(key, default=None):
+        doc = MongoSettingRepo._get_collection().find_one({'key': key})
+        return doc['value'] if doc else default
+
+    @staticmethod
+    def set(key, value):
+        MongoSettingRepo._get_collection().update_one(
+            {'key': key},
+            {'$set': {'key': key, 'value': value, 'updated_at': datetime.utcnow()}},
+            upsert=True
+        )
+
+    @staticmethod
+    def set_many(data_dict):
+        for key, value in data_dict.items():
+            MongoSettingRepo.set(key, value)
+
+    @staticmethod
+    def get_all():
+        docs = MongoSettingRepo._get_collection().find()
+        return {doc['key']: doc['value'] for doc in docs}
+
 
 class MongoStoreCategoryRepo:
     @staticmethod

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Site Settings - Admin{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="fas fa-sliders-h me-2 text-brown"></i>Site Settings</h2>
+            <p class="text-muted mb-0">Edit every piece of text and content shown on your website</p>
+        </div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show">
+        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }} me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('admin_settings') }}">
+
+        <!-- General Settings -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-store me-2"></i>General Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Site Name</label>
+                        <input type="text" name="site_name" class="form-control" value="{{ settings.site_name }}" placeholder="CaupenRost">
+                        <small class="text-muted">Appears in the navbar and browser tab</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Site Tagline</label>
+                        <input type="text" name="site_tagline" class="form-control" value="{{ settings.site_tagline }}" placeholder="Freshly baked goods made with love">
+                        <small class="text-muted">Short description of your bakery</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contact Phone</label>
+                        <input type="text" name="contact_phone" class="form-control" value="{{ settings.contact_phone }}" placeholder="+91 7016377439">
+                        <small class="text-muted">Shown in top bar and footer</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contact Email</label>
+                        <input type="text" name="contact_email" class="form-control" value="{{ settings.contact_email }}" placeholder="hello@caupenrost.com">
+                        <small class="text-muted">Shown in top bar and footer</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Free Delivery Minimum (₹)</label>
+                        <input type="number" name="free_delivery_min" class="form-control" value="{{ settings.free_delivery_min }}" placeholder="500">
+                        <small class="text-muted">Minimum order for free delivery</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-image me-2"></i>Hero Section (Homepage Banner)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Badge Text</label>
+                        <input type="text" name="hero_badge" class="form-control" value="{{ settings.hero_badge }}" placeholder="Trusted by 1000+ Happy Customers">
+                        <small class="text-muted">Small pill above the main title</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hero Title (First Line)</label>
+                        <input type="text" name="hero_title" class="form-control" value="{{ settings.hero_title }}" placeholder="Freshly Baked">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hero Highlighted Word</label>
+                        <input type="text" name="hero_highlight" class="form-control" value="{{ settings.hero_highlight }}" placeholder="Happiness">
+                        <small class="text-muted">This word appears in gold/brown highlight color</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hero Title (End of Second Line)</label>
+                        <input type="text" name="hero_title_end" class="form-control" value="{{ settings.hero_title_end }}" placeholder="Delivered">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Hero Subtitle</label>
+                        <textarea name="hero_subtitle" class="form-control" rows="2" placeholder="Discover the magic of artisan baked goods...">{{ settings.hero_subtitle }}</textarea>
+                        <small class="text-muted">Paragraph below the main title</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About / Our Story Section</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Year Label</label>
+                        <input type="text" name="about_year" class="form-control" value="{{ settings.about_year }}" placeholder="Since 2020">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">About Lead Text</label>
+                        <input type="text" name="about_lead" class="form-control" value="{{ settings.about_lead }}">
+                        <small class="text-muted">Bold introductory sentence</small>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">About Full Text</label>
+                        <textarea name="about_text" class="form-control" rows="3">{{ settings.about_text }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonials -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-quote-left me-2"></i>Customer Testimonials</h5>
+            </div>
+            <div class="card-body">
+                {% for i in [1, 2, 3] %}
+                <div class="border rounded p-3 mb-3 {% if not loop.last %}mb-3{% endif %}">
+                    <h6 class="fw-bold text-brown mb-3">Testimonial {{ i }}</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Name</label>
+                            <input type="text" name="testimonial_{{ i }}_name" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_name'] }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Role / Title</label>
+                            <input type="text" name="testimonial_{{ i }}_role" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_role'] }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Photo URL</label>
+                            <input type="text" name="testimonial_{{ i }}_img" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_img'] }}" placeholder="https://... or /static/images/...">
+                            {% if settings['testimonial_' ~ i ~ '_img'] %}
+                            <div class="mt-2">
+                                <img src="{{ settings['testimonial_' ~ i ~ '_img'] }}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Review Text</label>
+                            <textarea name="testimonial_{{ i }}_text" class="form-control" rows="2">{{ settings['testimonial_' ~ i ~ '_text'] }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-bullhorn me-2"></i>Call to Action Section</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">CTA Title</label>
+                        <input type="text" name="cta_title" class="form-control" value="{{ settings.cta_title }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">CTA Subtitle</label>
+                        <input type="text" name="cta_subtitle" class="form-control" value="{{ settings.cta_subtitle }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-brown text-white">
+                <h5 class="mb-0"><i class="fas fa-align-center me-2"></i>Footer</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Footer Copyright Text</label>
+                        <input type="text" name="footer_text" class="form-control" value="{{ settings.footer_text }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-brown btn-lg px-5">
+                <i class="fas fa-save me-2"></i>Save All Settings
+            </button>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg" target="_blank">
+                <i class="fas fa-eye me-2"></i>Preview Site
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

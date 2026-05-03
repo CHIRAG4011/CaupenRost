@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home - CaupenRost | Fresh Bakery Delights{% endblock %}
+{% block title %}Home - {{ site_settings.site_name }} | Fresh Bakery Delights{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -10,14 +10,14 @@
             <div class="col-lg-6 hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-star"></i>
-                    <span>Trusted by 1000+ Happy Customers</span>
+                    <span>{{ site_settings.hero_badge }}</span>
                 </div>
                 <h1 class="hero-title">
-                    Freshly Baked<br>
-                    <span class="highlight">Happiness</span> Delivered
+                    {{ site_settings.hero_title }}<br>
+                    <span class="highlight">{{ site_settings.hero_highlight }}</span> {{ site_settings.hero_title_end }}
                 </h1>
                 <p class="hero-subtitle">
-                    Discover the magic of artisan baked goods made with love, premium ingredients, and traditional recipes passed down through generations.
+                    {{ site_settings.hero_subtitle }}
                 </p>
                 <div class="hero-buttons">
                     <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
@@ -259,47 +259,38 @@
         <div class="row g-4">
             <div class="col-lg-4 reveal">
                 <div class="testimonial-card">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Customer" class="testimonial-avatar">
+                    <img src="{{ site_settings.testimonial_1_img }}" alt="{{ site_settings.testimonial_1_name }}" class="testimonial-avatar">
                     <div class="testimonial-stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
-                    <p class="testimonial-text">"The chocolate truffle cake was absolutely divine! Fresh, moist, and perfectly sweet. Will definitely order again for every celebration!"</p>
-                    <div class="testimonial-author">Priya Sharma</div>
-                    <div class="testimonial-role">Regular Customer</div>
+                    <p class="testimonial-text">"{{ site_settings.testimonial_1_text }}"</p>
+                    <div class="testimonial-author">{{ site_settings.testimonial_1_name }}</div>
+                    <div class="testimonial-role">{{ site_settings.testimonial_1_role }}</div>
                 </div>
             </div>
             <div class="col-lg-4 reveal">
                 <div class="testimonial-card">
-                    <img src="{{ url_for('static', filename='images/testimonial_saree_woman.png') }}" alt="Customer" class="testimonial-avatar">
+                    <img src="{{ site_settings.testimonial_2_img }}" alt="{{ site_settings.testimonial_2_name }}" class="testimonial-avatar">
                     <div class="testimonial-stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
                     </div>
-                    <p class="testimonial-text">"Best bakery in town! The croissants are flaky and buttery just like in Paris. Quick delivery and excellent packaging too."</p>
-                    <div class="testimonial-author">Rahul Mehta</div>
-                    <div class="testimonial-role">Food Enthusiast</div>
+                    <p class="testimonial-text">"{{ site_settings.testimonial_2_text }}"</p>
+                    <div class="testimonial-author">{{ site_settings.testimonial_2_name }}</div>
+                    <div class="testimonial-role">{{ site_settings.testimonial_2_role }}</div>
                 </div>
             </div>
             <div class="col-lg-4 reveal">
                 <div class="testimonial-card">
-                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" alt="Customer" class="testimonial-avatar">
+                    <img src="{{ site_settings.testimonial_3_img }}" alt="{{ site_settings.testimonial_3_name }}" class="testimonial-avatar">
                     <div class="testimonial-stars">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star-half-alt"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
                     </div>
-                    <p class="testimonial-text">"Ordered a custom birthday cake and it exceeded all expectations! Beautiful design and the taste was even better. Highly recommend!"</p>
-                    <div class="testimonial-author">Anita Desai</div>
-                    <div class="testimonial-role">Happy Parent</div>
+                    <p class="testimonial-text">"{{ site_settings.testimonial_3_text }}"</p>
+                    <div class="testimonial-author">{{ site_settings.testimonial_3_name }}</div>
+                    <div class="testimonial-role">{{ site_settings.testimonial_3_role }}</div>
                 </div>
             </div>
         </div>
@@ -315,10 +306,10 @@
                      alt="Our Bakery Story" class="img-fluid rounded-4 shadow-lg">
             </div>
             <div class="col-lg-6 reveal">
-                <span class="section-subtitle">Since 2020</span>
+                <span class="section-subtitle">{{ site_settings.about_year }}</span>
                 <h2 class="mb-4">Our Story</h2>
-                <p class="lead text-muted">CaupenRost began with a simple dream - to bring the joy of freshly baked goods to every home.</p>
-                <p>What started as a small home bakery has grown into a beloved community treasure. Our passion for baking and commitment to quality ingredients sets us apart. Every item is made with traditional techniques and the finest ingredients sourced locally.</p>
+                <p class="lead text-muted">{{ site_settings.about_lead }}</p>
+                <p>{{ site_settings.about_text }}</p>
                 <div class="row mt-4">
                     <div class="col-6 mb-3">
                         <div class="d-flex align-items-center">
@@ -364,13 +355,13 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 reveal">
-                    <h2>Ready to Taste the Difference?</h2>
-                    <p>Order now and experience the joy of freshly baked goodness delivered to your doorstep!</p>
+                    <h2>{{ site_settings.cta_title }}</h2>
+                    <p>{{ site_settings.cta_subtitle }}</p>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
                         <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
                             <i class="fas fa-shopping-bag me-2"></i>Order Now
                         </a>
-                        <a href="tel:+917016377439" class="btn btn-outline-light btn-lg">
+                        <a href="tel:{{ site_settings.contact_phone }}" class="btn btn-outline-light btn-lg">
                             <i class="fas fa-phone me-2"></i>Call Us
                         </a>
                     </div>
