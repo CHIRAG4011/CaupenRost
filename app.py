@@ -111,7 +111,7 @@ SETTING_DEFAULTS = {
     'testimonial_1_name': 'Priya Sharma',
     'testimonial_1_role': 'Regular Customer',
     'testimonial_1_text': 'The chocolate truffle cake was absolutely divine! Fresh, moist, and perfectly sweet. Will definitely order again for every celebration!',
-    'testimonial_1_img': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+    'testimonial_1_img': 'https://images.unsplash.com/photo-1607746882042-944635dfe10e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
     'testimonial_2_name': 'Rahul Mehta',
     'testimonial_2_role': 'Food Enthusiast',
     'testimonial_2_text': 'Best bakery in town! The croissants are flaky and buttery just like in Paris. Quick delivery and excellent packaging too.',

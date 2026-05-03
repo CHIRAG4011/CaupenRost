@@ -1568,9 +1568,9 @@ def admin_settings():
                 'hero_badge', 'hero_title', 'hero_highlight', 'hero_title_end', 'hero_subtitle',
                 'free_delivery_min', 'about_year', 'about_lead', 'about_text',
                 'cta_title', 'cta_subtitle', 'footer_text',
-                'testimonial_1_name', 'testimonial_1_role', 'testimonial_1_text', 'testimonial_1_img',
-                'testimonial_2_name', 'testimonial_2_role', 'testimonial_2_text', 'testimonial_2_img',
-                'testimonial_3_name', 'testimonial_3_role', 'testimonial_3_text', 'testimonial_3_img',
+                'testimonial_1_name', 'testimonial_1_role', 'testimonial_1_img',
+                'testimonial_2_name', 'testimonial_2_role', 'testimonial_2_img',
+                'testimonial_3_name', 'testimonial_3_role', 'testimonial_3_img',
             ]
             data = {k: request.form.get(k, SETTING_DEFAULTS.get(k, '')) for k in keys}
             MongoSettingRepo.set_many(data)
