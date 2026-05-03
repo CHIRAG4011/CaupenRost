@@ -122,7 +122,7 @@ class MongoUserRepo:
 class MongoCategoryRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['storecategory']
+        return get_mongo_db()['categories']
     
     @staticmethod
     def find_by_id(category_id):
@@ -201,7 +201,7 @@ class MongoCategoryRepo:
 class MongoProductRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['storeitems']
+        return get_mongo_db()['products']
     
     @staticmethod
     def _load_reviews(product):
@@ -399,7 +399,7 @@ class MongoOrderRepo:
 class MongoReviewRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['productreviews']
+        return get_mongo_db()['reviews']
     
     @staticmethod
     def find_by_product(product_id):

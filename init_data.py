@@ -40,6 +40,8 @@ def init_mongodb():
         db['addresses'].delete_many({})
         db['visitor_logs'].delete_many({})
         db['otp_codes'].delete_many({})
+        db['roles'].delete_many({})
+        db['settings'].delete_many({})
     
     if MongoUserRepo.count() == 0:
         logger.info("Creating admin user...")
