@@ -3,19 +3,39 @@
 
 {% block extra_head %}
 <style>
-#product3DCanvas {
-    display: block;
-    cursor: grab;
-}
-#product3DCanvas:active { cursor: grabbing; }
-.viewer-3d-wrap {
+/* ── Holographic 3D Card — additional page-level refinements ── */
+.scene-3d {
     position: relative;
-    height: 460px;
-    background: radial-gradient(ellipse at 40% 35%, #1c1205 0%, #0a0806 100%);
-    border-radius: var(--r-lg);
-    overflow: hidden;
-    border: 1px solid rgba(212,168,67,0.18);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--r-xl);
+    user-select: none;
+}
+/* Glow ring behind the card */
+.scene-3d::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: calc(var(--r-xl) + 2px);
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        rgba(212,168,67,0.35) 20%,
+        transparent 40%,
+        rgba(180,100,40,0.2) 60%,
+        transparent 80%,
+        rgba(212,168,67,0.35) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+    animation: none;
+}
+.scene-3d:hover::before {
+    opacity: 1;
+    animation: rotateBorder 4s linear infinite;
+}
+@keyframes rotateBorder {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 </style>
 {% endblock %}
@@ -23,13 +43,13 @@
 {% block content %}
 
 <!-- Breadcrumb -->
-<section style="background:linear-gradient(135deg,var(--bg-surface),var(--bg-card));border-bottom:1px solid var(--glass-border);padding:24px 0;">
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:20px 0;">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ url_for('products') }}">Products</a></li>
-                <li class="breadcrumb-item active" style="color:var(--text-muted);">{{ product.name }}</li>
+                <li class="breadcrumb-item active">{{ product.name }}</li>
             </ol>
         </nav>
     </div>
@@ -39,52 +59,86 @@
 <div class="container py-5">
     <div class="row g-5 align-items-start">
 
-        <!-- LEFT: Image / 3D Viewer tabs -->
+        <!-- LEFT: 3D Card Viewer -->
         <div class="col-lg-6">
-            <div class="viewer-tabs">
-                <button class="viewer-tab-btn" id="tabPhoto" onclick="switchTab('photo')">
-                    <i class="fas fa-image me-1"></i>Photo
-                </button>
+            <!-- Tab switcher -->
+            <div class="viewer-tabs mb-3">
                 <button class="viewer-tab-btn active" id="tab3D" onclick="switchTab('3d')">
                     <i class="fas fa-cube me-1"></i>3D View
                 </button>
+                <button class="viewer-tab-btn" id="tabPhoto" onclick="switchTab('photo')">
+                    <i class="fas fa-image me-1"></i>Photo
+                </button>
             </div>
 
-            <!-- Photo panel -->
+            <!-- ── 3D Holographic Card ── -->
+            <div id="panel3D">
+                <div class="scene-3d" id="scene3d">
+                    <!-- Custom cursor dot -->
+                    <div class="card-cursor" id="card3dCursor"></div>
+
+                    <div class="card-3d" id="card3d">
+                        <!-- Product image -->
+                        <img src="{{ product.image_url }}"
+                             alt="{{ product.name }}"
+                             class="card-3d-img"
+                             draggable="false">
+
+                        <!-- Holographic shine — follows mouse -->
+                        <div class="card-3d-shine" id="card3dShine"></div>
+
+                        <!-- Grid overlay texture -->
+                        <div class="card-3d-grid"></div>
+
+                        <!-- Floating: category badge (front z-layer) -->
+                        <div class="card-3d-badge">{{ product.category }}</div>
+
+                        <!-- Floating: stock pill -->
+                        {% if product.stock > 0 %}
+                        <div class="card-3d-stock">
+                            <i class="fas fa-check-circle"></i>
+                            {{ product.stock }} in stock
+                        </div>
+                        {% else %}
+                        <div class="card-3d-stock oos">
+                            <i class="fas fa-times-circle"></i>Out of Stock
+                        </div>
+                        {% endif %}
+
+                        <!-- Floating: price chip (highest z-layer) -->
+                        <div class="card-3d-price">₹{{ "%.0f"|format(product.price) }}</div>
+                    </div>
+                </div>
+
+                <!-- Hint -->
+                <p class="text-center mt-3" style="color:var(--cream-muted);font-size:0.75rem;letter-spacing:0.04em;">
+                    <i class="fas fa-hand-pointer me-1"></i>Hover &amp; move to tilt the card
+                </p>
+            </div>
+
+            <!-- ── Photo Panel ── -->
             <div id="panelPhoto" style="display:none;">
-                <div class="position-relative" style="border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--glass-border);box-shadow:var(--shadow-lg);">
+                <div class="position-relative" style="border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--glass-border);box-shadow:var(--shadow-lg);">
                     <img src="{{ product.image_url }}"
                          class="w-100"
                          alt="{{ product.name }}"
-                         style="height:460px;object-fit:cover;filter:brightness(0.9) contrast(1.05);display:block;">
-
+                         style="height:480px;object-fit:cover;display:block;filter:brightness(0.92) contrast(1.05);">
                     {% if product.stock <= 5 and product.stock > 0 %}
                     <span class="position-absolute top-0 start-0 m-3 badge"
-                          style="background:linear-gradient(135deg,#9b6b1a,#e67e22);padding:7px 14px;border-radius:20px;">
+                          style="background:linear-gradient(135deg,#9b6b1a,#e67e22);padding:7px 14px;border-radius:20px;font-size:0.7rem;">
                         <i class="fas fa-fire me-1"></i>Low Stock
                     </span>
                     {% elif product.stock == 0 %}
                     <span class="position-absolute top-0 start-0 m-3 badge"
-                          style="background:linear-gradient(135deg,#9b2335,#c0392b);color:white;padding:7px 14px;border-radius:20px;">
+                          style="background:linear-gradient(135deg,#9b2335,#c0392b);color:white;padding:7px 14px;border-radius:20px;font-size:0.7rem;">
                         <i class="fas fa-times me-1"></i>Sold Out
                     </span>
                     {% else %}
                     <span class="position-absolute top-0 start-0 m-3 badge"
-                          style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;padding:7px 14px;border-radius:20px;">
+                          style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;padding:7px 14px;border-radius:20px;font-size:0.7rem;">
                         <i class="fas fa-check me-1"></i>In Stock
                     </span>
                     {% endif %}
-                </div>
-            </div>
-
-            <!-- 3D Viewer panel -->
-            <div id="panel3D">
-                <div class="viewer-3d-wrap">
-                    <canvas id="product3DCanvas"></canvas>
-                    <div class="viewer-controls">
-                        <i class="fas fa-mouse-pointer"></i>Drag to rotate &nbsp;·&nbsp;
-                        <i class="fas fa-search-plus"></i>Scroll to zoom
-                    </div>
                 </div>
             </div>
         </div>
@@ -98,16 +152,16 @@
             <!-- Rating -->
             <div class="d-flex align-items-center gap-3 mb-4">
                 {% set avg_rating = product.get_average_rating() %}
-                <div class="product-rating" style="font-size:1.1rem;">
+                <div class="product-rating" style="font-size:1rem;">
                     {% if avg_rating > 0 %}
                         {% for i in range(5) %}
-                            {% if i < avg_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endif %}
+                            {% if i < avg_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endif %}
                         {% endfor %}
                     {% else %}
-                        {% for i in range(5) %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endfor %}
+                        {% for i in range(5) %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endfor %}
                     {% endif %}
                 </div>
-                <span style="color:var(--text-muted);font-size:0.88rem;">
+                <span style="color:var(--cream-muted);font-size:0.85rem;">
                     {% if avg_rating > 0 %}{{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews){% else %}No reviews yet{% endif %}
                 </span>
             </div>
@@ -117,22 +171,22 @@
             <!-- Price -->
             <div class="mb-4">
                 <span class="product-detail-price">₹{{ "%.0f"|format(product.price) }}</span>
-                <span style="color:var(--text-muted);font-size:0.85rem;margin-left:8px;">per item</span>
+                <span style="color:var(--cream-muted);font-size:0.82rem;margin-left:8px;">per item</span>
             </div>
 
             <!-- Stock -->
             <div class="mb-4">
                 {% if product.stock > 10 %}
-                <div class="stock-badge in-stock d-inline-flex">
+                <div class="stock-badge in-stock">
                     <i class="fas fa-check-circle"></i>In Stock
-                    <span style="color:var(--text-muted);font-size:0.8rem;margin-left:6px;">({{ product.stock }} available)</span>
+                    <span style="color:var(--cream-muted);font-size:0.78rem;margin-left:6px;">({{ product.stock }} available)</span>
                 </div>
                 {% elif product.stock > 0 %}
-                <div class="stock-badge low-stock d-inline-flex">
+                <div class="stock-badge low-stock">
                     <i class="fas fa-exclamation-circle"></i>Hurry! Only {{ product.stock }} left
                 </div>
                 {% else %}
-                <div class="stock-badge out-of-stock d-inline-flex">
+                <div class="stock-badge out-of-stock">
                     <i class="fas fa-times-circle"></i>Currently Out of Stock
                 </div>
                 {% endif %}
@@ -143,7 +197,7 @@
             <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="mb-5">
                 <div class="d-flex align-items-end gap-3 flex-wrap">
                     <div>
-                        <label class="form-label" style="font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);">Quantity</label>
+                        <label class="form-label">Quantity</label>
                         <div class="qty-control">
                             <button type="button" class="qty-btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
                             <div class="qty-value" id="qtyDisplay">1</div>
@@ -193,7 +247,7 @@
     <div class="mt-5 pt-5" style="border-top:1px solid var(--glass-border);">
         <div class="section-header text-start mb-4">
             <span class="section-subtitle">Customer Feedback</span>
-            <h2>Reviews & Ratings</h2>
+            <h2>Reviews &amp; Ratings</h2>
         </div>
 
         <div class="row g-4">
@@ -245,9 +299,9 @@
                 {% else %}
                 <div class="card h-100">
                     <div class="card-body text-center py-5">
-                        <i class="fas fa-user-circle fa-3x mb-3" style="color:var(--text-muted);"></i>
+                        <i class="fas fa-user-circle fa-3x mb-3" style="color:var(--cream-muted);opacity:0.5;"></i>
                         <h5>Share Your Opinion</h5>
-                        <p style="color:var(--text-muted);" class="mb-4">Please login to write a review.</p>
+                        <p style="color:var(--cream-muted);" class="mb-4">Please login to write a review.</p>
                         <a href="{{ url_for('login') }}" class="btn btn-brown">
                             <i class="fas fa-sign-in-alt me-2"></i>Login to Review
                         </a>
@@ -268,29 +322,29 @@
                                     {% if review.user %}{{ review.user.username[0]|upper }}{% else %}U{% endif %}
                                 </div>
                                 <div>
-                                    <div style="font-weight:600;color:var(--text-primary);font-size:0.9rem;">
+                                    <div style="font-weight:600;color:var(--cream);font-size:0.9rem;">
                                         {% if review.user %}{{ review.user.username }}{% else %}Anonymous{% endif %}
                                     </div>
-                                    <div class="product-rating" style="font-size:0.78rem;">
+                                    <div class="product-rating" style="font-size:0.72rem;">
                                         {% for i in range(5) %}
                                             {% if i < review.rating %}<i class="fas fa-star"></i>
-                                            {% else %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endif %}
+                                            {% else %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endif %}
                                         {% endfor %}
                                     </div>
                                 </div>
                             </div>
-                            <small style="color:var(--text-muted);font-size:0.78rem;">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                            <small style="color:var(--cream-muted);font-size:0.75rem;">{{ review.created_at.strftime('%b %d, %Y') }}</small>
                         </div>
-                        <p style="color:var(--text-secondary);font-size:0.88rem;margin:0;">{{ review.comment }}</p>
+                        <p style="color:var(--cream-dim);font-size:0.88rem;margin:0;line-height:1.7;">{{ review.comment }}</p>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
                 <div class="card">
                     <div class="card-body text-center py-5">
-                        <i class="fas fa-comments fa-3x mb-3" style="color:var(--text-muted);font-size:2.5rem;"></i>
-                        <h5 style="color:var(--text-muted);">No reviews yet</h5>
-                        <p style="color:var(--text-muted);margin:0;">Be the first to share your experience!</p>
+                        <i class="fas fa-comments mb-3" style="font-size:2.5rem;color:var(--cream-muted);opacity:0.4;"></i>
+                        <h5 style="color:var(--cream-muted);">No reviews yet</h5>
+                        <p style="color:var(--cream-muted);margin:0;">Be the first to share your experience!</p>
                     </div>
                 </div>
                 {% endif %}
@@ -303,7 +357,7 @@
 
 {% block extra_scripts %}
 <script>
-// ── Quantity Control ─────────────────────────────────────────────
+// ── Quantity Control ──────────────────────────────────────────
 var _qty = 1;
 var _maxQty = {{ [product.stock, 10]|min }};
 function changeQty(d) {
@@ -312,13 +366,12 @@ function changeQty(d) {
     document.getElementById('qtyInput').value = _qty;
 }
 
-// ── Tab Switcher ─────────────────────────────────────────────────
+// ── Tab Switcher ──────────────────────────────────────────────
 function switchTab(tab) {
     var photo = document.getElementById('panelPhoto');
     var panel3d = document.getElementById('panel3D');
     var btnPhoto = document.getElementById('tabPhoto');
     var btn3d = document.getElementById('tab3D');
-
     if (tab === 'photo') {
         photo.style.display = 'block';
         panel3d.style.display = 'none';
@@ -327,533 +380,96 @@ function switchTab(tab) {
     } else {
         photo.style.display = 'none';
         panel3d.style.display = 'block';
-        btnPhoto.classList.remove('active');
         btn3d.classList.add('active');
+        btnPhoto.classList.remove('active');
     }
 }
 
-// ── Canvas 2D – 3D Product Model Viewer ───────────────────────────
+// ── CSS 3D Holographic Tilt Card ──────────────────────────────
 (function() {
-    var canvas = document.getElementById('product3DCanvas');
-    if (!canvas) return;
+    var scene  = document.getElementById('scene3d');
+    var card   = document.getElementById('card3d');
+    var shine  = document.getElementById('card3dShine');
+    var cursor = document.getElementById('card3dCursor');
+    if (!scene || !card) return;
 
-    var IMG_URL  = {{ product.image_url | tojson }};
-    var CATEGORY = {{ (product.category or '') | lower | tojson }};
-    var NAME     = {{ product.name | lower | tojson }};
-    var combined = CATEGORY + ' ' + NAME;
+    var rafId  = null;
+    var targetRotX = 0, targetRotY = 0;
+    var currentRotX = 0, currentRotY = 0;
+    var isOver = false;
 
-    // ── Detect shape ──
-    function getShape() {
-        if (/croissant/.test(combined))                                   return 'croissant';
-        if (/muffin|cupcake/.test(combined))                              return 'muffin';
-        if (/cake|gateau|tier|layer/.test(combined))                      return 'cake';
-        if (/cookie|biscuit|macaron/.test(combined))                      return 'cookie';
-        if (/pie|tart/.test(combined))                                    return 'pie';
-        if (/bagel/.test(combined))                                       return 'bagel';
-        if (/bread|loaf|sourdough|baguette|roll|bun|rye|wheat/.test(combined)) return 'loaf';
-        return 'loaf';
-    }
-    var SHAPE = getShape();
+    function lerp(a, b, t) { return a + (b - a) * t; }
 
-    // ── Canvas 2D setup ──
-    var DPR = window.devicePixelRatio || 1;
-    var W   = canvas.parentElement.clientWidth || 500;
-    var H   = 460;
-    canvas.width  = W * DPR;
-    canvas.height = H * DPR;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-    var ctx = canvas.getContext('2d');
-    ctx.scale(DPR, DPR);
-    var cx = W / 2, cy = H / 2;
-
-    // ── Load product image ──
-    var productImg = new Image();
-    productImg.crossOrigin = 'anonymous';
-    productImg.src = IMG_URL;
-
-    // ── Gold dust particles ──
-    var PARTICLES = [];
-    for (var pi = 0; pi < 55; pi++) {
-        PARTICLES.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            r: 0.8 + Math.random() * 2.2,
-            speed: 0.12 + Math.random() * 0.22,
-            phase: Math.random() * Math.PI * 2,
-            opacity: 0.15 + Math.random() * 0.5
-        });
-    }
-
-    // ── Rotation state ──
-    var angle   = 0.12;   // Y-axis rotation angle — start near side-on so loaf looks elongated
-    var velX    = 0.006;
-    var isDragging = false, prevX = 0, prevY = 0;
-    var floatT  = 0;
-
-    // ── Shape helpers ──
-
-    // Clip path helpers
-    function ellipsePath(ctx2, ex, ey, rx, ry) {
-        ctx2.beginPath();
-        ctx2.ellipse(ex, ey, rx, ry, 0, 0, Math.PI * 2);
-    }
-
-    // Draw product image clipped to an ellipse
-    function drawImgEllipse(ex, ey, rx, ry, alpha) {
-        if (!productImg.complete || !productImg.naturalWidth) return;
-        ctx.save();
-        ellipsePath(ctx, ex, ey, rx, ry);
-        ctx.clip();
-        ctx.globalAlpha = (alpha === undefined ? 0.78 : alpha);
-        var iw = productImg.naturalWidth, ih = productImg.naturalHeight;
-        var scale = Math.max(rx * 2 / iw, ry * 2 / ih);
-        var dw = iw * scale, dh = ih * scale;
-        ctx.drawImage(productImg, ex - dw / 2, ey - dh / 2, dw, dh);
-        ctx.restore();
-    }
-
-    // Shading overlay: highlight top-left, darken bottom-right
-    function shadeEllipse(ex, ey, rx, ry, lightAngle) {
-        var la = lightAngle === undefined ? -0.8 : lightAngle;
-        var hlx = ex + Math.cos(la) * rx * 0.38;
-        var hly = ey + Math.sin(la) * ry * 0.45;
-        ctx.save();
-        ellipsePath(ctx, ex, ey, rx, ry);
-        ctx.clip();
-        var g = ctx.createRadialGradient(hlx, hly, rx * 0.05, ex, ey, rx * 1.1);
-        g.addColorStop(0,   'rgba(255,230,160,0.36)');
-        g.addColorStop(0.45,'rgba(0,0,0,0)');
-        g.addColorStop(1,   'rgba(0,0,0,0.42)');
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // Ground shadow — draws a flat ellipse below the object
-    function drawShadow(sx, sy, sW, sH) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, sW, sH, 0, 0, Math.PI * 2);
-        var g = ctx.createRadialGradient(sx, sy, 2, sx, sy, sW);
-        g.addColorStop(0, 'rgba(0,0,0,0.55)');
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.fill();
-        ctx.restore();
-    }
-
-    // ── LOAF shape ──
-    // A bread loaf is an ellipsoid. Rotating around Y: apparent width =
-    // sqrt((L·cos)² + (R·sin)²), which naturally gives the oval → circle morph.
-    function drawLoaf(oy) {
-        var L   = 160;   // half-length (long axis — makes loaf clearly oblong)
-        var R   = 72;    // cross-section radius
-        var cos = Math.cos(angle);
-        var sin = Math.sin(angle);
-
-        // Correct ellipsoid projection: width of the outline ellipse
-        var sW  = Math.sqrt((L * cos) * (L * cos) + (R * sin) * (R * sin));
-        if (sW < 2) sW = 2;
-        var sH  = R;
-
-        // Ground shadow
-        drawShadow(cx, oy + sH + 26, sW * 0.85, 17);
-
-        // ── Body fill — radial gradient so shading wraps the 3D shape ──
-        var litX = cx - sW * 0.28, litY = oy - sH * 0.38;
-        var bg = ctx.createRadialGradient(litX, litY, sH * 0.08, cx, oy, sW * 1.18);
-        bg.addColorStop(0,    '#d09848');
-        bg.addColorStop(0.25, '#c8892a');
-        bg.addColorStop(0.6,  '#8B4513');
-        bg.addColorStop(1,    '#3d1208');
-        ctx.save();
-        ellipsePath(ctx, cx, oy, sW, sH);
-        ctx.fillStyle = bg;
-        ctx.fill();
-        ctx.restore();
-
-        // ── Product image texture (blended over base colour) ──
-        drawImgEllipse(cx, oy, sW, sH, 0.68);
-
-        // ── Light/shade overlay ──
-        shadeEllipse(cx, oy, sW, sH, -0.85);
-
-        // ── Scoring lines (gold slash marks on top) ──
-        ctx.save();
-        ellipsePath(ctx, cx, oy, sW, sH);
-        ctx.clip();
-        ctx.strokeStyle = 'rgba(212,168,67,0.8)';
-        ctx.lineWidth   = 2;
-        ctx.lineCap     = 'round';
-        var scoreSpread = sW * 0.24;
-        [-0.36, 0, 0.36].forEach(function(off) {
-            var lx = cx + off * sW * 0.72;
-            ctx.beginPath();
-            ctx.moveTo(lx - scoreSpread, oy - sH * 0.80);
-            ctx.quadraticCurveTo(lx, oy - sH * 1.10, lx + scoreSpread, oy - sH * 0.80);
-            ctx.stroke();
-        });
-        ctx.restore();
-
-        // ── Rim glow ──
-        ctx.save();
-        ctx.shadowColor = 'rgba(212,168,67,0.22)';
-        ctx.shadowBlur  = 32;
-        ellipsePath(ctx, cx, oy, sW + 1, sH + 1);
-        ctx.strokeStyle = 'rgba(212,168,67,0.14)';
-        ctx.lineWidth   = 2;
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    // ── CAKE shape ──
-    function drawCake(oy) {
-        var R1 = 110, H1 = 44, R2 = 82, H2 = 36;
-        var cos = Math.cos(angle), sin = Math.sin(angle);
-        var eW1 = R1 * Math.abs(sin), eW2 = R2 * Math.abs(sin);
-        drawShadow(cx, oy + H1 + H2 + 24, R1 * 0.85, 16);
-
-        function drawTier(ty, R, H, eW, col1, col2) {
-            // Side face
-            var g = ctx.createLinearGradient(cx - R, ty, cx + R, ty + H);
-            g.addColorStop(0, col1); g.addColorStop(1, col2);
-            ctx.save();
-            ctx.beginPath();
-            ctx.ellipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, 0, Math.PI, 0);
-            ctx.lineTo(cx + R * Math.abs(cos), ty + H);
-            ctx.ellipse(cx, ty + H, R * Math.abs(cos) || 1, H * 0.28, 0, 0, Math.PI);
-            ctx.lineTo(cx - R * Math.abs(cos), ty);
-            ctx.fillStyle = g; ctx.fill(); ctx.restore();
-
-            // Top face ellipse
-            var topG = ctx.createRadialGradient(cx - 18, ty - 4, 8, cx, ty, R);
-            topG.addColorStop(0, '#fff5e0'); topG.addColorStop(0.6, '#f5dda0'); topG.addColorStop(1, '#c8a050');
-            ctx.save();
-            ellipsePath(ctx, cx, ty, R * Math.abs(cos) || 1, H * 0.28);
-            ctx.fillStyle = topG; ctx.fill();
-            drawImgEllipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, 0.55);
-            shadeEllipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, -1.0);
-            ctx.restore();
-
-            // Frosting rim
-            ctx.save();
-            ctx.strokeStyle = '#fff8e8'; ctx.lineWidth = 5;
-            ellipsePath(ctx, cx, ty, R * Math.abs(cos) || 1, H * 0.28);
-            ctx.stroke(); ctx.restore();
+    function animate() {
+        currentRotX = lerp(currentRotX, targetRotX, 0.12);
+        currentRotY = lerp(currentRotY, targetRotY, 0.12);
+        card.style.transform = 'rotateX(' + currentRotX.toFixed(3) + 'deg) rotateY(' + currentRotY.toFixed(3) + 'deg)';
+        if (isOver || Math.abs(currentRotX) > 0.01 || Math.abs(currentRotY) > 0.01) {
+            rafId = requestAnimationFrame(animate);
         }
-
-        drawTier(oy - H1,     R1, H1, eW1, '#c8892a', '#3d1208');
-        drawTier(oy - H1*2 - H2 + 4, R2, H2, eW2, '#d4a030', '#5a2010');
     }
 
-    // ── COOKIE shape ──
-    function drawCookie(oy) {
-        var R = 108, TH = 14;
-        var cos = Math.cos(angle), sin = Math.sin(angle);
-        var eW = R * Math.abs(sin);
-        drawShadow(cx, oy + TH + 20, R * 0.9, 14);
-
-        var g = ctx.createLinearGradient(cx - R, oy, cx + R, oy + TH);
-        g.addColorStop(0, '#c8892a'); g.addColorStop(1, '#3d1208');
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, 0, Math.PI, 0);
-        ctx.lineTo(cx + R * Math.abs(cos), oy + TH);
-        ctx.ellipse(cx, oy + TH, R * Math.abs(cos) || 1, TH * 0.4, 0, 0, Math.PI);
-        ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.restore();
-
-        var topG = ctx.createRadialGradient(cx - 20, oy - 5, 5, cx, oy, R);
-        topG.addColorStop(0, '#e0a040'); topG.addColorStop(1, '#8B4513');
-        ctx.save(); ellipsePath(ctx, cx, oy, R * Math.abs(cos) || 1, TH * 0.4);
-        ctx.fillStyle = topG; ctx.fill();
-        drawImgEllipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, 0.70);
-        shadeEllipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, -1.1);
-        ctx.restore();
-
-        // Chocolate chips
-        [[0,0],[0.42,0.22],[-0.45,0.28],[0.18,-0.52],[-0.3,-0.4]].forEach(function(p) {
-            var chipX = cx + p[0] * R * Math.abs(cos);
-            var chipY = oy + p[1] * TH * 0.38 - 2;
-            ctx.save();
-            ctx.beginPath(); ctx.ellipse(chipX, chipY, 7, 5, 0, 0, Math.PI*2);
-            ctx.fillStyle = '#3b1c0a'; ctx.fill(); ctx.restore();
-        });
-    }
-
-    // ── MUFFIN shape ──
-    function drawMuffin(oy) {
-        var R = 85, baseH = 60, domeR = 92;
-        var cos = Math.cos(angle), sin = Math.sin(angle);
-        var bW = R * Math.abs(cos) || 1;
-        drawShadow(cx, oy + baseH + 24, R * 0.88, 14);
-
-        // Base cylinder
-        var gBase = ctx.createLinearGradient(cx - R, oy, cx + R, oy + baseH);
-        gBase.addColorStop(0, '#b8781a'); gBase.addColorStop(1, '#3d1208');
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, oy, bW, baseH * 0.25, 0, Math.PI, 0);
-        ctx.lineTo(cx + bW, oy + baseH);
-        ctx.ellipse(cx, oy + baseH, bW, baseH * 0.25, 0, 0, Math.PI);
-        ctx.closePath(); ctx.fillStyle = gBase; ctx.fill(); ctx.restore();
-
-        // Dome top — use a half-ellipse
-        var dW = domeR * Math.abs(cos) || 1;
-        var dH = domeR * 0.62;
-        var gDome = ctx.createRadialGradient(cx - dW * 0.28, oy - dH * 0.6, 5, cx, oy - dH * 0.15, dW * 1.1);
-        gDome.addColorStop(0, '#d4a030'); gDome.addColorStop(0.5, '#a06820'); gDome.addColorStop(1, '#3d1208');
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, oy, dW, dH, 0, Math.PI, 0);
-        ctx.fillStyle = gDome; ctx.fill();
-        drawImgEllipse(cx, oy - dH * 0.4, dW * 0.85, dH * 0.55, 0.70);
-        shadeEllipse(cx, oy - dH * 0.2, dW, dH * 0.8, -0.9);
-        ctx.restore();
-
-        // Wrapper lines on base
-        ctx.save(); ctx.strokeStyle = 'rgba(212,168,67,0.4)'; ctx.lineWidth = 1.2;
-        for (var wi = 0; wi < 4; wi++) {
-            var wy = oy + baseH * 0.18 + wi * baseH * 0.22;
-            ctx.beginPath(); ctx.ellipse(cx, wy, bW, baseH * 0.25 * 0.55, 0, 0, Math.PI*2); ctx.stroke();
-        }
-        ctx.restore();
-    }
-
-    // ── CROISSANT shape ──
-    function drawCroissant(oy) {
-        var arcR = 100, tubeR = 34;
-        var cos = Math.cos(angle);
-        drawShadow(cx, oy + tubeR + 22, arcR * 0.9, 14);
-
-        var steps = 50;
-        var spread = Math.PI * 1.32;
-        var startA = Math.PI * 0.84;
-
-        function croissantPts(r) {
-            var pts = [];
-            for (var si = 0; si <= steps; si++) {
-                var a = startA + (si / steps) * spread;
-                pts.push({
-                    x: cx + arcR * Math.cos(a) * Math.abs(cos) * 0.95,
-                    y: oy + arcR * Math.sin(a) * 0.72 - tubeR * 0.2
-                });
-            }
-            return pts;
-        }
-
-        var outerPts = croissantPts(arcR + tubeR);
-        var innerPts = croissantPts(arcR - tubeR);
-
-        var g = ctx.createRadialGradient(cx - 20, oy - 30, 10, cx, oy, arcR + tubeR);
-        g.addColorStop(0, '#e0a830'); g.addColorStop(0.4, '#c8892a'); g.addColorStop(1, '#3d1208');
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(outerPts[0].x, outerPts[0].y);
-        outerPts.forEach(function(p) { ctx.lineTo(p.x, p.y); });
-        for (var si2 = innerPts.length - 1; si2 >= 0; si2--) { ctx.lineTo(innerPts[si2].x, innerPts[si2].y); }
-        ctx.closePath();
-        ctx.fillStyle = g; ctx.fill();
-        ctx.strokeStyle = 'rgba(212,168,67,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
-
-        var hlG = ctx.createLinearGradient(cx - arcR, oy - tubeR*2, cx + arcR, oy + tubeR);
-        hlG.addColorStop(0, 'rgba(255,220,120,0.28)'); hlG.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = hlG; ctx.fill();
-        ctx.restore();
-    }
-
-    // ── PIE shape ──
-    function drawPie(oy) {
-        var R = 110, H1 = 30;
-        var cos = Math.cos(angle), sin = Math.sin(angle);
-        var bW = R * Math.abs(cos) || 1;
-        drawShadow(cx, oy + H1 + 24, R * 0.88, 16);
-
-        // Dish side
-        var g = ctx.createLinearGradient(cx - R, oy, cx + R, oy + H1);
-        g.addColorStop(0, '#c8892a'); g.addColorStop(1, '#3d1208');
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, oy, bW, H1 * 0.3, 0, Math.PI, 0);
-        ctx.lineTo(cx + bW, oy + H1);
-        ctx.ellipse(cx, oy + H1, bW, H1 * 0.3, 0, 0, Math.PI);
-        ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.restore();
-
-        // Pastry dome top
-        var dH = 30;
-        var domeG = ctx.createRadialGradient(cx - bW * 0.25, oy - dH * 0.55, 5, cx, oy, bW);
-        domeG.addColorStop(0, '#e8c050'); domeG.addColorStop(0.6, '#c8892a'); domeG.addColorStop(1, '#5a2010');
-        ctx.save();
-        ctx.beginPath(); ctx.ellipse(cx, oy, bW, dH, 0, Math.PI, 0);
-        ctx.fillStyle = domeG; ctx.fill();
-        drawImgEllipse(cx, oy - dH * 0.35, bW * 0.85, dH * 0.58, 0.65);
-        shadeEllipse(cx, oy - dH * 0.2, bW, dH * 0.85, -1.0);
-        ctx.restore();
-
-        // Pastry lattice lines
-        ctx.save(); ctx.strokeStyle = 'rgba(212,168,67,0.55)'; ctx.lineWidth = 1.5;
-        for (var li = -2; li <= 2; li++) {
-            ctx.beginPath(); ctx.moveTo(cx + li * bW * 0.22, oy - dH);
-            ctx.lineTo(cx + li * bW * 0.22, oy); ctx.stroke();
-        }
-        ctx.restore();
-    }
-
-    // ── BAGEL shape ──
-    function drawBagel(oy) {
-        var outerR = 105, innerR = 42, cos = Math.cos(angle), sin = Math.sin(angle);
-        var scX = Math.abs(cos);
-        drawShadow(cx, oy + outerR * 0.38 + 22, outerR * 0.88, 15);
-
-        var g = ctx.createRadialGradient(cx - 20, oy - 20, innerR, cx, oy, outerR * 1.1);
-        g.addColorStop(0, '#c8892a'); g.addColorStop(0.5, '#a06820'); g.addColorStop(1, '#3d1208');
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, oy, outerR * (scX || 0.05), outerR * 0.48, 0, 0, Math.PI * 2);
-        ctx.ellipse(cx, oy, innerR * (scX || 0.05), innerR * 0.48, 0, 0, Math.PI * 2, true);
-        ctx.fillStyle = g; ctx.fill();
-        shadeEllipse(cx, oy, outerR * (scX || 0.05), outerR * 0.48, -0.9);
-        ctx.restore();
-
-        // Sesame seeds
-        ctx.save(); ctx.fillStyle = '#e8d080';
-        [[0.65, -0.25],[0.35, 0.3],[-0.4, -0.35],[-0.6, 0.18],[0.05, -0.55]].forEach(function(p) {
-            ctx.save();
-            ctx.translate(cx + p[0] * outerR * scX, oy + p[1] * outerR * 0.48);
-            ctx.rotate(Math.random());
-            ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.restore();
-        });
-        ctx.restore();
-    }
-
-    // ── RENDER ──
-    function render() {
-        ctx.clearRect(0, 0, W, H);
-
-        // Background gradient
-        var bg = ctx.createRadialGradient(cx, cy * 0.75, 40, cx, cy, Math.max(W, H) * 0.85);
-        bg.addColorStop(0, '#1e1305');
-        bg.addColorStop(0.5, '#110c04');
-        bg.addColorStop(1, '#0a0806');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, W, H);
-
-        // Ambient glow behind model
-        var glow = ctx.createRadialGradient(cx, cy, 20, cx, cy, 180);
-        glow.addColorStop(0, 'rgba(212,168,67,0.07)');
-        glow.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, W, H);
-
-        // Gold dust particles
-        var now = Date.now() / 1000;
-        PARTICLES.forEach(function(p) {
-            p.y -= p.speed;
-            if (p.y < -5) p.y = H + 5;
-            var alpha = p.opacity * (0.5 + 0.5 * Math.sin(now * 1.4 + p.phase));
-            ctx.save();
-            ctx.globalAlpha = alpha;
-            ctx.fillStyle = '#d4a843';
-            ctx.beginPath();
-            ctx.arc(p.x + Math.sin(now * 0.5 + p.phase) * 8, p.y, p.r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        });
-
-        // Float offset
-        var floatOff = Math.sin(floatT * 0.72) * 9;
-        var oy = cy + floatOff;
-
-        // Draw the correct shape
-        if (SHAPE === 'cake')      drawCake(oy);
-        else if (SHAPE === 'cookie')    drawCookie(oy);
-        else if (SHAPE === 'muffin')    drawMuffin(oy);
-        else if (SHAPE === 'croissant') drawCroissant(oy);
-        else if (SHAPE === 'pie')       drawPie(oy);
-        else if (SHAPE === 'bagel')     drawBagel(oy);
-        else                            drawLoaf(oy);
-    }
-
-    // ── Animation loop ──
-    function tick() {
-        floatT += 0.016;
-        velX *= 0.90;
-        if (!isDragging && Math.abs(velX) < 0.002) velX = 0.008;
-        angle += velX;
-        render();
-        requestAnimationFrame(tick);
-    }
-    tick();
-
-    // ── Input ──
-    canvas.addEventListener('mousedown', function(e) {
-        isDragging = true; prevX = e.clientX; prevY = e.clientY; velX = 0;
+    scene.addEventListener('mouseenter', function() {
+        isOver = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(animate);
     });
-    window.addEventListener('mousemove', function(e) {
-        if (!isDragging) return;
-        velX = (e.clientX - prevX) * 0.018;
-        prevX = e.clientX; prevY = e.clientY;
+
+    scene.addEventListener('mousemove', function(e) {
+        var rect = scene.getBoundingClientRect();
+        var mx = (e.clientX - rect.left) / rect.width;
+        var my = (e.clientY - rect.top)  / rect.height;
+
+        // Clamp to [0,1]
+        mx = Math.max(0, Math.min(1, mx));
+        my = Math.max(0, Math.min(1, my));
+
+        targetRotX = (my - 0.5) * -28;
+        targetRotY = (mx - 0.5) *  28;
+
+        // Holographic shine follows mouse
+        if (shine) {
+            var px = mx * 100;
+            var py = my * 100;
+            shine.style.background =
+                'radial-gradient(circle at ' + px + '% ' + py + '%, ' +
+                'rgba(255,255,255,0.22) 0%, ' +
+                'rgba(212,168,67,0.18) 25%, ' +
+                'rgba(176,80,32,0.12) 50%, ' +
+                'rgba(90,200,250,0.06) 70%, ' +
+                'transparent 85%)';
+            shine.style.opacity = '1';
+        }
+
+        // Custom cursor
+        if (cursor) {
+            cursor.style.left = (e.clientX - rect.left) + 'px';
+            cursor.style.top  = (e.clientY - rect.top) + 'px';
+        }
     });
-    window.addEventListener('mouseup', function() { isDragging = false; });
 
-    canvas.addEventListener('touchstart', function(e) {
-        isDragging = true; prevX = e.touches[0].clientX; velX = 0;
-    }, { passive: true });
-    canvas.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        velX = (e.touches[0].clientX - prevX) * 0.018;
-        prevX = e.touches[0].clientX;
-    }, { passive: true });
-    canvas.addEventListener('touchend', function() { isDragging = false; }, { passive: true });
-
-    // ── Resize ──
-    window.addEventListener('resize', function() {
-        var nW = canvas.parentElement.clientWidth || 500;
-        canvas.width  = nW * DPR; canvas.height = H * DPR;
-        canvas.style.width = nW + 'px'; canvas.style.height = H + 'px';
-        ctx.scale(DPR, DPR);
-        cx = nW / 2;
+    scene.addEventListener('mouseleave', function() {
+        isOver = false;
+        targetRotX = 0;
+        targetRotY = 0;
+        if (shine) shine.style.opacity = '0';
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(animate);
     });
 })();
 
-// ── Taste Meter ──────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-    var cards = document.querySelectorAll('.taste-card');
-    var feedback = document.getElementById('tasteFeedback');
-    var msgs = {
-        1: { text: "We're sorry to hear that. Your feedback helps us improve!", color: '#e74c3c' },
-        2: { text: "Thanks for being honest — we'll keep working on it.", color: 'var(--orange-warm)' },
-        3: { text: "Glad it was a good experience! Keep exploring our menu.", color: '#f1c40f' },
-        4: { text: "Wonderful! So happy you loved it 😊", color: '#5dba7d' },
-        5: { text: "You just made our day! 🎉 Thank you so much!", color: 'var(--gold)' },
-    };
-
-    function highlightTo(idx) {
-        cards.forEach(function(c, i) { c.classList.toggle('taste-hovered', i <= idx); });
-    }
-    function applySelected() {
-        var checked = document.querySelector('.taste-card input:checked');
-        var sel = checked ? [...cards].indexOf(checked.closest('.taste-card')) : -1;
-        cards.forEach(function(c, i) {
-            c.classList.toggle('taste-selected', i <= sel);
-            c.classList.remove('taste-hovered');
-        });
-        if (checked) {
-            var m = msgs[parseInt(checked.value)];
-            if (feedback) { feedback.textContent = m.text; feedback.style.color = m.color; feedback.style.opacity = '1'; }
-        }
-    }
-    cards.forEach(function(card, idx) {
-        card.addEventListener('mouseenter', function() { highlightTo(idx); });
-        card.addEventListener('mouseleave', function() { cards.forEach(function(c) { c.classList.remove('taste-hovered'); }); });
-        card.addEventListener('click', function() {
-            card.querySelector('input').checked = true;
-            applySelected();
-            card.classList.add('taste-bounce');
-            setTimeout(function() { card.classList.remove('taste-bounce'); }, 400);
-        });
+// ── Taste Meter ───────────────────────────────────────────────
+var feedbacks = {
+    1: '😞 That sounds tough. We\'re sorry!',
+    2: '😐 We\'ll do better next time.',
+    3: '🙂 Thanks for your honest feedback!',
+    4: '😍 So glad you loved it!',
+    5: '🤩 You made our day! Thank you!'
+};
+document.querySelectorAll('.taste-card input[type=radio]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        var fb = document.getElementById('tasteFeedback');
+        if (fb) fb.textContent = feedbacks[this.value] || '';
     });
 });
 </script>

@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CaupenRost - Freshly baked goods made with love. Order cakes, pastries, breads and more.">
-    <meta name="theme-color" content="#0c0a07">
+    <meta name="theme-color" content="#080605">
     <title>{% block title %}CaupenRost{% endblock %}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     {% block extra_head %}{% endblock %}
@@ -26,20 +26,20 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-4">
-                <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
-                <span><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                <span><i class="fas fa-phone"></i>{{ site_settings.contact_phone }}</span>
+                <span><i class="fas fa-envelope"></i>{{ site_settings.contact_email }}</span>
             </div>
             <div class="d-flex align-items-center gap-4">
                 {% if top_announcement %}
                 <span>
-                    <i class="{{ top_announcement.icon }} me-2"></i>{{ top_announcement.text }}
+                    <i class="{{ top_announcement.icon }}"></i>{{ top_announcement.text }}
                     {% if top_announcement.link_url %}
                     <a href="{{ top_announcement.link_url }}" class="ms-1 fw-semibold">{{ top_announcement.link_text or 'Learn more' }} →</a>
                     {% endif %}
                 </span>
                 {% else %}
-                <span><i class="fas fa-truck me-2"></i>Free Delivery above ₹500</span>
-                <span><i class="fas fa-qrcode me-2"></i>UPI Payment Available</span>
+                <span><i class="fas fa-truck"></i>Free Delivery above ₹500</span>
+                <span><i class="fas fa-qrcode"></i>UPI Payment Available</span>
                 {% endif %}
             </div>
         </div>
@@ -48,7 +48,7 @@
 
 {% if top_announcement and top_announcement.is_dismissible %}
 <div id="announcementBanner" class="text-center py-2 px-3 d-none"
-     style="background:{{ top_announcement.bg_color }};color:{{ top_announcement.text_color }};font-size:0.9rem;">
+     style="background:{{ top_announcement.bg_color }};color:{{ top_announcement.text_color }};font-size:0.88rem;">
     <i class="{{ top_announcement.icon }} me-2"></i>
     <strong>{{ top_announcement.text }}</strong>
     {% if top_announcement.link_url %}
@@ -56,15 +56,14 @@
         {{ top_announcement.link_text or 'Learn more' }}
     </a>
     {% endif %}
-    <button type="button" class="btn-close btn-close-white ms-3"
-            onclick="dismissBanner()" aria-label="Close"></button>
+    <button type="button" class="btn-close btn-close-white ms-3" onclick="dismissBanner()" aria-label="Close"></button>
 </div>
 <script>
 (function() {
     var key = 'ann_dismissed_{{ top_announcement.id }}';
     if (!localStorage.getItem(key)) {
-        var banner = document.getElementById('announcementBanner');
-        if (banner) banner.classList.remove('d-none');
+        var b = document.getElementById('announcementBanner');
+        if (b) b.classList.remove('d-none');
     }
 })();
 function dismissBanner() {
@@ -74,7 +73,7 @@ function dismissBanner() {
 </script>
 {% endif %}
 
-<!-- Glass Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -87,7 +86,7 @@ function dismissBanner() {
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav me-auto ms-lg-4">
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
                        href="{{ url_for('index') }}">Home</a>
@@ -108,9 +107,7 @@ function dismissBanner() {
                        href="{{ url_for('cart') }}">
                         <i class="fas fa-shopping-bag me-1"></i>Cart
                         {% if cart_count > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle cart-badge">
-                            {{ cart_count }}
-                        </span>
+                        <span class="position-absolute top-0 start-100 translate-middle cart-badge">{{ cart_count }}</span>
                         {% endif %}
                     </a>
                 </li>
@@ -119,37 +116,28 @@ function dismissBanner() {
                 <li class="nav-item dropdown ms-lg-2">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="user-avatar">
-                            <i class="fas fa-user-circle fa-lg"></i>
-                        </span>
+                        <span class="user-avatar"><i class="fas fa-user-circle fa-lg"></i></span>
                         <span class="d-none d-lg-inline">{{ current_user.username }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li class="px-3 py-2" style="border-bottom:1px solid var(--glass-border);">
-                            <div style="color:var(--text-muted);font-size:0.75rem;">Welcome back!</div>
-                            <div class="fw-semibold" style="color:var(--gold);">{{ current_user.username }}</div>
+                            <div style="color:var(--cream-muted);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;">Welcome back</div>
+                            <div class="fw-semibold" style="color:var(--gold);font-size:0.95rem;">{{ current_user.username }}</div>
                         </li>
-                        <li><a class="dropdown-item" href="{{ url_for('profile') }}">
-                            <i class="fas fa-user me-2" style="color:var(--gold);width:16px;"></i>My Profile</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('user_orders') }}">
-                            <i class="fas fa-box me-2" style="color:var(--gold);width:16px;"></i>My Orders</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('support_center') }}">
-                            <i class="fas fa-headset me-2" style="color:var(--gold);width:16px;"></i>Support</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="fas fa-user me-2" style="color:var(--gold);width:16px;"></i>My Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('user_orders') }}"><i class="fas fa-box me-2" style="color:var(--gold);width:16px;"></i>My Orders</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('support_center') }}"><i class="fas fa-headset me-2" style="color:var(--gold);width:16px;"></i>Support</a></li>
                         {% if current_user.is_admin %}
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
-                            <i class="fas fa-cog me-2" style="color:var(--gold);width:16px;"></i>Admin</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog me-2" style="color:var(--gold);width:16px;"></i>Admin</a></li>
                         {% endif %}
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt me-2" style="width:16px;"></i>Logout</a></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2" style="width:16px;"></i>Logout</a></li>
                     </ul>
                 </li>
                 {% else %}
                 <li class="nav-item ms-lg-1">
-                    <a class="nav-link" href="{{ url_for('login') }}">
-                        <i class="fas fa-sign-in-alt me-1"></i>Login
-                    </a>
+                    <a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
                 </li>
                 <li class="nav-item ms-lg-1">
                     <a class="btn btn-gold btn-sm px-4" href="{{ url_for('register') }}">
@@ -184,7 +172,7 @@ function dismissBanner() {
 <main>{% block content %}{% endblock %}</main>
 
 <!-- Footer -->
-<footer class="text-light pt-5 pb-4">
+<footer class="pt-5 pb-4">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
@@ -212,23 +200,21 @@ function dismissBanner() {
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <h5>Contact Us</h5>
+                <h5>Contact</h5>
                 <ul class="footer-links">
-                    <li><i class="fas fa-map-marker-alt me-2 text-gold"></i>123 Baker Street, Sweet Town</li>
-                    <li><i class="fas fa-phone me-2 text-gold"></i>{{ site_settings.contact_phone }}</li>
-                    <li><i class="fas fa-envelope me-2 text-gold"></i>{{ site_settings.contact_email }}</li>
-                    <li><i class="fas fa-clock me-2 text-gold"></i>Mon–Sat: 7AM – 9PM</li>
+                    <li><i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>123 Baker Street, Sweet Town</li>
+                    <li><i class="fas fa-phone me-2" style="color:var(--gold);"></i>{{ site_settings.contact_phone }}</li>
+                    <li><i class="fas fa-envelope me-2" style="color:var(--gold);"></i>{{ site_settings.contact_email }}</li>
+                    <li><i class="fas fa-clock me-2" style="color:var(--gold);"></i>Mon–Sat: 7AM – 9PM</li>
                 </ul>
             </div>
 
             <div class="col-lg-3 col-md-6">
                 <h5>Stay Updated</h5>
-                <p class="small mb-3">Subscribe for exclusive offers and new arrivals.</p>
+                <p class="mb-3">Subscribe for exclusive offers and new arrivals.</p>
                 <form class="newsletter-form" onsubmit="event.preventDefault(); showToast('Thank you for subscribing!', 'success');">
                     <input type="email" placeholder="Your email" required>
-                    <button type="submit" class="btn btn-gold">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                    <button type="submit" class="btn btn-gold px-3"><i class="fas fa-paper-plane"></i></button>
                 </form>
                 <div class="payment-badges mt-4">
                     <div class="payment-badge"><i class="fas fa-qrcode"></i> UPI</div>
@@ -243,21 +229,17 @@ function dismissBanner() {
     </div>
 </footer>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 
 <script>
-// ── Navbar Scroll Effect ──────────────────────────────────────
 window.addEventListener('scroll', function() {
     const nav = document.getElementById('mainNav');
     if (window.scrollY > 60) nav.classList.add('scrolled');
     else nav.classList.remove('scrolled');
 }, { passive: true });
 
-// ── Toast Notification ────────────────────────────────────────
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -275,31 +257,29 @@ function showToast(message, type = 'success') {
     }, 3500);
 }
 
-// ── Scroll Reveal ─────────────────────────────────────────────
 function revealOnScroll() {
-    document.querySelectorAll('.reveal, .stagger-children').forEach(el => {
-        const top = el.getBoundingClientRect().top;
-        if (top < window.innerHeight - 80) el.classList.add('active');
+    document.querySelectorAll('.reveal').forEach(el => {
+        if (el.getBoundingClientRect().top < window.innerHeight - 80)
+            el.classList.add('active');
     });
 }
 window.addEventListener('scroll', revealOnScroll, { passive: true });
 document.addEventListener('DOMContentLoaded', revealOnScroll);
 
-// ── 3D Card Tilt ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('mousemove', function(e) {
             const rect = card.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width  - 0.5;
-            const y = (e.clientY - rect.top)  / rect.height - 0.5;
-            card.style.transform = `translateY(-8px) scale(1.01) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.transform = `translateY(-8px) scale(1.01) rotateX(${-y * 7}deg) rotateY(${x * 7}deg)`;
         });
         card.addEventListener('mouseleave', function() {
-            card.style.transform = '';
             card.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+            card.style.transform = '';
         });
         card.addEventListener('mouseenter', function() {
-            card.style.transition = 'transform 0.12s ease';
+            card.style.transition = 'transform 0.1s ease';
         });
     });
 });

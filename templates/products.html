@@ -4,16 +4,16 @@
 {% block content %}
 
 <!-- Page Header -->
-<section style="background:linear-gradient(135deg,var(--bg-surface),var(--bg-card));border-bottom:1px solid var(--glass-border);padding:48px 0 36px;">
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:56px 0 40px;">
     <div class="container">
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-2">
+            <ol class="breadcrumb mb-3">
                 <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
-                <li class="breadcrumb-item active" style="color:var(--text-muted);">Products</li>
+                <li class="breadcrumb-item active">Products</li>
             </ol>
         </nav>
-        <h1 class="display-title mb-1" style="color:var(--text-primary);">Our Products</h1>
-        <p style="color:var(--text-muted);margin:0;font-size:0.9rem;">Handcrafted with love, baked fresh every morning</p>
+        <h1 class="display-title mb-2">Our Products</h1>
+        <p style="color:var(--cream-muted);margin:0;font-size:0.9rem;">Handcrafted with love, baked fresh every morning</p>
     </div>
 </section>
 
@@ -24,14 +24,16 @@
         <div class="col-lg-3">
             <div class="card border-0 sticky-top" style="top:90px;">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Filters</h5>
+                    <h5 class="mb-0" style="font-size:0.85rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
+                        <i class="fas fa-sliders-h me-2" style="color:var(--gold);"></i>Filters
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="get" action="{{ url_for('products') }}">
                         <div class="mb-4">
-                            <label for="search" class="form-label">Search Products</label>
+                            <label for="search" class="form-label">Search</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <span class="input-group-text"><i class="fas fa-search" style="font-size:0.8rem;"></i></span>
                                 <input type="text" class="form-control" id="search" name="q"
                                        value="{{ current_query }}" placeholder="Type to search…"
                                        style="border-left:none!important;">
@@ -58,17 +60,16 @@
                 </div>
             </div>
 
-            <!-- Quick Categories -->
-            <div class="card border-0 mt-4">
+            <div class="card border-0 mt-3">
                 <div class="card-body">
-                    <h6 class="mb-3" style="color:var(--gold);font-size:0.8rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
-                        <i class="fas fa-th-large me-2"></i>Quick Browse
+                    <h6 style="color:var(--gold);font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">
+                        <i class="fas fa-th-large me-2"></i>Browse
                     </h6>
                     <div class="d-flex flex-wrap gap-2">
                         {% for cat in categories[:6] %}
                         <a href="{{ url_for('products') }}?category={{ cat }}"
                            class="badge text-decoration-none py-2 px-3"
-                           style="{% if current_category == cat %}background:var(--grad-gold);color:#0c0a07;{% else %}background:rgba(212,168,67,0.1);color:var(--gold);border:1px solid rgba(212,168,67,0.25);{% endif %}font-size:0.75rem;border-radius:20px;transition:all 0.2s;">
+                           style="{% if current_category == cat %}background:var(--grad-gold);color:#080605;{% else %}background:rgba(212,168,67,0.08);color:var(--gold);border:1px solid rgba(212,168,67,0.2);{% endif %}font-size:0.72rem;border-radius:20px;transition:all 0.2s;font-weight:600;letter-spacing:0.03em;">
                             {{ cat }}
                         </a>
                         {% endfor %}
@@ -80,30 +81,32 @@
         <!-- Products Grid -->
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <span style="color:var(--text-muted);font-size:0.88rem;">
-                        Showing <strong style="color:var(--gold);">{{ products|length }}</strong> product(s)
-                    </span>
+                <span style="color:var(--cream-muted);font-size:0.85rem;">
+                    Showing <strong style="color:var(--gold);">{{ products|length }}</strong> product(s)
                     {% if current_query %}
-                    <span class="ms-2 badge" style="background:rgba(212,168,67,0.12);color:var(--gold);border:1px solid rgba(212,168,67,0.25);">
+                    <span class="ms-2 badge" style="background:rgba(212,168,67,0.1);color:var(--gold);border:1px solid rgba(212,168,67,0.2);padding:5px 10px;border-radius:12px;">
                         <i class="fas fa-search me-1"></i>"{{ current_query }}"
                     </span>
                     {% endif %}
-                </div>
+                </span>
             </div>
 
             {% if products %}
             <div class="row g-4 stagger-children">
                 {% for product in products %}
                 <div class="col-xl-4 col-md-6 reveal">
-                    <div class="card product-card h-100" style="transform-style:preserve-3d;">
+                    <div class="card product-card h-100">
                         <div class="product-image-wrapper">
                             <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}" loading="lazy">
 
                             {% if product.stock <= 5 and product.stock > 0 %}
-                            <span class="product-badge" style="background:linear-gradient(135deg,#9b6b1a,#e67e22);"><i class="fas fa-fire me-1"></i>Low Stock</span>
+                            <span class="product-badge" style="background:linear-gradient(135deg,#9b6b1a,#e67e22);">
+                                <i class="fas fa-fire me-1"></i>Low Stock
+                            </span>
                             {% elif product.stock == 0 %}
-                            <span class="product-badge" style="background:linear-gradient(135deg,#9b2335,#c0392b);color:white;"><i class="fas fa-times me-1"></i>Sold Out</span>
+                            <span class="product-badge" style="background:linear-gradient(135deg,#9b2335,#c0392b);">
+                                <i class="fas fa-times me-1"></i>Sold Out
+                            </span>
                             {% endif %}
 
                             <div class="product-quick-actions">
@@ -126,23 +129,23 @@
                                 {% set avg = product.get_average_rating() %}
                                 {% if avg > 0 %}
                                     {% for i in range(5) %}
-                                        {% if i < avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                                        {% if i < avg %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endif %}
                                     {% endfor %}
                                     <span>({{ product.reviews|length }})</span>
                                 {% else %}
-                                    {% for i in range(5) %}<i class="far fa-star"></i>{% endfor %}
+                                    {% for i in range(5) %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endfor %}
                                     <span>No reviews</span>
                                 {% endif %}
                             </div>
                             <p class="card-text">{{ product.description[:75] }}…</p>
-                            <div class="mt-auto">
+                            <div class="mt-auto pt-3" style="border-top:1px solid var(--glass-border);">
                                 <div class="mb-2">
                                     {% if product.stock > 10 %}
-                                    <small style="color:#5dba7d;"><i class="fas fa-check-circle me-1"></i>In Stock</small>
+                                    <small style="color:#5dba7d;font-size:0.75rem;"><i class="fas fa-check-circle me-1"></i>In Stock</small>
                                     {% elif product.stock > 0 %}
-                                    <small style="color:var(--orange-warm);"><i class="fas fa-exclamation-circle me-1"></i>Only {{ product.stock }} left</small>
+                                    <small style="color:var(--amber);font-size:0.75rem;"><i class="fas fa-exclamation-circle me-1"></i>Only {{ product.stock }} left</small>
                                     {% else %}
-                                    <small style="color:#e74c3c;"><i class="fas fa-times-circle me-1"></i>Out of Stock</small>
+                                    <small style="color:#e74c3c;font-size:0.75rem;"><i class="fas fa-times-circle me-1"></i>Out of Stock</small>
                                     {% endif %}
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
@@ -165,11 +168,11 @@
             </div>
             {% else %}
             <div class="text-center py-5">
-                <div class="mb-4" style="font-size:4rem;color:var(--text-muted);">
+                <div class="mb-4" style="font-size:4rem;color:var(--cream-muted);opacity:0.4;">
                     <i class="fas fa-search"></i>
                 </div>
-                <h3 style="color:var(--text-muted);">No products found</h3>
-                <p style="color:var(--text-muted);" class="mb-4">Try adjusting your search or browse all categories.</p>
+                <h3 style="color:var(--cream-muted);">No products found</h3>
+                <p style="color:var(--cream-muted);" class="mb-4">Try adjusting your search or browse all categories.</p>
                 <a href="{{ url_for('products') }}" class="btn btn-brown">
                     <i class="fas fa-th-large me-2"></i>View All
                 </a>

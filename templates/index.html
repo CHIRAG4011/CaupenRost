@@ -1,15 +1,14 @@
 {% extends "base.html" %}
-
-{% block title %}{{ site_settings.site_name }} — Luxury Bakery{% endblock %}
+{% block title %}{{ site_settings.site_name }} — Artisan Bakery{% endblock %}
 
 {% block content %}
 
-<!-- ── Hero ────────────────────────────────────────────────────── -->
+<!-- ── Hero ─────────────────────────────────────────────────── -->
 <section class="hero-section">
     <div class="container">
-        <div class="row align-items-center min-vh-75">
+        <div class="row align-items-center g-5 min-vh-75">
             <div class="col-lg-6 hero-content">
-                <div class="hero-badge">
+                <div class="hero-eyebrow">
                     <i class="fas fa-star"></i>
                     <span>{{ site_settings.hero_badge }}</span>
                 </div>
@@ -24,7 +23,7 @@
                         <i class="fas fa-shopping-bag me-2"></i>Shop Now
                     </a>
                     <a href="#featured" class="btn btn-outline-brown btn-lg">
-                        <i class="fas fa-play me-2"></i>View Menu
+                        <i class="fas fa-arrow-down me-2"></i>View Menu
                     </a>
                 </div>
             </div>
@@ -44,10 +43,10 @@
     </div>
 </section>
 
-<!-- ── Trust Strip ──────────────────────────────────────────────── -->
+<!-- ── Trust Strip ──────────────────────────────────────────── -->
 <section class="trust-strip">
     <div class="container">
-        <div class="row">
+        <div class="row g-3">
             <div class="col-md-3 col-6">
                 <div class="trust-item">
                     <i class="fas fa-clock"></i>
@@ -76,7 +75,7 @@
     </div>
 </section>
 
-<!-- ── Features ─────────────────────────────────────────────────── -->
+<!-- ── Why Choose Us ─────────────────────────────────────────── -->
 <section class="py-5 bg-light-brown">
     <div class="container py-4">
         <div class="section-header reveal">
@@ -110,7 +109,7 @@
     </div>
 </section>
 
-<!-- ── Featured Products ─────────────────────────────────────────── -->
+<!-- ── Featured Products ─────────────────────────────────────── -->
 <section id="featured" class="py-5">
     <div class="container py-4">
         <div class="section-header reveal">
@@ -147,7 +146,7 @@
                             <span>4.5</span>
                         </div>
                         <p class="card-text">{{ product.description[:80] }}…</p>
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <div class="mt-auto d-flex justify-content-between align-items-center pt-3" style="border-top:1px solid var(--glass-border);">
                             <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
                             <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}">
                                 <button type="submit" class="btn btn-brown btn-sm">
@@ -168,13 +167,13 @@
     </div>
 </section>
 
-<!-- ── Categories ────────────────────────────────────────────────── -->
+<!-- ── Categories ────────────────────────────────────────────── -->
 <section class="py-5 bg-light-brown">
     <div class="container py-4">
         <div class="section-header reveal">
             <span class="section-subtitle">Explore</span>
             <h2>Shop by Category</h2>
-            <p>Find exactly what you're craving tonight</p>
+            <p>Find exactly what you're craving</p>
         </div>
         <div class="row g-4 stagger-children">
             <div class="col-lg-4 col-md-6 reveal">
@@ -219,8 +218,8 @@
     </div>
 </section>
 
-<!-- ── Testimonials ──────────────────────────────────────────────── -->
-<section class="testimonial-section py-5">
+<!-- ── Testimonials ──────────────────────────────────────────── -->
+<section class="py-5">
     <div class="container py-4">
         <div class="section-header reveal">
             <span class="section-subtitle">Customer Love</span>
@@ -234,12 +233,12 @@
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="real-review-card">
                     <div class="real-review-header">
-                        <div class="real-review-avatar" style="background: hsl({{ (loop.index * 47) % 360 }}, 55%, 40%);">
+                        <div class="real-review-avatar" style="background: hsl({{ (loop.index * 47) % 360 }}, 50%, 38%);">
                             {{ review.user.username[0]|upper if review.user else 'A' }}
                         </div>
                         <div>
                             <div class="real-review-name">{{ review.user.username if review.user else 'Anonymous' }}</div>
-                            <div class="real-review-product"><i class="fas fa-cookie-bite me-1" style="font-size:0.65rem;"></i>{{ review.product_name }}</div>
+                            <div class="real-review-product"><i class="fas fa-cookie-bite me-1"></i>{{ review.product_name }}</div>
                         </div>
                         <div class="ms-auto">
                             <span class="real-review-badge">{% if review.rating == 5 %}⭐ 5/5{% else %}⭐ 4/5{% endif %}</span>
@@ -247,12 +246,10 @@
                     </div>
                     <div class="real-review-stars mb-2">
                         {% for i in range(review.rating) %}<i class="fas fa-star"></i>{% endfor %}
-                        {% for i in range(5 - review.rating) %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endfor %}
+                        {% for i in range(5 - review.rating) %}<i class="far fa-star" style="color:var(--cream-muted);"></i>{% endfor %}
                     </div>
                     <p class="real-review-text">"{{ review.comment[:160] }}{% if review.comment|length > 160 %}…{% endif %}"</p>
-                    <div class="real-review-date">
-                        <i class="far fa-calendar-alt me-1"></i>{{ review.created_at.strftime('%b %d, %Y') }}
-                    </div>
+                    <div class="real-review-date"><i class="far fa-calendar-alt me-1"></i>{{ review.created_at.strftime('%b %d, %Y') }}</div>
                 </div>
             </div>
             {% endfor %}
@@ -262,7 +259,6 @@
                 <i class="fas fa-shopping-bag me-2"></i>Shop & Leave a Review
             </a>
         </div>
-
         {% else %}
         <div class="row g-4 stagger-children">
             {% set testimonials = [
@@ -286,27 +282,27 @@
     </div>
 </section>
 
-<!-- ── About ─────────────────────────────────────────────────────── -->
-<section class="py-5">
+<!-- ── About ─────────────────────────────────────────────────── -->
+<section class="py-5 bg-light-brown">
     <div class="container py-4">
         <div class="row align-items-center g-5">
             <div class="col-lg-6 reveal">
                 <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                     alt="Our Bakery Story" class="img-fluid rounded-4 about-image shadow-lg">
+                     alt="Our Bakery Story" class="img-fluid rounded-4 about-image">
             </div>
             <div class="col-lg-6 reveal">
                 <span class="section-subtitle">{{ site_settings.about_year }}</span>
                 <h2 class="mb-4">Our Story</h2>
-                <p class="mb-3" style="color:var(--text-primary);font-weight:500;">{{ site_settings.about_lead }}</p>
-                <p style="color:var(--text-secondary);">{{ site_settings.about_text }}</p>
+                <p class="mb-3" style="color:var(--cream);font-weight:500;">{{ site_settings.about_lead }}</p>
+                <p style="color:var(--cream-muted);">{{ site_settings.about_text }}</p>
                 <div class="row mt-4 g-3">
                     {% for item in ['100% Organic', 'No Preservatives', 'Custom Orders', 'Same Day Delivery'] %}
                     <div class="col-6">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="feature-icon" style="width:40px;height:40px;flex-shrink:0;">
-                                <i class="fas fa-check" style="font-size:0.85rem;"></i>
+                            <div class="feature-icon" style="width:38px;height:38px;flex-shrink:0;">
+                                <i class="fas fa-check" style="font-size:0.8rem;"></i>
                             </div>
-                            <span style="font-weight:600;font-size:0.88rem;color:var(--text-primary);">{{ item }}</span>
+                            <span style="font-weight:600;font-size:0.85rem;color:var(--cream);">{{ item }}</span>
                         </div>
                     </div>
                     {% endfor %}
@@ -316,7 +312,7 @@
     </div>
 </section>
 
-<!-- ── CTA ───────────────────────────────────────────────────────── -->
+<!-- ── CTA ───────────────────────────────────────────────────── -->
 <section class="cta-section">
     <div class="cta-content">
         <div class="container text-center">
@@ -324,7 +320,7 @@
                 <div class="col-lg-7 reveal">
                     <span class="section-subtitle">Ready to Order?</span>
                     <h2>{{ site_settings.cta_title }}</h2>
-                    <p class="mb-4">{{ site_settings.cta_subtitle }}</p>
+                    <p>{{ site_settings.cta_subtitle }}</p>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
                         <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow">
                             <i class="fas fa-shopping-bag me-2"></i>Order Now
