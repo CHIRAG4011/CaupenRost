@@ -1665,3 +1665,175 @@ footer a:hover {
 .alert-info {
     background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
 }
+
+/* ===== TASTE METER RATING ===== */
+.taste-meter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.taste-card {
+    flex: 1;
+    min-width: 70px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.taste-card input[type="radio"] {
+    display: none;
+}
+
+.taste-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 6px;
+    border: 2px solid #e8ddd3;
+    border-radius: 16px;
+    background: #fdfaf7;
+    transition: all 0.18s ease;
+    text-align: center;
+}
+
+.taste-emoji {
+    font-size: 1.9rem;
+    line-height: 1;
+    transition: transform 0.18s ease;
+}
+
+.taste-stars {
+    color: #d4a843;
+    font-size: 0.55rem;
+    letter-spacing: 1px;
+}
+
+.taste-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #9e8472;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.taste-card.taste-hovered .taste-card-inner,
+.taste-card.taste-selected .taste-card-inner {
+    border-color: #c8952a;
+    background: linear-gradient(135deg, #fff8e7, #fef0c7);
+    box-shadow: 0 4px 16px rgba(139, 69, 19, 0.18);
+    transform: translateY(-4px);
+}
+
+.taste-card.taste-hovered .taste-emoji,
+.taste-card.taste-selected .taste-emoji {
+    transform: scale(1.25);
+}
+
+.taste-card.taste-selected .taste-card-inner {
+    border-color: #8B4513;
+    background: linear-gradient(135deg, #fef3cd, #fde68a);
+}
+
+.taste-card.taste-selected .taste-label {
+    color: #6b3410;
+    font-weight: 700;
+}
+
+@keyframes tasteBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.12); }
+    70%  { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+.taste-card.taste-bounce .taste-card-inner {
+    animation: tasteBounce 0.4s ease;
+}
+
+.taste-feedback {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-height: 1.4em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* ===== REAL REVIEW CARDS (homepage) ===== */
+.real-review-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+    border: 1px solid rgba(139, 69, 19, 0.08);
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.real-review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(139, 69, 19, 0.14);
+}
+
+.real-review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.real-review-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.real-review-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #3b2213;
+}
+
+.real-review-product {
+    font-size: 0.75rem;
+    color: #9e8472;
+    margin-top: 1px;
+}
+
+.real-review-badge {
+    background: linear-gradient(135deg, #fff3cd, #fde68a);
+    color: #7a5c1e;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 30px;
+    white-space: nowrap;
+    border: 1px solid #f0c94d;
+}
+
+.real-review-stars {
+    color: #d4a843;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+.real-review-text {
+    font-size: 0.92rem;
+    color: #5c4033;
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 14px;
+}
+
+.real-review-date {
+    font-size: 0.78rem;
+    color: #b09f90;
+}

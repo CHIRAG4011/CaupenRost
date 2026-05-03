@@ -254,46 +254,73 @@
         <div class="section-header reveal">
             <span class="section-subtitle">Customer Love</span>
             <h2>What Our Customers Say</h2>
-            <p>Don't just take our word for it</p>
+            <p>Only verified 4 & 5 star reviews — in real time</p>
         </div>
+
+        {% if real_reviews %}
         <div class="row g-4">
-            <div class="col-lg-4 reveal">
-                <div class="testimonial-card">
-                    <img src="{{ site_settings.testimonial_1_img }}" alt="{{ site_settings.testimonial_1_name }}" class="testimonial-avatar">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+            {% for review in real_reviews %}
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="real-review-card">
+                    <div class="real-review-header">
+                        <div class="real-review-avatar" style="background: hsl({{ (loop.index * 47) % 360 }}, 55%, 42%);">
+                            {{ review.user.username[0]|upper if review.user else 'A' }}
+                        </div>
+                        <div>
+                            <div class="real-review-name">{{ review.user.username if review.user else 'Anonymous' }}</div>
+                            <div class="real-review-product">
+                                <i class="fas fa-cookie-bite me-1" style="font-size:0.7rem;"></i>{{ review.product_name }}
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <span class="real-review-badge">
+                                {% if review.rating == 5 %}⭐ 5/5{% else %}⭐ 4/5{% endif %}
+                            </span>
+                        </div>
                     </div>
-                    <p class="testimonial-text">"{{ site_settings.testimonial_1_text }}"</p>
-                    <div class="testimonial-author">{{ site_settings.testimonial_1_name }}</div>
-                    <div class="testimonial-role">{{ site_settings.testimonial_1_role }}</div>
+                    <div class="real-review-stars mb-2">
+                        {% for i in range(review.rating) %}<i class="fas fa-star"></i>{% endfor %}
+                        {% for i in range(5 - review.rating) %}<i class="far fa-star"></i>{% endfor %}
+                    </div>
+                    <p class="real-review-text">"{{ review.comment[:160] }}{% if review.comment|length > 160 %}…{% endif %}"</p>
+                    <div class="real-review-date">
+                        <i class="far fa-calendar-alt me-1"></i>
+                        {{ review.created_at.strftime('%b %d, %Y') }}
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-4 reveal">
-                <div class="testimonial-card">
-                    <img src="{{ site_settings.testimonial_2_img }}" alt="{{ site_settings.testimonial_2_name }}" class="testimonial-avatar">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
-                    <p class="testimonial-text">"{{ site_settings.testimonial_2_text }}"</p>
-                    <div class="testimonial-author">{{ site_settings.testimonial_2_name }}</div>
-                    <div class="testimonial-role">{{ site_settings.testimonial_2_role }}</div>
-                </div>
-            </div>
-            <div class="col-lg-4 reveal">
-                <div class="testimonial-card">
-                    <img src="{{ site_settings.testimonial_3_img }}" alt="{{ site_settings.testimonial_3_name }}" class="testimonial-avatar">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <p class="testimonial-text">"{{ site_settings.testimonial_3_text }}"</p>
-                    <div class="testimonial-author">{{ site_settings.testimonial_3_name }}</div>
-                    <div class="testimonial-role">{{ site_settings.testimonial_3_role }}</div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
+        <div class="text-center mt-4 reveal">
+            <a href="{{ url_for('products') }}" class="btn btn-outline-brown">
+                <i class="fas fa-shopping-bag me-2"></i>Shop & Leave a Review
+            </a>
+        </div>
+
+        {% else %}
+        <!-- Fallback: admin-configured testimonials when no real reviews yet -->
+        <div class="row g-4">
+            {% set testimonials = [
+                (site_settings.testimonial_1_name, site_settings.testimonial_1_role, site_settings.testimonial_1_text, site_settings.testimonial_1_img),
+                (site_settings.testimonial_2_name, site_settings.testimonial_2_role, site_settings.testimonial_2_text, site_settings.testimonial_2_img),
+                (site_settings.testimonial_3_name, site_settings.testimonial_3_role, site_settings.testimonial_3_text, site_settings.testimonial_3_img),
+            ] %}
+            {% for name, role, text, img in testimonials %}
+            <div class="col-lg-4 reveal">
+                <div class="testimonial-card">
+                    <img src="{{ img }}" alt="{{ name }}" class="testimonial-avatar" onerror="this.style.display='none'">
+                    <div class="testimonial-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"{{ text }}"</p>
+                    <div class="testimonial-author">{{ name }}</div>
+                    <div class="testimonial-role">{{ role }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 </section>
 

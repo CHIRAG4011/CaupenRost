@@ -52,7 +52,13 @@ def inject_globals():
 def index():
     """Home page"""
     featured_products = ProductRepo.find_limit(6)
-    return render_template('index.html', featured_products=featured_products)
+    real_reviews = []
+    try:
+        if USE_MONGODB:
+            real_reviews = ReviewRepo.find_top_rated(min_rating=4, limit=5)
+    except Exception:
+        real_reviews = []
+    return render_template('index.html', featured_products=featured_products, real_reviews=real_reviews)
 
 @app.route('/products')
 def products():

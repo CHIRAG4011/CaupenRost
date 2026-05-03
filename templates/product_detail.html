@@ -163,15 +163,29 @@
                         <div class="card-body p-4">
                             <form method="post" action="{{ url_for('add_review', product_id=product.id) }}">
                                 <div class="mb-4">
-                                    <label for="rating" class="form-label fw-semibold">Your Rating</label>
-                                    <div class="rating-select d-flex gap-2" id="ratingSelect">
-                                        {% for i in range(5, 0, -1) %}
-                                        <label class="rating-star">
-                                            <input type="radio" name="rating" value="{{ i }}" required>
-                                            <i class="far fa-star fa-2x" data-rating="{{ i }}"></i>
+                                    <label class="form-label fw-semibold">How was your experience?</label>
+                                    <div class="taste-meter" id="tasteMeter">
+                                        {% set levels = [
+                                            (1, '😞', 'Disappointing'),
+                                            (2, '😐', 'Could be Better'),
+                                            (3, '🙂', 'Pretty Good'),
+                                            (4, '😍', 'Loved It!'),
+                                            (5, '🤩', 'Absolutely Perfect!'),
+                                        ] %}
+                                        {% for val, emoji, label in levels %}
+                                        <label class="taste-card" data-val="{{ val }}">
+                                            <input type="radio" name="rating" value="{{ val }}" required>
+                                            <div class="taste-card-inner">
+                                                <span class="taste-emoji">{{ emoji }}</span>
+                                                <div class="taste-stars">
+                                                    {% for s in range(val) %}<i class="fas fa-star"></i>{% endfor %}
+                                                </div>
+                                                <span class="taste-label">{{ label }}</span>
+                                            </div>
                                         </label>
                                         {% endfor %}
                                     </div>
+                                    <div class="taste-feedback" id="tasteFeedback"></div>
                                 </div>
                                 <div class="mb-4">
                                     <label for="comment" class="form-label fw-semibold">Your Review</label>
@@ -260,41 +274,52 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('.rating-star i');
-    stars.forEach((star, index) => {
-        star.addEventListener('mouseenter', function() {
-            const rating = this.dataset.rating;
-            stars.forEach((s, i) => {
-                if (5 - i <= rating) {
-                    s.classList.remove('far');
-                    s.classList.add('fas');
-                } else {
-                    s.classList.remove('fas');
-                    s.classList.add('far');
-                }
-            });
-        });
-        
-        star.addEventListener('click', function() {
-            this.previousElementSibling.checked = true;
-        });
-    });
-    
-    const ratingSelect = document.getElementById('ratingSelect');
-    if (ratingSelect) {
-        ratingSelect.addEventListener('mouseleave', function() {
-            const checked = document.querySelector('.rating-star input:checked');
-            stars.forEach((s, i) => {
-                if (checked && 5 - i <= checked.value) {
-                    s.classList.remove('far');
-                    s.classList.add('fas');
-                } else {
-                    s.classList.remove('fas');
-                    s.classList.add('far');
-                }
-            });
+    const cards = document.querySelectorAll('.taste-card');
+    const feedback = document.getElementById('tasteFeedback');
+    const feedbackMessages = {
+        1: { text: "We're sorry to hear that. Your feedback helps us improve!", color: '#dc3545' },
+        2: { text: "Thanks for being honest — we'll keep working on it.", color: '#fd7e14' },
+        3: { text: "Glad it was a good experience! Keep exploring our menu.", color: '#ffc107' },
+        4: { text: "Wonderful! So happy you loved it 😊", color: '#20c997' },
+        5: { text: "You just made our day! 🎉 Thank you so much!", color: '#8B4513' },
+    };
+
+    function highlightUpTo(idx) {
+        cards.forEach((c, i) => {
+            c.classList.toggle('taste-hovered', i <= idx);
         });
     }
+
+    function applySelected() {
+        const checked = document.querySelector('.taste-card input:checked');
+        const selectedIdx = checked ? [...cards].indexOf(checked.closest('.taste-card')) : -1;
+        cards.forEach((c, i) => {
+            c.classList.toggle('taste-selected', i <= selectedIdx);
+            c.classList.remove('taste-hovered');
+        });
+        if (checked) {
+            const val = parseInt(checked.value);
+            const msg = feedbackMessages[val];
+            if (feedback) {
+                feedback.textContent = msg.text;
+                feedback.style.color = msg.color;
+                feedback.style.opacity = '1';
+            }
+        }
+    }
+
+    cards.forEach((card, idx) => {
+        card.addEventListener('mouseenter', () => highlightUpTo(idx));
+        card.addEventListener('mouseleave', () => {
+            cards.forEach(c => c.classList.remove('taste-hovered'));
+        });
+        card.addEventListener('click', () => {
+            card.querySelector('input').checked = true;
+            applySelected();
+            card.classList.add('taste-bounce');
+            setTimeout(() => card.classList.remove('taste-bounce'), 400);
+        });
+    });
 });
 </script>
 {% endblock %}

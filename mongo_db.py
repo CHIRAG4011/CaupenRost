@@ -404,12 +404,37 @@ class MongoReviewRepo:
     @staticmethod
     def find_by_product(product_id):
         from mongodb_models import MongoReview
-        docs = MongoReviewRepo._get_collection().find({'product_id': str(product_id)})
+        docs = MongoReviewRepo._get_collection().find(
+            {'product_id': str(product_id)},
+            sort=[('created_at', -1)]
+        )
         reviews = []
         for doc in docs:
             review = MongoReview.from_doc(doc)
             if review:
                 review.user = MongoUserRepo.find_by_id(review.user_id)
+            reviews.append(review)
+        return reviews
+
+    @staticmethod
+    def find_top_rated(min_rating=4, limit=5):
+        """Fetch top-rated reviews (4 or 5 stars) most recent first, with user and product info."""
+        from mongodb_models import MongoReview
+        docs = list(MongoReviewRepo._get_collection().find(
+            {'rating': {'$gte': min_rating}},
+            sort=[('created_at', -1)],
+            limit=limit
+        ))
+        reviews = []
+        for doc in docs:
+            review = MongoReview.from_doc(doc)
+            if review:
+                review.user = MongoUserRepo.find_by_id(review.user_id)
+                try:
+                    product = MongoProductRepo.find_by_id(review.product_id)
+                    review.product_name = product.name if product else 'a product'
+                except Exception:
+                    review.product_name = 'a product'
             reviews.append(review)
         return reviews
     

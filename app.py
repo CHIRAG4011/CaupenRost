@@ -135,16 +135,15 @@ def inject_active_announcement():
     except:
         top_announcement = None
 
-    try:
-        if USE_MONGODB:
+    site_settings = dict(SETTING_DEFAULTS)
+    if USE_MONGODB:
+        try:
             from mongo_db import MongoSettingRepo
             saved = MongoSettingRepo.get_all()
-            site_settings = dict(SETTING_DEFAULTS)
-            site_settings.update(saved)
-        else:
-            site_settings = dict(SETTING_DEFAULTS)
-    except:
-        site_settings = dict(SETTING_DEFAULTS)
+            if saved:
+                site_settings.update(saved)
+        except Exception as e:
+            logging.warning(f"Settings fetch failed: {e}")
 
     return {'top_announcement': top_announcement, 'site_settings': site_settings}
 
