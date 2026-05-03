@@ -28,15 +28,19 @@ def get_otp_repo():
 
 
 def store_otp(email, otp, purpose='verification', expiry_minutes=10):
-    OTPRepo = get_otp_repo()
-    OTPRepo.delete_by_email_purpose(email, purpose)
-    OTPRepo.create({
-        'email': email,
-        'purpose': purpose,
-        'otp': otp,
-        'attempts': 0,
-        'expires_at': datetime.utcnow() + timedelta(minutes=expiry_minutes)
-    })
+    try:
+        OTPRepo = get_otp_repo()
+        OTPRepo.delete_by_email_purpose(email, purpose)
+        OTPRepo.create({
+            'email': email,
+            'purpose': purpose,
+            'otp': otp,
+            'attempts': 0,
+            'expires_at': datetime.utcnow() + timedelta(minutes=expiry_minutes)
+        })
+    except Exception as e:
+        logging.error(f"Failed to store OTP for {email}: {e}")
+        raise
 
 
 def verify_otp(email, otp, purpose='verification'):
@@ -46,9 +50,15 @@ def verify_otp(email, otp, purpose='verification'):
     if not stored:
         return False, "No verification code found. Please request a new one."
 
-    if datetime.utcnow() > stored.expires_at:
-        OTPRepo.delete(stored.id)
-        return False, "Verification code has expired. Please request a new one."
+    now = datetime.utcnow()
+    expires = stored.expires_at
+    if expires is not None:
+        if getattr(expires, 'tzinfo', None) is not None:
+            from datetime import timezone
+            now = datetime.now(timezone.utc)
+        if now > expires:
+            OTPRepo.delete(stored.id)
+            return False, "Verification code has expired. Please request a new one."
 
     stored.attempts += 1
 
@@ -183,9 +193,13 @@ def send_otp_email(to_email, otp, purpose='verification'):
 
 
 def send_and_store_otp(email, purpose='verification'):
-    otp = generate_otp()
-    store_otp(email, otp, purpose)
-    return send_otp_email(email, otp, purpose)
+    try:
+        otp = generate_otp()
+        store_otp(email, otp, purpose)
+        return send_otp_email(email, otp, purpose)
+    except Exception as e:
+        logging.error(f"send_and_store_otp failed for {email} ({purpose}): {e}")
+        return False
 
 
 def send_welcome_email(to_email, username):

@@ -55,9 +55,9 @@ if not USE_MONGODB:
 
     if not database_url:
         logging.warning("DATABASE_URL not set, using SQLite as fallback")
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        os.makedirs(os.path.join(basedir, 'instance'), exist_ok=True)
-        database_url = f"sqlite:///{os.path.join(basedir, 'instance', 'app.db')}"
+        sqlite_dir = '/tmp' if os.path.isdir('/tmp') and os.access('/tmp', os.W_OK) else os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
+        os.makedirs(sqlite_dir, exist_ok=True)
+        database_url = f"sqlite:///{os.path.join(sqlite_dir, 'app.db')}"
 
     logging.info(f"Using database URL: {database_url[:50]}..." if len(database_url) > 50 else f"Using database URL: {database_url}")
 

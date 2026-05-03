@@ -44,8 +44,12 @@ def log_visitor():
 @app.context_processor
 def inject_globals():
     """Inject global variables into templates"""
+    try:
+        current_user = get_current_user()
+    except Exception:
+        current_user = None
     return {
-        'current_user': get_current_user(),
+        'current_user': current_user,
         'cart_count': get_cart_count(),
         'cart_total': get_cart_total()
     }
