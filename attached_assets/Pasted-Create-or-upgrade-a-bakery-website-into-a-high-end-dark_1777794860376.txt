@@ -1,0 +1,112 @@
+Create or upgrade a bakery website into a high-end, dark-themed, modern UI with ultra-smooth animations, 3D product interactions, and a premium luxury feel.
+
+🎨 DESIGN STYLE:
+- Dark theme (black, deep brown, charcoal)
+- Accent colors: gold, caramel, warm orange, subtle neon glow
+- Glassmorphism + soft lighting effects
+- Smooth gradients and depth layering
+- Rounded UI (14px–22px radius)
+- Clean, minimal but premium (luxury dessert brand vibe)
+
+⚡ ANIMATION PHILOSOPHY (IMPORTANT):
+- All animations must be SMOOTH, FLUID, and NATURAL
+- Avoid aggressive or cheap animations (no sudden slide from top/bottom)
+- Use easing (ease-in-out, cubic-bezier) for premium feel
+- Animations should feel like Apple / high-end SaaS UI
+
+⚡ GLOBAL ANIMATIONS:
+- Smooth page transitions (fade + slight scale)
+- Scroll animations:
+  - Elements softly fade + rise slightly (not jumpy)
+  - Parallax movement for depth
+- Staggered animations for lists (leaderboards/products)
+- Micro-interactions everywhere
+- Hover:
+  - Buttons → glow + soft scale (1.03–1.05)
+  - Cards → lift + subtle 3D tilt
+
+🌌 BACKGROUND EFFECTS:
+- Animated dark gradient (very subtle movement)
+- Floating soft light particles (low opacity)
+- Depth layers for immersive feel
+
+🖱️ INTERACTION FEEL:
+- Every interaction should feel responsive and premium
+- Smooth transitions between states (hover, click, open, close)
+- No harsh or instant changes
+
+🏠 HOMEPAGE:
+- Hero section with cinematic bakery visuals
+- Smooth text reveal (fade + slight upward motion)
+- CTA buttons with glow and soft pulse animation
+- Featured products with elegant entrance animations
+- Parallax scrolling sections
+
+🍩 PRODUCT / MENU PAGE:
+- Grid with premium product cards
+- Hover:
+  - Image zoom (smooth)
+  - Glow border
+  - Add-to-cart button fades in
+
+🎮 3D PRODUCT EXPERIENCE (IMPORTANT FEATURE):
+- Each product page includes a 3D model/figure of the item
+- User can:
+  - Rotate the product (drag with mouse)
+  - View from all angles (360°)
+  - Slight zoom in/out interaction
+- Add subtle idle animation (floating or slow rotation)
+- Lighting should feel realistic and premium
+- When user scrolls:
+  - The 3D object reacts slightly (parallax / subtle movement)
+
+🧠 PRODUCT PAGE ANIMATIONS:
+- Smooth content reveal (fade + slight motion)
+- Image → 3D model transition (smooth morph or fade)
+- Sections transition seamlessly (no harsh movement)
+
+🛒 ORDER SYSTEM:
+- Add to cart with smooth animation (item flies to cart)
+- Animated cart drawer (blur background + slide in)
+- Clean checkout UI
+- User uploads payment screenshot
+- Order tracking page with animated status updates
+
+⭐ REVIEWS:
+- Animated star rating system
+- Smooth card transitions
+- Subtle glow on active elements
+
+📊 ADMIN PANEL:
+- Clean dark UI
+- Smooth transitions between tabs
+- Animated graphs (fade + draw effect)
+- Easy management of products, orders, and verification
+
+🧩 COMPONENTS:
+- Glass navbar (blur + transparency)
+- Sticky navbar with smooth transition on scroll
+- Animated sidebar/menu
+- Toast notifications (fade + slide)
+- Modal popups with scale + blur
+
+🎬 EXTRA PREMIUM EFFECTS:
+- Soft glow highlights on key elements
+- Smooth image zoom transitions
+- Optional subtle sound feedback
+- Skeleton loaders with shimmer animation
+
+📱 RESPONSIVENESS:
+- Fully responsive
+- Mobile animations simplified but still smooth
+- Touch-friendly interactions
+
+🚀 PERFORMANCE:
+- Animations must remain smooth (60fps feel)
+- Optimize heavy elements (like 3D models)
+- Lazy load images and 3D assets
+
+🎯 FINAL GOAL:
+Create a visually stunning, ultra-smooth, premium bakery website that feels like a luxury brand combined with modern interactive UI — with 3D product viewing and seamless animations that feel professional and high-end.
+
+Return full working code with proper structure.

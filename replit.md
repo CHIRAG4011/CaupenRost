@@ -11,10 +11,10 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Architecture
 - **Template Engine**: Jinja2 with Flask.
 - **CSS Framework**: Bootstrap 5 for responsiveness.
-- **Custom Styling**: CSS custom properties for a bakery theme (brown and cream).
-- **JavaScript**: Vanilla JS for interactive elements, Chart.js for analytics, Font Awesome for icons.
+- **Custom Styling**: Full luxury dark theme — `--bg-base:#0c0a07`, gold accents (`--gold:#d4a843`), glassmorphism components, CSS custom properties throughout.
+- **JavaScript**: Vanilla JS for interactive elements, Three.js (r128 CDN) for 3D product viewer, Chart.js for analytics, Font Awesome icons.
 - **Typography**: Google Fonts (Playfair Display, Poppins, Dancing Script).
-- **UI/UX**: Modernized design with gradients, gold accents, step indicators, animated hero, trust strip, testimonials, category previews.
+- **UI/UX**: Ultra-premium dark luxury theme — particle canvas background, glass navbar scroll effect, cinematic hero with CSS animations, 3D tilt on product cards, scroll-reveal animations, Three.js 3D viewer on product detail (drag-to-rotate, idle float, gold metallic torus-knot), premium dark product/category/testimonial/review cards.
 
 ### Backend Architecture
 - **Web Framework**: Flask with modular organization.

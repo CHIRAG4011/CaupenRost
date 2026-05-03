@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Home - {{ site_settings.site_name }} | Fresh Bakery Delights{% endblock %}
+{% block title %}{{ site_settings.site_name }} — Luxury Bakery{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
+
+<!-- ── Hero ────────────────────────────────────────────────────── -->
 <section class="hero-section">
     <div class="container">
         <div class="row align-items-center min-vh-75">
@@ -14,33 +15,28 @@
                 </div>
                 <h1 class="hero-title">
                     {{ site_settings.hero_title }}<br>
-                    <span class="highlight">{{ site_settings.hero_highlight }}</span> {{ site_settings.hero_title_end }}
+                    <span class="highlight">{{ site_settings.hero_highlight }}</span><br>
+                    {{ site_settings.hero_title_end }}
                 </h1>
-                <p class="hero-subtitle">
-                    {{ site_settings.hero_subtitle }}
-                </p>
+                <p class="hero-subtitle">{{ site_settings.hero_subtitle }}</p>
                 <div class="hero-buttons">
-                    <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
+                    <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg btn-glow">
                         <i class="fas fa-shopping-bag me-2"></i>Shop Now
                     </a>
                     <a href="#featured" class="btn btn-outline-brown btn-lg">
-                        <i class="fas fa-eye me-2"></i>View Menu
+                        <i class="fas fa-play me-2"></i>View Menu
                     </a>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="hero-image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1555507036-ab794f0ab04c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                         alt="CaupenRost - Fresh Bakery Delights" class="hero-image">
-                    
-                    <!-- Floating Cards -->
+                    <img src="https://images.unsplash.com/photo-1555507036-ab794f0ab04c?ixlib=rb-4.0.3&auto=format&fit=crop&w=900&q=80"
+                         alt="CaupenRost Fresh Bakery" class="hero-image">
                     <div class="hero-floating-card card-1 d-none d-lg-flex">
-                        <i class="fas fa-cookie-bite"></i>
-                        <span>Fresh Daily</span>
+                        <i class="fas fa-cookie-bite"></i><span>Fresh Daily</span>
                     </div>
                     <div class="hero-floating-card card-2 d-none d-lg-flex">
-                        <i class="fas fa-award"></i>
-                        <span>Premium Quality</span>
+                        <i class="fas fa-award"></i><span>Premium Quality</span>
                     </div>
                 </div>
             </div>
@@ -48,111 +44,91 @@
     </div>
 </section>
 
-<!-- Trust Strip -->
+<!-- ── Trust Strip ──────────────────────────────────────────────── -->
 <section class="trust-strip">
     <div class="container">
         <div class="row">
             <div class="col-md-3 col-6">
                 <div class="trust-item">
                     <i class="fas fa-clock"></i>
-                    <div class="trust-text">
-                        <h6>Fresh Daily</h6>
-                        <p>Baked every morning</p>
-                    </div>
+                    <div class="trust-text"><h6>Fresh Daily</h6><p>Baked every morning</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="trust-item">
                     <i class="fas fa-truck"></i>
-                    <div class="trust-text">
-                        <h6>Fast Delivery</h6>
-                        <p>Same day available</p>
-                    </div>
+                    <div class="trust-text"><h6>Fast Delivery</h6><p>Same day available</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="trust-item">
                     <i class="fas fa-qrcode"></i>
-                    <div class="trust-text">
-                        <h6>Easy Payment</h6>
-                        <p>UPI & COD accepted</p>
-                    </div>
+                    <div class="trust-text"><h6>Easy Payment</h6><p>UPI & COD accepted</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
                 <div class="trust-item">
                     <i class="fas fa-heart"></i>
-                    <div class="trust-text">
-                        <h6>Made with Love</h6>
-                        <p>Premium ingredients</p>
-                    </div>
+                    <div class="trust-text"><h6>Made with Love</h6><p>Premium ingredients</p></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
+<!-- ── Features ─────────────────────────────────────────────────── -->
 <section class="py-5 bg-light-brown">
     <div class="container py-4">
         <div class="section-header reveal">
             <span class="section-subtitle">Why Choose Us</span>
             <h2>The CaupenRost Difference</h2>
-            <p>We put passion and quality into every bite</p>
+            <p>We put passion and quality into every single bite</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 stagger-children">
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
+                    <div class="feature-icon"><i class="fas fa-leaf"></i></div>
                     <h4>100% Fresh Ingredients</h4>
-                    <p>We use only the finest, locally-sourced ingredients. No preservatives, no artificial flavors.</p>
+                    <p>We use only the finest, locally-sourced ingredients. No preservatives, no artificial flavors — ever.</p>
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-birthday-cake"></i>
-                    </div>
+                    <div class="feature-icon"><i class="fas fa-birthday-cake"></i></div>
                     <h4>Handcrafted with Care</h4>
-                    <p>Every product is made by skilled bakers using traditional techniques perfected over years.</p>
+                    <p>Every product is lovingly made by skilled bakers using time-honored techniques perfected over years.</p>
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shipping-fast"></i>
-                    </div>
-                    <h4>Quick Doorstep Delivery</h4>
-                    <p>Get your favorites delivered fresh to your doorstep. Free delivery on orders above ₹500!</p>
+                    <div class="feature-icon"><i class="fas fa-shipping-fast"></i></div>
+                    <h4>Doorstep Delivery</h4>
+                    <p>Get your favorites delivered fresh to your door. Free delivery on orders above ₹{{ site_settings.free_delivery_min }}!</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Products -->
+<!-- ── Featured Products ─────────────────────────────────────────── -->
 <section id="featured" class="py-5">
     <div class="container py-4">
         <div class="section-header reveal">
             <span class="section-subtitle">Our Best Sellers</span>
             <h2>Featured Products</h2>
-            <p>Discover our most loved baked goods</p>
+            <p>Discover our most loved artisan baked goods</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 stagger-children">
             {% for product in featured_products %}
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="card product-card h-100">
                     <div class="product-image-wrapper">
                         <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}">
                         {% if loop.index <= 3 %}
-                        <span class="product-badge">
-                            <i class="fas fa-fire me-1"></i>Popular
-                        </span>
+                        <span class="product-badge"><i class="fas fa-fire me-1"></i>Popular</span>
                         {% endif %}
                         <div class="product-quick-actions">
-                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="d-inline">
@@ -166,23 +142,18 @@
                         <div class="product-category">{{ product.category }}</div>
                         <h5 class="card-title">{{ product.name }}</h5>
                         <div class="product-rating">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                            <span>(4.5)</span>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                            <span>4.5</span>
                         </div>
-                        <p class="card-text">{{ product.description[:80] }}...</p>
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
-                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}">
-                                    <button type="submit" class="btn btn-brown btn-sm">
-                                        <i class="fas fa-cart-plus me-1"></i>Add
-                                    </button>
-                                </form>
-                            </div>
+                        <p class="card-text">{{ product.description[:80] }}…</p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <span class="product-price">₹{{ "%.0f"|format(product.price) }}</span>
+                            <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}">
+                                <button type="submit" class="btn btn-brown btn-sm">
+                                    <i class="fas fa-cart-plus me-1"></i>Add
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -190,29 +161,29 @@
             {% endfor %}
         </div>
         <div class="text-center mt-5 reveal">
-            <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg px-5">
+            <a href="{{ url_for('products') }}" class="btn btn-outline-brown btn-lg px-5">
                 <i class="fas fa-th-large me-2"></i>View All Products
             </a>
         </div>
     </div>
 </section>
 
-<!-- Categories Preview -->
-<section class="py-5 bg-cream">
+<!-- ── Categories ────────────────────────────────────────────────── -->
+<section class="py-5 bg-light-brown">
     <div class="container py-4">
         <div class="section-header reveal">
             <span class="section-subtitle">Explore</span>
             <h2>Shop by Category</h2>
-            <p>Find exactly what you're craving</p>
+            <p>Find exactly what you're craving tonight</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-4 stagger-children">
             <div class="col-lg-4 col-md-6 reveal">
                 <a href="{{ url_for('products') }}?category=Cakes" class="text-decoration-none">
                     <div class="category-card">
                         <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Cakes">
                         <div class="category-overlay">
                             <h5>Cakes</h5>
-                            <p>Birthday, Wedding & Custom Cakes</p>
+                            <p>Birthday, Wedding & Custom</p>
                         </div>
                     </div>
                 </a>
@@ -248,7 +219,7 @@
     </div>
 </section>
 
-<!-- Testimonials Section -->
+<!-- ── Testimonials ──────────────────────────────────────────────── -->
 <section class="testimonial-section py-5">
     <div class="container py-4">
         <div class="section-header reveal">
@@ -258,48 +229,42 @@
         </div>
 
         {% if real_reviews %}
-        <div class="row g-4">
+        <div class="row g-4 stagger-children">
             {% for review in real_reviews %}
             <div class="col-lg-4 col-md-6 reveal">
                 <div class="real-review-card">
                     <div class="real-review-header">
-                        <div class="real-review-avatar" style="background: hsl({{ (loop.index * 47) % 360 }}, 55%, 42%);">
+                        <div class="real-review-avatar" style="background: hsl({{ (loop.index * 47) % 360 }}, 55%, 40%);">
                             {{ review.user.username[0]|upper if review.user else 'A' }}
                         </div>
                         <div>
                             <div class="real-review-name">{{ review.user.username if review.user else 'Anonymous' }}</div>
-                            <div class="real-review-product">
-                                <i class="fas fa-cookie-bite me-1" style="font-size:0.7rem;"></i>{{ review.product_name }}
-                            </div>
+                            <div class="real-review-product"><i class="fas fa-cookie-bite me-1" style="font-size:0.65rem;"></i>{{ review.product_name }}</div>
                         </div>
                         <div class="ms-auto">
-                            <span class="real-review-badge">
-                                {% if review.rating == 5 %}⭐ 5/5{% else %}⭐ 4/5{% endif %}
-                            </span>
+                            <span class="real-review-badge">{% if review.rating == 5 %}⭐ 5/5{% else %}⭐ 4/5{% endif %}</span>
                         </div>
                     </div>
                     <div class="real-review-stars mb-2">
                         {% for i in range(review.rating) %}<i class="fas fa-star"></i>{% endfor %}
-                        {% for i in range(5 - review.rating) %}<i class="far fa-star"></i>{% endfor %}
+                        {% for i in range(5 - review.rating) %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endfor %}
                     </div>
                     <p class="real-review-text">"{{ review.comment[:160] }}{% if review.comment|length > 160 %}…{% endif %}"</p>
                     <div class="real-review-date">
-                        <i class="far fa-calendar-alt me-1"></i>
-                        {{ review.created_at.strftime('%b %d, %Y') }}
+                        <i class="far fa-calendar-alt me-1"></i>{{ review.created_at.strftime('%b %d, %Y') }}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-        <div class="text-center mt-4 reveal">
+        <div class="text-center mt-5 reveal">
             <a href="{{ url_for('products') }}" class="btn btn-outline-brown">
                 <i class="fas fa-shopping-bag me-2"></i>Shop & Leave a Review
             </a>
         </div>
 
         {% else %}
-        <!-- Fallback: admin-configured testimonials when no real reviews yet -->
-        <div class="row g-4">
+        <div class="row g-4 stagger-children">
             {% set testimonials = [
                 (site_settings.testimonial_1_name, site_settings.testimonial_1_role, site_settings.testimonial_1_text, site_settings.testimonial_1_img),
                 (site_settings.testimonial_2_name, site_settings.testimonial_2_role, site_settings.testimonial_2_text, site_settings.testimonial_2_img),
@@ -309,10 +274,7 @@
             <div class="col-lg-4 reveal">
                 <div class="testimonial-card">
                     <img src="{{ img }}" alt="{{ name }}" class="testimonial-avatar" onerror="this.style.display='none'">
-                    <div class="testimonial-stars">
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i><i class="fas fa-star"></i>
-                    </div>
+                    <div class="testimonial-stars">★★★★★</div>
                     <p class="testimonial-text">"{{ text }}"</p>
                     <div class="testimonial-author">{{ name }}</div>
                     <div class="testimonial-role">{{ role }}</div>
@@ -324,68 +286,47 @@
     </div>
 </section>
 
-<!-- About Section -->
+<!-- ── About ─────────────────────────────────────────────────────── -->
 <section class="py-5">
     <div class="container py-4">
         <div class="row align-items-center g-5">
             <div class="col-lg-6 reveal">
-                <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                     alt="Our Bakery Story" class="img-fluid rounded-4 shadow-lg">
+                <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                     alt="Our Bakery Story" class="img-fluid rounded-4 about-image shadow-lg">
             </div>
             <div class="col-lg-6 reveal">
                 <span class="section-subtitle">{{ site_settings.about_year }}</span>
                 <h2 class="mb-4">Our Story</h2>
-                <p class="lead text-muted">{{ site_settings.about_lead }}</p>
-                <p>{{ site_settings.about_text }}</p>
-                <div class="row mt-4">
-                    <div class="col-6 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="feature-icon me-3" style="width:50px;height:50px;">
-                                <i class="fas fa-check" style="font-size:1rem;"></i>
+                <p class="mb-3" style="color:var(--text-primary);font-weight:500;">{{ site_settings.about_lead }}</p>
+                <p style="color:var(--text-secondary);">{{ site_settings.about_text }}</p>
+                <div class="row mt-4 g-3">
+                    {% for item in ['100% Organic', 'No Preservatives', 'Custom Orders', 'Same Day Delivery'] %}
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="feature-icon" style="width:40px;height:40px;flex-shrink:0;">
+                                <i class="fas fa-check" style="font-size:0.85rem;"></i>
                             </div>
-                            <span class="fw-semibold">100% Organic</span>
+                            <span style="font-weight:600;font-size:0.88rem;color:var(--text-primary);">{{ item }}</span>
                         </div>
                     </div>
-                    <div class="col-6 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="feature-icon me-3" style="width:50px;height:50px;">
-                                <i class="fas fa-check" style="font-size:1rem;"></i>
-                            </div>
-                            <span class="fw-semibold">No Preservatives</span>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="feature-icon me-3" style="width:50px;height:50px;">
-                                <i class="fas fa-check" style="font-size:1rem;"></i>
-                            </div>
-                            <span class="fw-semibold">Custom Orders</span>
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="feature-icon me-3" style="width:50px;height:50px;">
-                                <i class="fas fa-check" style="font-size:1rem;"></i>
-                            </div>
-                            <span class="fw-semibold">Same Day Delivery</span>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
+<!-- ── CTA ───────────────────────────────────────────────────────── -->
 <section class="cta-section">
     <div class="cta-content">
-        <div class="container">
+        <div class="container text-center">
             <div class="row justify-content-center">
-                <div class="col-lg-8 reveal">
+                <div class="col-lg-7 reveal">
+                    <span class="section-subtitle">Ready to Order?</span>
                     <h2>{{ site_settings.cta_title }}</h2>
-                    <p>{{ site_settings.cta_subtitle }}</p>
+                    <p class="mb-4">{{ site_settings.cta_subtitle }}</p>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
+                        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow">
                             <i class="fas fa-shopping-bag me-2"></i>Order Now
                         </a>
                         <a href="tel:{{ site_settings.contact_phone }}" class="btn btn-outline-light btn-lg">
@@ -397,4 +338,5 @@
         </div>
     </div>
 </section>
+
 {% endblock %}

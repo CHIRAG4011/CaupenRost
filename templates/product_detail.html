@@ -1,114 +1,144 @@
 {% extends "base.html" %}
+{% block title %}{{ product.name }} – {{ site_settings.site_name }}{% endblock %}
 
-{% block title %}{{ product.name }} - CaupenRost{% endblock %}
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+{% endblock %}
 
 {% block content %}
+
 <!-- Breadcrumb -->
-<section class="bg-cream py-3">
+<section style="background:linear-gradient(135deg,var(--bg-surface),var(--bg-card));border-bottom:1px solid var(--glass-border);padding:24px 0;">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-brown text-decoration-none">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ url_for('products') }}" class="text-brown text-decoration-none">Products</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('products') }}">Products</a></li>
+                <li class="breadcrumb-item active" style="color:var(--text-muted);">{{ product.name }}</li>
             </ol>
         </nav>
     </div>
 </section>
 
+<!-- Product Main -->
 <div class="container py-5">
-    <div class="row g-5">
-        <!-- Product Image -->
+    <div class="row g-5 align-items-start">
+
+        <!-- LEFT: Image / 3D Viewer tabs -->
         <div class="col-lg-6">
-            <div class="position-relative">
-                <img src="{{ product.image_url }}" class="img-fluid rounded-4 shadow-lg w-100" alt="{{ product.name }}" style="object-fit: cover; max-height: 500px;">
-                
-                {% if product.stock <= 5 and product.stock > 0 %}
-                <span class="position-absolute top-0 start-0 m-3 badge bg-warning text-dark px-3 py-2">
-                    <i class="fas fa-fire me-1"></i>Low Stock
-                </span>
-                {% elif product.stock == 0 %}
-                <span class="position-absolute top-0 start-0 m-3 badge bg-danger px-3 py-2">
-                    <i class="fas fa-times me-1"></i>Sold Out
-                </span>
-                {% else %}
-                <span class="position-absolute top-0 start-0 m-3 badge bg-success px-3 py-2">
-                    <i class="fas fa-check me-1"></i>In Stock
-                </span>
-                {% endif %}
+            <div class="viewer-tabs">
+                <button class="viewer-tab-btn active" id="tabPhoto" onclick="switchTab('photo')">
+                    <i class="fas fa-image me-1"></i>Photo
+                </button>
+                <button class="viewer-tab-btn" id="tab3D" onclick="switchTab('3d')">
+                    <i class="fas fa-cube me-1"></i>3D View
+                </button>
             </div>
-        </div>
-        
-        <!-- Product Details -->
-        <div class="col-lg-6">
-            <span class="badge bg-cream text-brown mb-3 px-3 py-2">{{ product.category }}</span>
-            
-            <h1 class="display-title text-brown mb-3">{{ product.name }}</h1>
-            
-            <!-- Rating Display -->
-            <div class="d-flex align-items-center gap-3 mb-4">
-                {% set avg_rating = product.get_average_rating() %}
-                <div class="product-rating" style="font-size: 1.2rem;">
-                    {% if avg_rating > 0 %}
-                        {% for i in range(5) %}
-                            {% if i < avg_rating %}
-                            <i class="fas fa-star"></i>
-                            {% else %}
-                            <i class="far fa-star"></i>
-                            {% endif %}
-                        {% endfor %}
+
+            <!-- Photo panel -->
+            <div id="panelPhoto">
+                <div class="position-relative" style="border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--glass-border);box-shadow:var(--shadow-lg);">
+                    <img src="{{ product.image_url }}"
+                         class="w-100"
+                         alt="{{ product.name }}"
+                         style="height:460px;object-fit:cover;filter:brightness(0.9) contrast(1.05);display:block;">
+
+                    {% if product.stock <= 5 and product.stock > 0 %}
+                    <span class="position-absolute top-0 start-0 m-3 badge"
+                          style="background:linear-gradient(135deg,#9b6b1a,#e67e22);padding:7px 14px;border-radius:20px;">
+                        <i class="fas fa-fire me-1"></i>Low Stock
+                    </span>
+                    {% elif product.stock == 0 %}
+                    <span class="position-absolute top-0 start-0 m-3 badge"
+                          style="background:linear-gradient(135deg,#9b2335,#c0392b);color:white;padding:7px 14px;border-radius:20px;">
+                        <i class="fas fa-times me-1"></i>Sold Out
+                    </span>
                     {% else %}
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
-                        <i class="far fa-star"></i>
+                    <span class="position-absolute top-0 start-0 m-3 badge"
+                          style="background:linear-gradient(135deg,#1a6b3a,#27ae60);color:white;padding:7px 14px;border-radius:20px;">
+                        <i class="fas fa-check me-1"></i>In Stock
+                    </span>
                     {% endif %}
                 </div>
-                {% if avg_rating > 0 %}
-                <span class="text-muted">{{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews)</span>
-                {% else %}
-                <span class="text-muted">No reviews yet</span>
-                {% endif %}
             </div>
-            
-            <p class="lead mb-4" style="color: var(--text-light);">{{ product.description }}</p>
-            
+
+            <!-- 3D Viewer panel -->
+            <div id="panel3D" style="display:none;">
+                <div class="product-3d-viewer" style="height:460px;">
+                    <canvas id="product3DCanvas" style="width:100%;height:460px;"></canvas>
+                    <div class="viewer-controls">
+                        <i class="fas fa-mouse-pointer"></i>Drag to rotate &nbsp;·&nbsp;
+                        <i class="fas fa-search"></i>Scroll to zoom
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Product Info -->
+        <div class="col-lg-6">
+            <div class="product-detail-badge">{{ product.category }}</div>
+
+            <h1 class="product-detail-title">{{ product.name }}</h1>
+
+            <!-- Rating -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                {% set avg_rating = product.get_average_rating() %}
+                <div class="product-rating" style="font-size:1.1rem;">
+                    {% if avg_rating > 0 %}
+                        {% for i in range(5) %}
+                            {% if i < avg_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% for i in range(5) %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endfor %}
+                    {% endif %}
+                </div>
+                <span style="color:var(--text-muted);font-size:0.88rem;">
+                    {% if avg_rating > 0 %}{{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews){% else %}No reviews yet{% endif %}
+                </span>
+            </div>
+
+            <p class="product-detail-desc mb-4">{{ product.description }}</p>
+
             <!-- Price -->
             <div class="mb-4">
-                <span class="product-price" style="font-size: 2.5rem;">₹{{ "%.0f"|format(product.price) }}</span>
-                <span class="text-muted ms-2">per item</span>
+                <span class="product-detail-price">₹{{ "%.0f"|format(product.price) }}</span>
+                <span style="color:var(--text-muted);font-size:0.85rem;margin-left:8px;">per item</span>
             </div>
-            
-            <!-- Stock Status -->
-            <div class="mb-4 p-3 rounded-3" style="background: rgba(139, 69, 19, 0.05);">
+
+            <!-- Stock -->
+            <div class="mb-4">
                 {% if product.stock > 10 %}
-                <span class="text-success fw-semibold"><i class="fas fa-check-circle me-2"></i>In Stock</span>
-                <span class="text-muted ms-2">({{ product.stock }} available)</span>
+                <div class="stock-badge in-stock d-inline-flex">
+                    <i class="fas fa-check-circle"></i>In Stock
+                    <span style="color:var(--text-muted);font-size:0.8rem;margin-left:6px;">({{ product.stock }} available)</span>
+                </div>
                 {% elif product.stock > 0 %}
-                <span class="text-warning fw-semibold"><i class="fas fa-exclamation-circle me-2"></i>Hurry! Only {{ product.stock }} left</span>
+                <div class="stock-badge low-stock d-inline-flex">
+                    <i class="fas fa-exclamation-circle"></i>Hurry! Only {{ product.stock }} left
+                </div>
                 {% else %}
-                <span class="text-danger fw-semibold"><i class="fas fa-times-circle me-2"></i>Currently Out of Stock</span>
+                <div class="stock-badge out-of-stock d-inline-flex">
+                    <i class="fas fa-times-circle"></i>Currently Out of Stock
+                </div>
                 {% endif %}
             </div>
-            
-            <!-- Add to Cart Form -->
+
+            <!-- Add to Cart -->
             {% if product.stock > 0 %}
-            <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="mb-4">
-                <div class="row g-3 align-items-end">
-                    <div class="col-auto">
-                        <label for="quantity" class="form-label fw-semibold">Quantity</label>
-                        <select class="form-select form-select-lg" id="quantity" name="quantity" style="width: 100px;">
-                            {% for i in range(1, [product.stock + 1, 11]|min) %}
-                            <option value="{{ i }}">{{ i }}</option>
-                            {% endfor %}
-                        </select>
+            <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="mb-5">
+                <div class="d-flex align-items-end gap-3 flex-wrap">
+                    <div>
+                        <label class="form-label" style="font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);">Quantity</label>
+                        <div class="qty-control">
+                            <button type="button" class="qty-btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
+                            <div class="qty-value" id="qtyDisplay">1</div>
+                            <button type="button" class="qty-btn" onclick="changeQty(1)"><i class="fas fa-plus"></i></button>
+                            <input type="hidden" name="quantity" id="qtyInput" value="1">
+                        </div>
                     </div>
-                    <div class="col">
-                        <button type="submit" class="btn btn-brown btn-lg w-100">
-                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-brown btn-lg flex-grow-1 btn-glow">
+                        <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                    </button>
                 </div>
             </form>
             {% else %}
@@ -116,208 +146,376 @@
                 <i class="fas fa-ban me-2"></i>Out of Stock
             </button>
             <div class="alert alert-info">
-                <i class="fas fa-bell me-2"></i>We're restocking soon! Check back later.
+                <i class="fas fa-bell me-2"></i>We're restocking soon — check back later!
             </div>
             {% endif %}
-            
-            <!-- Product Benefits -->
-            <div class="row g-3 mt-4">
+
+            <!-- Benefits -->
+            <div class="row g-3">
                 <div class="col-4">
-                    <div class="text-center p-3 rounded-3" style="background: var(--cream);">
-                        <i class="fas fa-truck text-brown fa-lg mb-2"></i>
-                        <p class="small mb-0 fw-semibold">Fast Delivery</p>
+                    <div class="benefit-chip">
+                        <i class="fas fa-truck" style="color:var(--gold);"></i>
+                        <p>Fast Delivery</p>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="text-center p-3 rounded-3" style="background: var(--cream);">
-                        <i class="fas fa-award text-gold fa-lg mb-2"></i>
-                        <p class="small mb-0 fw-semibold">Premium Quality</p>
+                    <div class="benefit-chip">
+                        <i class="fas fa-award" style="color:var(--gold);"></i>
+                        <p>Premium Quality</p>
                     </div>
                 </div>
                 <div class="col-4">
-                    <div class="text-center p-3 rounded-3" style="background: var(--cream);">
-                        <i class="fas fa-leaf text-success fa-lg mb-2"></i>
-                        <p class="small mb-0 fw-semibold">Fresh Daily</p>
+                    <div class="benefit-chip">
+                        <i class="fas fa-leaf" style="color:#5dba7d;"></i>
+                        <p>Fresh Daily</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Reviews Section -->
-    <div class="row mt-5 pt-5 border-top">
-        <div class="col-12">
-            <div class="section-header text-start mb-4">
-                <span class="section-subtitle">Customer Feedback</span>
-                <h2>Reviews & Ratings</h2>
-            </div>
-            
-            <div class="row g-4">
-                <!-- Add Review Form -->
-                <div class="col-lg-5">
-                    {% if current_user %}
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-cream border-0 py-3">
-                            <h5 class="mb-0 text-brown"><i class="fas fa-pen me-2"></i>Write a Review</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <form method="post" action="{{ url_for('add_review', product_id=product.id) }}">
-                                <div class="mb-4">
-                                    <label class="form-label fw-semibold">How was your experience?</label>
-                                    <div class="taste-meter" id="tasteMeter">
-                                        {% set levels = [
-                                            (1, '😞', 'Disappointing'),
-                                            (2, '😐', 'Could be Better'),
-                                            (3, '🙂', 'Pretty Good'),
-                                            (4, '😍', 'Loved It!'),
-                                            (5, '🤩', 'Absolutely Perfect!'),
-                                        ] %}
-                                        {% for val, emoji, label in levels %}
-                                        <label class="taste-card" data-val="{{ val }}">
-                                            <input type="radio" name="rating" value="{{ val }}" required>
-                                            <div class="taste-card-inner">
-                                                <span class="taste-emoji">{{ emoji }}</span>
-                                                <div class="taste-stars">
-                                                    {% for s in range(val) %}<i class="fas fa-star"></i>{% endfor %}
-                                                </div>
-                                                <span class="taste-label">{{ label }}</span>
+
+    <!-- ── Reviews Section ─────────────────────────────────────── -->
+    <div class="mt-5 pt-5" style="border-top:1px solid var(--glass-border);">
+        <div class="section-header text-start mb-4">
+            <span class="section-subtitle">Customer Feedback</span>
+            <h2>Reviews & Ratings</h2>
+        </div>
+
+        <div class="row g-4">
+            <!-- Write Review -->
+            <div class="col-lg-5">
+                {% if current_user %}
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-pen me-2"></i>Write a Review</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ url_for('add_review', product_id=product.id) }}">
+                            <div class="mb-4">
+                                <label class="form-label">How was your experience?</label>
+                                <div class="taste-meter" id="tasteMeter">
+                                    {% set levels = [
+                                        (1, '😞', 'Disappointing'),
+                                        (2, '😐', 'Could be Better'),
+                                        (3, '🙂', 'Pretty Good'),
+                                        (4, '😍', 'Loved It!'),
+                                        (5, '🤩', 'Absolutely Perfect!'),
+                                    ] %}
+                                    {% for val, emoji, label in levels %}
+                                    <label class="taste-card" data-val="{{ val }}">
+                                        <input type="radio" name="rating" value="{{ val }}" required>
+                                        <div class="taste-card-inner">
+                                            <span class="taste-emoji">{{ emoji }}</span>
+                                            <div class="taste-stars">
+                                                {% for s in range(val) %}<i class="fas fa-star"></i>{% endfor %}
                                             </div>
-                                        </label>
+                                            <span class="taste-label">{{ label }}</span>
+                                        </div>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="taste-feedback" id="tasteFeedback"></div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="comment" class="form-label">Your Review</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="4"
+                                          placeholder="Share your experience…" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-brown w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Review
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card h-100">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-user-circle fa-3x mb-3" style="color:var(--text-muted);"></i>
+                        <h5>Share Your Opinion</h5>
+                        <p style="color:var(--text-muted);" class="mb-4">Please login to write a review.</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-brown">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login to Review
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Reviews List -->
+            <div class="col-lg-7">
+                {% if reviews %}
+                <div class="reviews-list">
+                    {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="review-avatar">
+                                    {% if review.user %}{{ review.user.username[0]|upper }}{% else %}U{% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-weight:600;color:var(--text-primary);font-size:0.9rem;">
+                                        {% if review.user %}{{ review.user.username }}{% else %}Anonymous{% endif %}
+                                    </div>
+                                    <div class="product-rating" style="font-size:0.78rem;">
+                                        {% for i in range(5) %}
+                                            {% if i < review.rating %}<i class="fas fa-star"></i>
+                                            {% else %}<i class="far fa-star" style="color:var(--text-muted);"></i>{% endif %}
                                         {% endfor %}
                                     </div>
-                                    <div class="taste-feedback" id="tasteFeedback"></div>
                                 </div>
-                                <div class="mb-4">
-                                    <label for="comment" class="form-label fw-semibold">Your Review</label>
-                                    <textarea class="form-control" id="comment" name="comment" rows="4" 
-                                              placeholder="Share your experience with this product..." required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-brown w-100">
-                                    <i class="fas fa-paper-plane me-2"></i>Submit Review
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body p-4 text-center">
-                            <i class="fas fa-user-circle fa-3x text-muted mb-3"></i>
-                            <h5>Share Your Opinion</h5>
-                            <p class="text-muted mb-4">Please login to write a review for this product.</p>
-                            <a href="{{ url_for('login') }}" class="btn btn-brown">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login to Review
-                            </a>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <!-- Reviews List -->
-                <div class="col-lg-7">
-                    {% if reviews %}
-                    <div class="reviews-list">
-                        {% for review in reviews %}
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="avatar-circle bg-brown text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                             style="width: 45px; height: 45px; font-weight: 600;">
-                                            {% if review.user %}
-                                            {{ review.user.username[0]|upper }}
-                                            {% else %}
-                                            U
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-0">
-                                                {% if review.user %}
-                                                {{ review.user.username }}
-                                                {% else %}
-                                                Unknown User
-                                                {% endif %}
-                                            </h6>
-                                            <div class="product-rating">
-                                                {% for i in range(5) %}
-                                                    {% if i < review.rating %}
-                                                    <i class="fas fa-star"></i>
-                                                    {% else %}
-                                                    <i class="far fa-star"></i>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
-                                </div>
-                                <p class="mb-0">{{ review.comment }}</p>
                             </div>
+                            <small style="color:var(--text-muted);font-size:0.78rem;">{{ review.created_at.strftime('%b %d, %Y') }}</small>
                         </div>
-                        {% endfor %}
+                        <p style="color:var(--text-secondary);font-size:0.88rem;margin:0;">{{ review.comment }}</p>
                     </div>
-                    {% else %}
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center py-5">
-                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No reviews yet</h5>
-                            <p class="text-muted mb-0">Be the first to share your experience!</p>
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-comments fa-3x mb-3" style="color:var(--text-muted);font-size:2.5rem;"></i>
+                        <h5 style="color:var(--text-muted);">No reviews yet</h5>
+                        <p style="color:var(--text-muted);margin:0;">Be the first to share your experience!</p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+// ── Quantity Control ─────────────────────────────────────────────
+var _qty = 1;
+var _maxQty = {{ [product.stock, 10]|min }};
+function changeQty(d) {
+    _qty = Math.max(1, Math.min(_maxQty, _qty + d));
+    document.getElementById('qtyDisplay').textContent = _qty;
+    document.getElementById('qtyInput').value = _qty;
+}
+
+// ── Tab Switcher ─────────────────────────────────────────────────
+function switchTab(tab) {
+    var photo = document.getElementById('panelPhoto');
+    var panel3d = document.getElementById('panel3D');
+    var btnPhoto = document.getElementById('tabPhoto');
+    var btn3d = document.getElementById('tab3D');
+
+    if (tab === 'photo') {
+        photo.style.display = 'block';
+        panel3d.style.display = 'none';
+        btnPhoto.classList.add('active');
+        btn3d.classList.remove('active');
+    } else {
+        photo.style.display = 'none';
+        panel3d.style.display = 'block';
+        btnPhoto.classList.remove('active');
+        btn3d.classList.add('active');
+        if (!window._3dInit) init3D();
+    }
+}
+
+// ── Three.js 3D Viewer ───────────────────────────────────────────
+window._3dInit = false;
+function init3D() {
+    window._3dInit = true;
+    var canvas = document.getElementById('product3DCanvas');
+    var W = canvas.clientWidth, H = canvas.clientHeight;
+
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+
+    var scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0c0a07, 0.035);
+
+    var camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+    camera.position.set(0, 0, 4.5);
+
+    // Lighting
+    var ambient = new THREE.AmbientLight(0xfff3d0, 0.4);
+    scene.add(ambient);
+
+    var keyLight = new THREE.PointLight(0xd4a843, 3, 12);
+    keyLight.position.set(3, 3, 3);
+    keyLight.castShadow = true;
+    scene.add(keyLight);
+
+    var fillLight = new THREE.PointLight(0xc8952a, 1.2, 10);
+    fillLight.position.set(-3, -1, 2);
+    scene.add(fillLight);
+
+    var rimLight = new THREE.PointLight(0xe8c564, 0.8, 8);
+    rimLight.position.set(0, -3, -3);
+    scene.add(rimLight);
+
+    // Main product shape — stylized torus knot (luxury look)
+    var geo = new THREE.TorusKnotGeometry(1, 0.35, 160, 24, 2, 3);
+    var mat = new THREE.MeshStandardMaterial({
+        color: 0xd4a843,
+        metalness: 0.72,
+        roughness: 0.22,
+        envMapIntensity: 1.0,
+    });
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    scene.add(mesh);
+
+    // Outer glow ring
+    var ringGeo = new THREE.TorusGeometry(1.6, 0.012, 8, 100);
+    var ringMat = new THREE.MeshBasicMaterial({ color: 0xd4a843, transparent: true, opacity: 0.3 });
+    var ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2;
+    scene.add(ring);
+
+    // Particle dust around the object
+    var ptGeo = new THREE.BufferGeometry();
+    var ptCount = 280;
+    var ptPositions = new Float32Array(ptCount * 3);
+    for (var i = 0; i < ptCount; i++) {
+        var theta = Math.random() * Math.PI * 2;
+        var phi   = Math.random() * Math.PI;
+        var r     = 2.0 + Math.random() * 1.2;
+        ptPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+        ptPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        ptPositions[i*3+2] = r * Math.cos(phi);
+    }
+    ptGeo.setAttribute('position', new THREE.BufferAttribute(ptPositions, 3));
+    var ptMat = new THREE.PointsMaterial({ color: 0xd4a843, size: 0.025, transparent: true, opacity: 0.55 });
+    var points = new THREE.Points(ptGeo, ptMat);
+    scene.add(points);
+
+    // ── Mouse Drag to Rotate ──
+    var isDragging = false, prevX = 0, prevY = 0;
+    var rotX = 0, rotY = 0;
+    var velX = 0, velY = 0;
+
+    canvas.addEventListener('mousedown', function(e) {
+        isDragging = true; prevX = e.clientX; prevY = e.clientY;
+        velX = velY = 0;
+    });
+    window.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        velX = (e.clientX - prevX) * 0.012;
+        velY = (e.clientY - prevY) * 0.012;
+        prevX = e.clientX; prevY = e.clientY;
+    });
+    window.addEventListener('mouseup', function() { isDragging = false; });
+
+    // Touch support
+    canvas.addEventListener('touchstart', function(e) {
+        isDragging = true;
+        prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+        velX = velY = 0;
+    }, { passive: true });
+    canvas.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        velX = (e.touches[0].clientX - prevX) * 0.012;
+        velY = (e.touches[0].clientY - prevY) * 0.012;
+        prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+    }, { passive: true });
+    canvas.addEventListener('touchend', function() { isDragging = false; }, { passive: true });
+
+    // Scroll zoom
+    canvas.addEventListener('wheel', function(e) {
+        camera.position.z = Math.max(2.5, Math.min(8, camera.position.z + e.deltaY * 0.008));
+    }, { passive: true });
+
+    // ── Parallax on scroll ──
+    window.addEventListener('scroll', function() {
+        var y = window.scrollY;
+        mesh.position.y = y * -0.002;
+    }, { passive: true });
+
+    // ── Animate ──
+    var clock = new THREE.Clock();
+    function animate() {
+        requestAnimationFrame(animate);
+        var t = clock.getElapsedTime();
+
+        if (!isDragging) {
+            velX *= 0.94;
+            velY *= 0.94;
+            if (Math.abs(velX) < 0.0001 && Math.abs(velY) < 0.0001) {
+                rotY += 0.005;
+            }
+        }
+        rotY += velX;
+        rotX += velY;
+        rotX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, rotX));
+
+        mesh.rotation.y = rotY;
+        mesh.rotation.x = rotX;
+        mesh.position.y += (0 - mesh.position.y) * 0.04;
+
+        // Idle floating
+        mesh.position.y += Math.sin(t * 0.9) * 0.003;
+
+        // Shimmer on keyLight
+        keyLight.intensity = 3 + Math.sin(t * 1.5) * 0.4;
+
+        // Slow ring rotation
+        ring.rotation.z = t * 0.15;
+        ring.rotation.x = Math.PI / 2 + Math.sin(t * 0.4) * 0.1;
+
+        // Particles drift
+        points.rotation.y = t * 0.04;
+        points.rotation.x = t * 0.02;
+
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize handler
+    window.addEventListener('resize', function() {
+        var nW = canvas.clientWidth, nH = canvas.clientHeight;
+        camera.aspect = nW / nH;
+        camera.updateProjectionMatrix();
+        renderer.setSize(nW, nH);
+    });
+}
+
+// ── Taste Meter ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.taste-card');
-    const feedback = document.getElementById('tasteFeedback');
-    const feedbackMessages = {
-        1: { text: "We're sorry to hear that. Your feedback helps us improve!", color: '#dc3545' },
-        2: { text: "Thanks for being honest — we'll keep working on it.", color: '#fd7e14' },
-        3: { text: "Glad it was a good experience! Keep exploring our menu.", color: '#ffc107' },
-        4: { text: "Wonderful! So happy you loved it 😊", color: '#20c997' },
-        5: { text: "You just made our day! 🎉 Thank you so much!", color: '#8B4513' },
+    var cards = document.querySelectorAll('.taste-card');
+    var feedback = document.getElementById('tasteFeedback');
+    var msgs = {
+        1: { text: "We're sorry to hear that. Your feedback helps us improve!", color: '#e74c3c' },
+        2: { text: "Thanks for being honest — we'll keep working on it.", color: 'var(--orange-warm)' },
+        3: { text: "Glad it was a good experience! Keep exploring our menu.", color: '#f1c40f' },
+        4: { text: "Wonderful! So happy you loved it 😊", color: '#5dba7d' },
+        5: { text: "You just made our day! 🎉 Thank you so much!", color: 'var(--gold)' },
     };
 
-    function highlightUpTo(idx) {
-        cards.forEach((c, i) => {
-            c.classList.toggle('taste-hovered', i <= idx);
-        });
+    function highlightTo(idx) {
+        cards.forEach(function(c, i) { c.classList.toggle('taste-hovered', i <= idx); });
     }
-
     function applySelected() {
-        const checked = document.querySelector('.taste-card input:checked');
-        const selectedIdx = checked ? [...cards].indexOf(checked.closest('.taste-card')) : -1;
-        cards.forEach((c, i) => {
-            c.classList.toggle('taste-selected', i <= selectedIdx);
+        var checked = document.querySelector('.taste-card input:checked');
+        var sel = checked ? [...cards].indexOf(checked.closest('.taste-card')) : -1;
+        cards.forEach(function(c, i) {
+            c.classList.toggle('taste-selected', i <= sel);
             c.classList.remove('taste-hovered');
         });
         if (checked) {
-            const val = parseInt(checked.value);
-            const msg = feedbackMessages[val];
-            if (feedback) {
-                feedback.textContent = msg.text;
-                feedback.style.color = msg.color;
-                feedback.style.opacity = '1';
-            }
+            var m = msgs[parseInt(checked.value)];
+            if (feedback) { feedback.textContent = m.text; feedback.style.color = m.color; feedback.style.opacity = '1'; }
         }
     }
-
-    cards.forEach((card, idx) => {
-        card.addEventListener('mouseenter', () => highlightUpTo(idx));
-        card.addEventListener('mouseleave', () => {
-            cards.forEach(c => c.classList.remove('taste-hovered'));
-        });
-        card.addEventListener('click', () => {
+    cards.forEach(function(card, idx) {
+        card.addEventListener('mouseenter', function() { highlightTo(idx); });
+        card.addEventListener('mouseleave', function() { cards.forEach(function(c) { c.classList.remove('taste-hovered'); }); });
+        card.addEventListener('click', function() {
             card.querySelector('input').checked = true;
             applySelected();
             card.classList.add('taste-bounce');
-            setTimeout(() => card.classList.remove('taste-bounce'), 400);
+            setTimeout(function() { card.classList.remove('taste-bounce'); }, 400);
         });
     });
 });
