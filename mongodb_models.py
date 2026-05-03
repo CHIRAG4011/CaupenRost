@@ -127,6 +127,7 @@ class MongoProduct:
         self.category_id = data.get('category_id')
         self.image_url = data.get('image_url')
         self.stock = data.get('stock', 0)
+        self.is_available = data.get('is_available', True)
         self.created_at = data.get('created_at', datetime.utcnow())
         self.reviews = ReviewsList()
 
@@ -145,6 +146,7 @@ class MongoProduct:
             'category_id': self.category_id,
             'image_url': self.image_url,
             'stock': self.stock,
+            'is_available': self.is_available,
             'created_at': self.created_at
         }
 

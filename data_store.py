@@ -36,9 +36,10 @@ def init_data_store():
         return
 
     admin_email = 'admin@caupenrost.com'
-    if user_count == 0 or not UserRepo.find_by_email(admin_email):
-        existing = UserRepo.find_by_email(admin_email)
-        if not existing:
+    try:
+        existing_by_username = UserRepo.find_by_username('admin') if hasattr(UserRepo, 'find_by_username') else None
+        existing_by_email = UserRepo.find_by_email(admin_email)
+        if not existing_by_username and not existing_by_email:
             logging.info("Creating admin user...")
             UserRepo.create({
                 'username': 'admin',
@@ -47,6 +48,8 @@ def init_data_store():
                 'is_admin': True,
                 'role': 'admin'
             })
+    except Exception as e:
+        logging.warning(f"Admin user creation skipped: {e}")
 
     if category_count > 0 and product_count > 0:
         logging.info("Database already has categories and products, skipping sample data.")
