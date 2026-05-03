@@ -192,7 +192,7 @@ class MongoCategoryRepo:
         query = {'name': {'$regex': f'^{name}$', '$options': 'i'}}
         if exclude_id:
             try:
-                query['_id'] = {'$ne': ObjectId(str(exclude_id))}
+                query = {**query, '_id': {'$ne': ObjectId(str(exclude_id))}}
             except:
                 pass
         return MongoCategoryRepo._get_collection().find_one(query) is not None
@@ -252,7 +252,7 @@ class MongoProductRepo:
             ]
         }
         if category and category != 'all':
-            filter_query['category'] = {'$regex': category, '$options': 'i'}
+            filter_query = {**filter_query, 'category': {'$regex': category, '$options': 'i'}}
         
         docs = MongoProductRepo._get_collection().find(filter_query)
         products = []
@@ -679,6 +679,46 @@ class MongoTicketMessageRepo:
         return msg
 
 
+class MongoPurchaseRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['purchases']
+
+    @staticmethod
+    def count():
+        return MongoPurchaseRepo._get_collection().count_documents({})
+
+
+class MongoSettingRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['settings']
+
+    @staticmethod
+    def count():
+        return MongoSettingRepo._get_collection().count_documents({})
+
+
+class MongoStoreCategoryRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['storecategories']
+
+    @staticmethod
+    def count():
+        return MongoStoreCategoryRepo._get_collection().count_documents({})
+
+
+class MongoStoreItemRepo:
+    @staticmethod
+    def _get_collection():
+        return get_mongo_db()['storeitems']
+
+    @staticmethod
+    def count():
+        return MongoStoreItemRepo._get_collection().count_documents({})
+
+
 class MongoRoleRepo:
     SYSTEM_ROLES = [
         {'name': 'admin', 'description': 'Full access to all admin features', 'permissions': ['all'], 'is_system': True},
@@ -912,12 +952,22 @@ def setup_indexes():
     """Create MongoDB indexes for performance and TTL"""
     try:
         db = get_mongo_db()
-        db['otp_codes'].create_index('expires_at', expireAfterSeconds=0)
-        db['otp_codes'].create_index([('email', 1), ('purpose', 1)])
+        db['otps'].create_index('expires_at', expireAfterSeconds=0)
+        db['otps'].create_index([('email', 1), ('purpose', 1)])
         db['visitor_logs'].create_index('timestamp')
         db['orders'].create_index([('user_id', 1), ('created_at', -1)])
         db['users'].create_index('email', unique=True)
         db['users'].create_index('username', unique=True)
+        db['announcements'].create_index([('is_active', 1), ('priority', -1)])
+        db['coupons'].create_index('code', unique=True)
+        db['customroles'].create_index('name', unique=True)
+        db['productreviews'].create_index([('product_id', 1), ('created_at', -1)])
+        db['purchases'].create_index([('user_id', 1), ('created_at', -1)])
+        db['settings'].create_index('key', unique=True)
+        db['storecategories'].create_index('slug', unique=True)
+        db['storeitems'].create_index([('category_id', 1), ('created_at', -1)])
+        db['tickets'].create_index([('user_id', 1), ('created_at', -1)])
+        db['ticketmessages'].create_index([('ticket_id', 1), ('created_at', 1)])
         MongoRoleRepo.ensure_system_roles()
         logging.info("MongoDB indexes and system roles initialized")
     except Exception as e:

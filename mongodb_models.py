@@ -54,7 +54,7 @@ class MongoUser:
 
 
 class MongoRole:
-    collection_name = 'roles'
+    collection_name = 'customroles'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -222,7 +222,7 @@ class MongoOrder:
 
 
 class MongoReview:
-    collection_name = 'reviews'
+    collection_name = 'productreviews'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -298,7 +298,7 @@ class MongoVisitorLog:
 
 
 class MongoOTPCode:
-    collection_name = 'otp_codes'
+    collection_name = 'otps'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -389,7 +389,7 @@ class MongoTicket:
 
 
 class MongoTicketMessage:
-    collection_name = 'ticket_messages'
+    collection_name = 'ticketmessages'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -451,6 +451,90 @@ class MongoAnnouncement:
 
 class MongoCoupon:
     collection_name = 'coupons'
+
+
+class MongoPurchase:
+    collection_name = 'purchases'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.user_id = data.get('user_id')
+        self.total = data.get('total', 0)
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def to_dict(self):
+        return {
+            'user_id': self.user_id,
+            'total': self.total,
+            'created_at': self.created_at
+        }
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
+class MongoSetting:
+    collection_name = 'settings'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.key = data.get('key')
+        self.value = data.get('value')
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def to_dict(self):
+        return {'key': self.key, 'value': self.value, 'created_at': self.created_at}
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
+class MongoStoreCategory:
+    collection_name = 'storecategories'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.name = data.get('name')
+        self.slug = data.get('slug')
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def to_dict(self):
+        return {'name': self.name, 'slug': self.slug, 'created_at': self.created_at}
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
+
+
+class MongoStoreItem:
+    collection_name = 'storeitems'
+
+    def __init__(self, data):
+        self._id = data.get('_id')
+        self.id = str(data.get('_id')) if data.get('_id') else None
+        self.name = data.get('name')
+        self.category_id = data.get('category_id')
+        self.created_at = data.get('created_at', datetime.utcnow())
+
+    def to_dict(self):
+        return {'name': self.name, 'category_id': self.category_id, 'created_at': self.created_at}
+
+    @classmethod
+    def from_doc(cls, doc):
+        if doc is None:
+            return None
+        return cls(doc)
 
     def __init__(self, data):
         self._id = data.get('_id')

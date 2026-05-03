@@ -13,7 +13,9 @@ def _is_mongo():
 
 def get_repos():
     if _is_mongo():
-        from mongo_db import MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
+        from mongo_db import (
+            MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
+        )
         return MongoUserRepo, MongoCategoryRepo, MongoProductRepo, MongoVisitorLogRepo
     else:
         from db import UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo
@@ -23,6 +25,7 @@ def get_repos():
 def init_data_store():
     import logging
     UserRepo, CategoryRepo, ProductRepo, VisitorLogRepo = get_repos()
+    repos = {}
 
     try:
         user_count = UserRepo.count()
