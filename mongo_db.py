@@ -122,7 +122,7 @@ class MongoUserRepo:
 class MongoCategoryRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['categories']
+        return get_mongo_db()['storecategory']
     
     @staticmethod
     def find_by_id(category_id):
@@ -201,7 +201,7 @@ class MongoCategoryRepo:
 class MongoProductRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['products']
+        return get_mongo_db()['storeitems']
     
     @staticmethod
     def _load_reviews(product):
@@ -399,7 +399,7 @@ class MongoOrderRepo:
 class MongoReviewRepo:
     @staticmethod
     def _get_collection():
-        return get_mongo_db()['reviews']
+        return get_mongo_db()['productreviews']
     
     @staticmethod
     def find_by_product(product_id):
@@ -1000,22 +1000,24 @@ def setup_indexes():
     """Create MongoDB indexes for performance and TTL"""
     try:
         db = get_mongo_db()
-        db['otps'].create_index('expires_at', expireAfterSeconds=0)
-        db['otps'].create_index([('email', 1), ('purpose', 1)])
-        db['visitor_logs'].create_index('timestamp')
-        db['orders'].create_index([('user_id', 1), ('created_at', -1)])
+        # OTP — single unified collection
+        db['otp_codes'].create_index('expires_at', expireAfterSeconds=0)
+        db['otp_codes'].create_index([('email', 1), ('purpose', 1)])
+        # Core collections
         db['users'].create_index('email', unique=True)
         db['users'].create_index('username', unique=True)
+        db['storecategory'].create_index('name', unique=True)
+        db['storeitems'].create_index([('category_id', 1), ('created_at', -1)])
+        db['orders'].create_index([('user_id', 1), ('created_at', -1)])
+        db['productreviews'].create_index([('product_id', 1), ('created_at', -1)])
+        db['visitor_logs'].create_index('timestamp')
+        db['tickets'].create_index([('user_id', 1), ('created_at', -1)])
+        db['ticket_messages'].create_index([('ticket_id', 1), ('created_at', 1)])
         db['announcements'].create_index([('is_active', 1), ('priority', -1)])
         db['coupons'].create_index('code', unique=True)
-        db['customroles'].create_index('name', unique=True)
-        db['productreviews'].create_index([('product_id', 1), ('created_at', -1)])
-        db['purchases'].create_index([('user_id', 1), ('created_at', -1)])
+        db['roles'].create_index('name', unique=True)
         db['settings'].create_index('key', unique=True)
-        db['storecategories'].create_index('slug', unique=True)
-        db['storeitems'].create_index([('category_id', 1), ('created_at', -1)])
-        db['tickets'].create_index([('user_id', 1), ('created_at', -1)])
-        db['ticketmessages'].create_index([('ticket_id', 1), ('created_at', 1)])
+        db['purchases'].create_index([('user_id', 1), ('created_at', -1)])
         MongoRoleRepo.ensure_system_roles()
         logging.info("MongoDB indexes and system roles initialized")
     except Exception as e:

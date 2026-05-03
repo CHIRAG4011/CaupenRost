@@ -137,7 +137,7 @@
                                     <span>No reviews</span>
                                 {% endif %}
                             </div>
-                            <p class="card-text">{{ product.description[:75] }}…</p>
+                            <p class="card-text">{{ (product.description or '')[:75] }}…</p>
                             <div class="mt-auto pt-3" style="border-top:1px solid var(--glass-border);">
                                 <div class="mb-2">
                                     {% if product.stock > 10 %}

@@ -82,7 +82,7 @@ class MongoRole:
 
 
 class MongoCategory:
-    collection_name = 'categories'
+    collection_name = 'storecategory'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -115,7 +115,7 @@ class MongoCategory:
 
 
 class MongoProduct:
-    collection_name = 'products'
+    collection_name = 'storeitems'
 
     def __init__(self, data):
         self._id = data.get('_id')
@@ -298,7 +298,7 @@ class MongoVisitorLog:
 
 
 class MongoOTPCode:
-    collection_name = 'otps'
+    collection_name = 'otp_codes'
 
     def __init__(self, data):
         self._id = data.get('_id')

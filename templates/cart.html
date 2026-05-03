@@ -42,7 +42,7 @@
                             <div class="col-md-5 col-9">
                                 <span class="badge bg-cream text-brown mb-2">{{ item.product.category }}</span>
                                 <h6 class="mb-1">{{ item.product.name }}</h6>
-                                <p class="text-muted small mb-2">{{ item.product.description[:60] }}...</p>
+                                <p class="text-muted small mb-2">{{ (item.product.description or '')[:60] }}...</p>
                                 <span class="product-price" style="font-size: 1.1rem;">₹{{ "%.0f"|format(item.product.price) }}</span>
                             </div>
                             <div class="col-md-3 col-8">
