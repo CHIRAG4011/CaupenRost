@@ -1,263 +1,243 @@
-{% extends "base.html" %}
-{% block title %}Announcements - CaupenRost Admin{% endblock %}
+{% extends "admin/base_admin.html" %}
+{% block title %}Announcements — Admin{% endblock %}
+{% block topbar_title %}Announcements{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-brown"><i class="fas fa-bullhorn me-2"></i>Announcements</h2>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Dashboard
-        </a>
-    </div>
+{% with flash_msgs = get_flashed_messages(with_categories=true) %}
+{% if flash_msgs %}{% for cat, msg in flash_msgs %}
+<div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show mb-4">
+  <i class="fas fa-{{ 'check-circle' if cat == 'success' else 'exclamation-circle' }} me-2"></i>{{ msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}{% endif %}{% endwith %}
 
-    <!-- Live Preview -->
-    {% if announcements %}
-    <div class="mb-4">
-        <h6 class="text-muted text-uppercase small fw-semibold mb-2">Live Preview</h6>
-        {% for ann in announcements %}
-        {% if ann.is_active %}
-        <div class="p-3 rounded-3 mb-2 d-flex align-items-center justify-content-between"
-             style="background:{{ ann.bg_color }};color:{{ ann.text_color }};">
-            <div class="d-flex align-items-center gap-2">
-                <i class="{{ ann.icon }}"></i>
-                <span class="fw-semibold">{{ ann.text }}</span>
-                {% if ann.link_url %}
-                <a href="{{ ann.link_url }}" style="color:{{ ann.text_color }};text-decoration:underline;" class="ms-2">
-                    {{ ann.link_text or 'Learn more' }}
-                </a>
-                {% endif %}
+<!-- Live preview -->
+{% if announcements %}
+{% for ann in announcements %}{% if ann.is_active %}
+<div class="mb-4 p-3 rounded-3 d-flex align-items-center justify-content-between"
+     style="background:{{ ann.bg_color }};color:{{ ann.text_color }};border-radius:12px;">
+  <div class="d-flex align-items-center gap-2">
+    <i class="{{ ann.icon }}"></i>
+    <span class="fw-semibold">{{ ann.text }}</span>
+    {% if ann.link_url %}
+    <a href="{{ ann.link_url }}" style="color:{{ ann.text_color }};text-decoration:underline;" class="ms-2">
+      {{ ann.link_text or 'Learn more' }}
+    </a>
+    {% endif %}
+  </div>
+  {% if ann.is_dismissible %}<span style="opacity:.6;font-size:.8rem;">✕ dismissible</span>{% endif %}
+</div>
+{% endif %}{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+  <!-- Create form -->
+  <div class="col-lg-5">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span><i class="fas fa-plus me-2" style="color:var(--gold);"></i>Create Announcement</span>
+      </div>
+      <div class="admin-card-body">
+        <form method="POST" action="{{ url_for('admin_add_announcement') }}">
+
+          <div class="mb-3">
+            <label class="form-label" style="color:var(--cream);font-weight:500;">Text <span style="color:#f87171;">*</span></label>
+            <textarea name="text" class="form-control" rows="3" maxlength="300" required
+              placeholder="e.g. 🎉 Get 20% off on all pastries this weekend!"
+              style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;resize:vertical;"></textarea>
+            <div class="form-text" style="color:var(--text-muted);">Max 300 characters</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-8">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Link URL</label>
+              <input type="url" name="link_url" class="form-control" placeholder="https://..."
+                style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
             </div>
-            {% if ann.is_dismissible %}
-            <span class="opacity-75 small">✕ dismissible</span>
-            {% endif %}
+            <div class="col-4">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Link Text</label>
+              <input type="text" name="link_text" class="form-control" placeholder="Shop Now"
+                style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Background</label>
+              <div class="d-flex gap-2 align-items-center">
+                <input type="color" name="bg_color" id="bgColorPicker" value="#8B4513"
+                  class="form-control form-control-color" style="width:42px;height:36px;border-radius:8px;padding:2px;cursor:pointer;">
+                <div class="d-flex flex-wrap gap-1">
+                  {% for color in ['#8B4513','#2d6a4f','#e63946','#0077b6','#7c3aed','#d4a017'] %}
+                  <div style="width:20px;height:20px;border-radius:50%;background:{{color}};cursor:pointer;border:2px solid rgba(255,255,255,.15);"
+                       onclick="document.getElementById('bgColorPicker').value='{{color}}';document.getElementById('previewBg').style.background='{{color}}'"></div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Text Color</label>
+              <div class="d-flex gap-2 align-items-center">
+                <input type="color" name="text_color" id="textColorPicker" value="#ffffff"
+                  class="form-control form-control-color" style="width:42px;height:36px;border-radius:8px;padding:2px;cursor:pointer;">
+                <div class="d-flex gap-1">
+                  {% for c, lbl in [('#ffffff','White'),('#000000','Black'),('#ffd700','Gold')] %}
+                  <div style="width:20px;height:20px;border-radius:50%;background:{{c}};cursor:pointer;border:1px solid rgba(255,255,255,.2);"
+                       onclick="document.getElementById('textColorPicker').value='{{c}}';document.getElementById('previewBg').style.color='{{c}}'"></div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" style="color:var(--cream);font-weight:500;">Icon</label>
+            <div class="d-flex flex-wrap gap-2" id="iconPicker">
+              {% for icon in ['fas fa-bullhorn','fas fa-tag','fas fa-gift','fas fa-truck','fas fa-fire','fas fa-star','fas fa-percent','fas fa-bell','fas fa-heart','fas fa-cake-candles'] %}
+              <button type="button" class="icon-btn tbl-btn" data-icon="{{ icon }}" onclick="selectIcon('{{ icon }}', this)">
+                <i class="{{ icon }}"></i>
+              </button>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="icon" id="selectedIcon" value="fas fa-bullhorn">
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Priority</label>
+              <select name="priority" class="form-select"
+                style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+                <option value="3" style="background:#1a1710;">High (show first)</option>
+                <option value="2" style="background:#1a1710;">Medium</option>
+                <option value="1" selected style="background:#1a1710;">Normal</option>
+              </select>
+            </div>
+            <div class="col-6 d-flex align-items-end">
+              <div class="form-check">
+                <input type="checkbox" name="is_dismissible" class="form-check-input" id="isDismissible" checked value="1">
+                <label class="form-check-label" for="isDismissible" style="color:var(--cream);">Allow dismiss</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">Start Date</label>
+              <input type="date" name="starts_at" class="form-control"
+                style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="color:var(--cream);font-weight:500;">End Date</label>
+              <input type="date" name="ends_at" class="form-control"
+                style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+            </div>
+          </div>
+
+          <!-- Live preview -->
+          <div class="mb-4">
+            <label class="form-label" style="color:var(--cream);font-weight:500;">Preview</label>
+            <div id="previewBg" class="p-3 rounded-3 text-center fw-semibold"
+                 style="background:#8B4513;color:#ffffff;border-radius:10px;">
+              <i id="previewIcon" class="fas fa-bullhorn me-2"></i>
+              <span id="previewText">Your announcement text will appear here…</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-brown w-100">
+            <i class="fas fa-plus me-2"></i>Create Announcement
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Announcements list -->
+  <div class="col-lg-7">
+    <div class="admin-card mb-4">
+      <div class="admin-card-header">
+        <span><i class="fas fa-list me-2" style="color:var(--gold);"></i>All Announcements ({{ announcements|length }})</span>
+      </div>
+      <div class="admin-card-body p-0">
+        {% if not announcements %}
+        <div style="text-align:center;padding:3rem 2rem;color:var(--text-muted);">
+          <i class="fas fa-bullhorn" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:1rem;"></i>
+          No announcements yet.
+        </div>
+        {% else %}
+        <div style="display:flex;flex-direction:column;gap:0;">
+          {% for ann in announcements %}
+          <div style="padding:1rem 1.25rem;{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
+            <div class="p-2 rounded-2 mb-2 d-flex align-items-center justify-content-between small"
+                 style="background:{{ ann.bg_color }};color:{{ ann.text_color }};border-radius:8px;">
+              <span><i class="{{ ann.icon }} me-2"></i>{{ ann.text[:80] }}{% if ann.text|length > 80 %}…{% endif %}</span>
+              {% if not ann.is_active %}<span style="background:rgba(0,0,0,.3);color:#fff;border-radius:4px;padding:1px 6px;font-size:.72rem;">PAUSED</span>{% endif %}
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div style="font-size:.78rem;color:var(--text-muted);">
+                Priority {{ ann.priority }} · {% if ann.is_dismissible %}Dismissible{% else %}Persistent{% endif %}
+                · {{ ann.created_at.strftime('%d %b') }}
+                {% if ann.ends_at %} · Ends {{ ann.ends_at.strftime('%d %b') }}{% endif %}
+              </div>
+              <div class="d-flex gap-1">
+                <form method="POST" action="{{ url_for('admin_toggle_announcement', ann_id=ann.id) }}">
+                  <button class="tbl-btn" title="{% if ann.is_active %}Pause{% else %}Activate{% endif %}">
+                    <i class="fas fa-{% if ann.is_active %}pause{% else %}play{% endif %}"></i>
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_delete_announcement', ann_id=ann.id) }}"
+                      onsubmit="return confirm('Delete this announcement?')">
+                  <button class="tbl-btn" title="Delete" style="color:#f87171;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
         {% endif %}
-        {% endfor %}
+      </div>
     </div>
-    {% endif %}
 
-    <div class="row g-4">
-        <!-- Create Announcement -->
-        <div class="col-lg-5">
-            <div class="card h-100">
-                <div class="card-header bg-brown text-white">
-                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create Announcement</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('admin_add_announcement') }}">
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Announcement Text <span class="text-danger">*</span></label>
-                            <textarea name="text" class="form-control" rows="3" maxlength="300"
-                                      placeholder="e.g. 🎉 Get 20% off on all pastries this weekend! Use code WEEKEND20" required></textarea>
-                            <small class="text-muted">Max 300 characters</small>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-8">
-                                <label class="form-label fw-semibold">Link URL (Optional)</label>
-                                <input type="url" name="link_url" class="form-control"
-                                       placeholder="https://example.com/sale">
-                            </div>
-                            <div class="col-4">
-                                <label class="form-label fw-semibold">Link Text</label>
-                                <input type="text" name="link_text" class="form-control" placeholder="Shop Now">
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Background Color</label>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <input type="color" name="bg_color" id="bgColorPicker"
-                                           value="#8B4513" class="form-control form-control-color" style="width:50px;">
-                                    <div class="d-flex flex-wrap gap-1">
-                                        {% for color in ['#8B4513','#2d6a4f','#e63946','#0077b6','#7c3aed','#d4a017','#1a1a2e'] %}
-                                        <div class="rounded-circle" style="width:22px;height:22px;background:{{color}};cursor:pointer;border:2px solid rgba(0,0,0,.15);"
-                                             onclick="document.getElementById('bgColorPicker').value='{{color}}';document.getElementById('previewBg').style.background='{{color}}'"></div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Text Color</label>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <input type="color" name="text_color" id="textColorPicker"
-                                           value="#ffffff" class="form-control form-control-color" style="width:50px;">
-                                    <div class="d-flex gap-1">
-                                        <div class="rounded-circle border" style="width:22px;height:22px;background:#ffffff;cursor:pointer;"
-                                             onclick="document.getElementById('textColorPicker').value='#ffffff'"></div>
-                                        <div class="rounded-circle border" style="width:22px;height:22px;background:#000000;cursor:pointer;"
-                                             onclick="document.getElementById('textColorPicker').value='#000000'"></div>
-                                        <div class="rounded-circle border" style="width:22px;height:22px;background:#ffd700;cursor:pointer;"
-                                             onclick="document.getElementById('textColorPicker').value='#ffd700'"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Icon</label>
-                            <div class="d-flex flex-wrap gap-2 mb-2" id="iconPicker">
-                                {% for icon in ['fas fa-bullhorn','fas fa-tag','fas fa-gift','fas fa-truck','fas fa-fire','fas fa-star','fas fa-percent','fas fa-bell','fas fa-heart','fas fa-cake-candles'] %}
-                                <button type="button" class="btn btn-outline-secondary btn-sm icon-btn"
-                                        data-icon="{{ icon }}" onclick="selectIcon('{{ icon }}')">
-                                    <i class="{{ icon }}"></i>
-                                </button>
-                                {% endfor %}
-                            </div>
-                            <input type="hidden" name="icon" id="selectedIcon" value="fas fa-bullhorn">
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Priority</label>
-                                <select name="priority" class="form-select">
-                                    <option value="3">High (show first)</option>
-                                    <option value="2">Medium</option>
-                                    <option value="1" selected>Normal</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Options</label>
-                                <div class="form-check mt-1">
-                                    <input type="checkbox" name="is_dismissible" class="form-check-input" id="isDismissible" checked value="1">
-                                    <label class="form-check-label" for="isDismissible">Allow dismiss</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Start Date (Optional)</label>
-                                <input type="date" name="starts_at" class="form-control">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">End Date (Optional)</label>
-                                <input type="date" name="ends_at" class="form-control">
-                            </div>
-                        </div>
-
-                        <!-- Live Preview Box -->
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold d-block">Live Preview</label>
-                            <div id="previewBg" class="p-3 rounded-3 text-center fw-semibold" style="background:#8B4513;color:#ffffff;">
-                                <i id="previewIcon" class="fas fa-bullhorn me-2"></i>
-                                <span id="previewText">Your announcement text will appear here...</span>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-brown btn-lg w-100">
-                            <i class="fas fa-plus me-2"></i>Create Announcement
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Announcements List -->
-        <div class="col-lg-7">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Announcements ({{ announcements|length }})</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if not announcements %}
-                    <div class="text-center py-5 text-muted">
-                        <i class="fas fa-bullhorn fa-3x mb-3 opacity-25"></i>
-                        <p>No announcements yet. Create one!</p>
-                    </div>
-                    {% else %}
-                    <div class="list-group list-group-flush">
-                        {% for ann in announcements %}
-                        <div class="list-group-item p-3">
-                            <!-- Color strip -->
-                            <div class="p-2 rounded-2 mb-2 d-flex align-items-center justify-content-between small"
-                                 style="background:{{ ann.bg_color }};color:{{ ann.text_color }};">
-                                <span><i class="{{ ann.icon }} me-2"></i>{{ ann.text[:80] }}{% if ann.text|length > 80 %}...{% endif %}</span>
-                                {% if not ann.is_active %}<span class="badge bg-dark">PAUSED</span>{% endif %}
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="small text-muted">
-                                    Priority: <strong>{{ ann.priority }}</strong>
-                                    · {% if ann.is_dismissible %}Dismissible{% else %}Persistent{% endif %}
-                                    · Created {{ ann.created_at.strftime('%d %b') }}
-                                    {% if ann.ends_at %} · Ends {{ ann.ends_at.strftime('%d %b') }}{% endif %}
-                                </div>
-                                <div class="d-flex gap-1">
-                                    <form method="POST" action="{{ url_for('admin_toggle_announcement', ann_id=ann.id) }}">
-                                        {% if ann.is_active %}
-                                        <button class="btn btn-sm btn-outline-warning" title="Pause">
-                                            <i class="fas fa-pause"></i>
-                                        </button>
-                                        {% else %}
-                                        <button class="btn btn-sm btn-outline-success" title="Activate">
-                                            <i class="fas fa-play"></i>
-                                        </button>
-                                        {% endif %}
-                                    </form>
-                                    <form method="POST" action="{{ url_for('admin_delete_announcement', ann_id=ann.id) }}"
-                                          onsubmit="return confirm('Delete this announcement?')">
-                                        <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Tips Card -->
-            <div class="card mt-3">
-                <div class="card-header"><h6 class="mb-0"><i class="fas fa-lightbulb me-2 text-warning"></i>Tips</h6></div>
-                <div class="card-body small text-muted">
-                    <ul class="mb-0 ps-3">
-                        <li>Only the <strong>highest-priority active</strong> announcement shows in the top bar</li>
-                        <li>Use <strong>emojis</strong> in your text to make it pop (e.g. 🎉 🎂 🏷️)</li>
-                        <li>Set an <strong>end date</strong> for time-limited promotions</li>
-                        <li>Pair with a <strong>coupon code</strong> for best results</li>
-                        <li>Use <strong>dismissible</strong> for casual updates, persistent for critical info</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+    <div style="background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:1rem 1.25rem;">
+      <h6 style="color:var(--gold);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:.6rem;">
+        <i class="fas fa-lightbulb me-2"></i>Tips
+      </h6>
+      <ul style="color:var(--text-muted);font-size:.8rem;margin:0;padding-left:1.2rem;line-height:1.8;">
+        <li>Only the highest-priority active announcement shows in the top bar</li>
+        <li>Use emojis to make announcements pop (e.g. 🎉 🎂 🏷️)</li>
+        <li>Set an end date for time-limited promotions</li>
+        <li>Pair with a coupon code for best results</li>
+      </ul>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-function selectIcon(icon) {
-    document.getElementById('selectedIcon').value = icon;
-    document.getElementById('previewIcon').className = icon + ' me-2';
-    document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('btn-brown','active'));
-    event.currentTarget.classList.add('btn-brown');
+function selectIcon(icon, btn) {
+  document.getElementById('selectedIcon').value = icon;
+  document.getElementById('previewIcon').className = icon + ' me-2';
+  document.querySelectorAll('.icon-btn').forEach(b => b.style.color = 'var(--text-muted)');
+  btn.style.color = 'var(--gold)';
 }
+document.addEventListener('DOMContentLoaded', function () {
+  const textarea = document.querySelector('textarea[name=text]');
+  const bgPicker = document.getElementById('bgColorPicker');
+  const textPicker = document.getElementById('textColorPicker');
+  const previewBg = document.getElementById('previewBg');
+  const previewText = document.getElementById('previewText');
 
-// Live preview updates
-document.addEventListener('DOMContentLoaded', function() {
-    const textarea = document.querySelector('textarea[name=text]');
-    const bgPicker = document.getElementById('bgColorPicker');
-    const textPicker = document.getElementById('textColorPicker');
-    const previewBg = document.getElementById('previewBg');
-    const previewText = document.getElementById('previewText');
+  textarea.addEventListener('input', () => {
+    previewText.textContent = textarea.value || 'Your announcement text will appear here…';
+  });
+  bgPicker.addEventListener('input', () => { previewBg.style.background = bgPicker.value; });
+  textPicker.addEventListener('input', () => { previewBg.style.color = textPicker.value; });
 
-    textarea.addEventListener('input', () => {
-        previewText.textContent = textarea.value || 'Your announcement text will appear here...';
-    });
-    bgPicker.addEventListener('input', () => {
-        previewBg.style.background = bgPicker.value;
-    });
-    textPicker.addEventListener('input', () => {
-        previewBg.style.color = textPicker.value;
-    });
-
-    // Activate first icon
-    document.querySelector('.icon-btn').classList.add('btn-brown');
+  // Highlight first icon
+  const firstIcon = document.querySelector('.icon-btn');
+  if (firstIcon) firstIcon.style.color = 'var(--gold)';
 });
 </script>
 {% endblock %}

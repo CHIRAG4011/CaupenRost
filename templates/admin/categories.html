@@ -1,119 +1,99 @@
-{% extends "base.html" %}
-
-{% block title %}Manage Categories - Admin - CaupenRost{% endblock %}
+{% extends "admin/base_admin.html" %}
+{% block title %}Categories — Admin{% endblock %}
+{% block topbar_title %}Categories{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-brown"><i class="fas fa-tags me-2"></i>Category Management</h2>
-                <a href="{{ url_for('admin_add_category') }}" class="btn btn-brown">
-                    <i class="fas fa-plus me-2"></i>Add New Category
+<div class="admin-card">
+  <div class="admin-card-header">
+    <span><i class="fas fa-tags me-2" style="color:var(--gold);"></i>Category Management</span>
+    <a href="{{ url_for('admin_add_category') }}" class="btn btn-brown btn-sm">
+      <i class="fas fa-plus me-1"></i>Add Category
+    </a>
+  </div>
+  <div class="admin-card-body p-0">
+    {% if categories %}
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Products</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in categories %}
+          <tr>
+            <td>
+              {% if category.image_url %}
+              <img src="{{ category.image_url }}" alt="{{ category.name }}"
+                   style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border);">
+              {% else %}
+              <div style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-image" style="color:var(--text-muted);font-size:.85rem;"></i>
+              </div>
+              {% endif %}
+            </td>
+            <td><strong style="color:var(--cream);">{{ category.name }}</strong></td>
+            <td style="color:var(--text-muted);max-width:220px;">
+              {% if category.description %}
+              {{ category.description[:60] }}{% if category.description|length > 60 %}…{% endif %}
+              {% else %}<em>No description</em>{% endif %}
+            </td>
+            <td>
+              <span class="status-pill" style="background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25);">
+                {{ category.get_product_count() }} products
+              </span>
+            </td>
+            <td>
+              {% if category.is_active %}
+              <span class="status-pill status-delivered">Active</span>
+              {% else %}
+              <span class="status-pill status-cancelled">Inactive</span>
+              {% endif %}
+            </td>
+            <td style="color:var(--text-muted);font-size:.82rem;">{{ category.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('admin_edit_category', category_id=category.id) }}" class="tbl-btn" title="Edit">
+                  <i class="fas fa-edit"></i>
                 </a>
-            </div>
-            
-            {% if categories %}
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Product Count</th>
-                                    <th>Status</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for category in categories %}
-                                <tr>
-                                    <td>
-                                        {% if category.image_url %}
-                                        <img src="{{ category.image_url }}" alt="{{ category.name }}" 
-                                             style="width: 50px; height: 50px; object-fit: cover;" class="rounded">
-                                        {% else %}
-                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
-                                             style="width: 50px; height: 50px;">
-                                            <i class="fas fa-image text-muted"></i>
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <strong>{{ category.name }}</strong>
-                                    </td>
-                                    <td>
-                                        {% if category.description %}
-                                        {{ category.description[:50] }}{% if category.description|length > 50 %}...{% endif %}
-                                        {% else %}
-                                        <span class="text-muted">No description</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ category.get_product_count() }} products</span>
-                                    </td>
-                                    <td>
-                                        {% if category.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <small class="text-muted">{{ category.created_at.strftime('%m/%d/%Y') }}</small>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ url_for('admin_edit_category', category_id=category.id) }}" 
-                                               class="btn btn-outline-primary" title="Edit Category">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="{{ url_for('category_products', category_name=category.name) }}" 
-                                               class="btn btn-outline-info" title="View Products" target="_blank">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <form method="post" action="{{ url_for('admin_toggle_category_status', category_id=category.id) }}" 
-                                                  class="d-inline" onsubmit="return confirm('Are you sure you want to change the status of this category?')">
-                                                {% if category.is_active %}
-                                                <button type="submit" class="btn btn-outline-warning" title="Deactivate Category">
-                                                    <i class="fas fa-pause"></i>
-                                                </button>
-                                                {% else %}
-                                                <button type="submit" class="btn btn-outline-success" title="Activate Category">
-                                                    <i class="fas fa-play"></i>
-                                                </button>
-                                                {% endif %}
-                                            </form>
-                                            <form method="post" action="{{ url_for('admin_delete_category', category_id=category.id) }}" 
-                                                  class="d-inline" onsubmit="return confirm('Are you sure you want to delete this category? This action cannot be undone. Note: Categories with products cannot be deleted.')">
-                                                <button type="submit" class="btn btn-outline-danger" title="Delete Category">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-tags fa-4x text-muted mb-4"></i>
-                <h4 class="text-muted mb-3">No categories found</h4>
-                <p class="text-muted mb-4">Start by adding your first product category to organize your inventory.</p>
-                <a href="{{ url_for('admin_add_category') }}" class="btn btn-brown btn-lg">
-                    <i class="fas fa-plus me-2"></i>Add First Category
+                <a href="{{ url_for('category_products', category_name=category.name) }}" class="tbl-btn" title="View" target="_blank">
+                  <i class="fas fa-eye"></i>
                 </a>
-            </div>
-            {% endif %}
-        </div>
+                <form method="post" action="{{ url_for('admin_toggle_category_status', category_id=category.id) }}"
+                      onsubmit="return confirm('Toggle this category status?')">
+                  <button type="submit" class="tbl-btn" title="{% if category.is_active %}Deactivate{% else %}Activate{% endif %}">
+                    <i class="fas fa-{% if category.is_active %}pause{% else %}play{% endif %}"></i>
+                  </button>
+                </form>
+                <form method="post" action="{{ url_for('admin_delete_category', category_id=category.id) }}"
+                      onsubmit="return confirm('Delete this category? Cannot be undone. Categories with products cannot be deleted.')">
+                  <button type="submit" class="tbl-btn" title="Delete" style="color:#f87171;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+    <div style="text-align:center;padding:4rem 2rem;color:var(--text-muted);">
+      <i class="fas fa-tags" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:1rem;"></i>
+      <h5 style="color:var(--cream);margin-bottom:.5rem;">No categories yet</h5>
+      <p style="margin-bottom:1.5rem;">Add categories to organise your products.</p>
+      <a href="{{ url_for('admin_add_category') }}" class="btn btn-brown">
+        <i class="fas fa-plus me-1"></i>Add First Category
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

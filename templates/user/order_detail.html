@@ -1,138 +1,154 @@
 {% extends "base.html" %}
-
-{% block title %}Order #{{ order.id }} - CaupenRost{% endblock %}
+{% block title %}Order #{{ order.id[:10] }} — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-brown mb-0">Order #{{ order.id }}</h2>
-        <a href="{{ url_for('user_orders') }}" class="btn btn-outline-brown">
-            <i class="fas fa-arrow-left me-2"></i>Back to Orders
-        </a>
-    </div>
-    
-    <!-- Order Status -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Order Status</h5>
-        </div>
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4>
-                        {% if order.status == 'pending' %}
-                        <span class="badge bg-warning fs-6">Pending Confirmation</span>
-                        {% elif order.status == 'confirmed' %}
-                        <span class="badge bg-info fs-6">Confirmed</span>
-                        {% elif order.status == 'preparing' %}
-                        <span class="badge bg-primary fs-6">Being Prepared</span>
-                        {% elif order.status == 'out_for_delivery' %}
-                        <span class="badge bg-warning fs-6">Out for Delivery</span>
-                        {% elif order.status == 'delivered' %}
-                        <span class="badge bg-success fs-6">Delivered</span>
-                        {% elif order.status == 'cancelled' %}
-                        <span class="badge bg-danger fs-6">Cancelled</span>
-                        {% endif %}
-                    </h4>
-                    <p class="text-muted">Last updated: {{ order.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                </div>
-                <div class="col-md-6">
-                    <!-- Order Progress -->
-                    <div class="progress" style="height: 25px;">
-                        {% if order.status == 'pending' %}
-                        <div class="progress-bar bg-warning" style="width: 20%">20%</div>
-                        {% elif order.status == 'confirmed' %}
-                        <div class="progress-bar bg-info" style="width: 40%">40%</div>
-                        {% elif order.status == 'preparing' %}
-                        <div class="progress-bar bg-primary" style="width: 60%">60%</div>
-                        {% elif order.status == 'out_for_delivery' %}
-                        <div class="progress-bar bg-warning" style="width: 80%">80%</div>
-                        {% elif order.status == 'delivered' %}
-                        <div class="progress-bar bg-success" style="width: 100%">100%</div>
-                        {% endif %}
-                    </div>
-                </div>
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:48px 0 32px;">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('user_orders') }}">My Orders</a></li>
+                <li class="breadcrumb-item active">Order Details</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;margin:0 0 6px;">
+                    Order <span style="color:var(--gold);">#{{ order.id[:12] }}…</span>
+                </h1>
+                <p style="color:var(--cream-muted);margin:0;font-size:0.85rem;">Placed {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                {% set s = order.status %}
+                <span class="status-pill {% if s=='pending' %}status-pending{% elif s=='confirmed' %}status-confirmed{% elif s=='preparing' %}status-preparing{% elif s=='out_for_delivery' %}status-delivery{% elif s=='delivered' %}status-delivered{% elif s=='cancelled' %}status-cancelled{% else %}status-payment{% endif %}" style="padding:8px 18px;font-size:0.8rem;">
+                    {{ s.replace('_',' ').title() }}
+                </span>
+                <a href="{{ url_for('user_orders') }}" class="btn btn-outline-brown btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </a>
             </div>
         </div>
     </div>
-    
-    <div class="row">
-        <!-- Order Items -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Order Items</h5>
-                </div>
-                <div class="card-body">
-                    {% for item in order_items %}
-                    <div class="row align-items-center border-bottom py-3">
-                        <div class="col-md-2">
-                            <img src="{{ item.product.image_url }}" 
-                                 alt="{{ item.product.name }}" 
-                                 class="img-fluid rounded">
+</section>
+
+<div class="container py-5">
+
+    <!-- Order Progress -->
+    <div class="card mb-4">
+        <div class="card-body" style="padding:28px;">
+            <h5 style="font-family:'Playfair Display',serif;margin-bottom:24px;"><i class="fas fa-truck me-2" style="color:var(--gold);"></i>Order Status</h5>
+            {% set statuses = [('pending','Order Placed'),('confirmed','Confirmed'),('preparing','Preparing'),('out_for_delivery','On the Way'),('delivered','Delivered')] %}
+            {% set status_idx = {'pending':0,'confirmed':1,'preparing':2,'out_for_delivery':3,'delivered':4} %}
+            {% set cur_idx = status_idx.get(order.status, 0) %}
+            <div class="position-relative" style="padding:0 20px;">
+                <div style="position:absolute;top:18px;left:40px;right:40px;height:2px;background:var(--glass-border);z-index:0;"></div>
+                <div style="position:absolute;top:18px;left:40px;width:{{ [cur_idx / 4 * 100, 100]|min }}%;height:2px;background:var(--grad-gold);z-index:1;transition:width 0.5s ease;"></div>
+                <div class="d-flex justify-content-between position-relative" style="z-index:2;">
+                    {% for s_id, s_label in statuses %}
+                    {% set s_done = status_idx.get(order.status, 0) >= loop.index0 %}
+                    <div class="text-center" style="flex:1;">
+                        <div style="width:36px;height:36px;border-radius:50%;{% if s_done %}background:var(--grad-gold);{% else %}background:var(--bg-card-2);border:2px solid var(--glass-border);{% endif %}display:flex;align-items:center;justify-content:center;margin:0 auto 8px;transition:all 0.3s;">
+                            <i class="fas fa-check" style="color:{% if s_done %}#080605{% else %}transparent{% endif %};font-size:0.75rem;"></i>
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="mb-1">{{ item.product.name }}</h6>
-                            <p class="text-muted small mb-0">{{ item.product.category }}</p>
-                        </div>
-                        <div class="col-md-2 text-center">
-                            <span class="fw-bold">Qty: {{ item.quantity }}</span>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <p class="fw-bold mb-0">₹{{ "%.2f"|format(item.total) }}</p>
-                            <small class="text-muted">₹{{ "%.2f"|format(item.price) }} each</small>
-                        </div>
+                        <div style="font-size:0.68rem;font-weight:600;color:{% if s_done %}var(--cream){% else %}var(--cream-muted){% endif %};white-space:nowrap;">{{ s_label }}</div>
                     </div>
                     {% endfor %}
                 </div>
             </div>
+            {% if order.status == 'cancelled' %}
+            <div class="alert alert-danger mt-4 mb-0">
+                <i class="fas fa-times-circle me-2"></i>This order has been cancelled.
+            </div>
+            {% endif %}
         </div>
-        
-        <!-- Order Summary -->
-        <div class="col-lg-4">
+    </div>
+
+    <div class="row g-4">
+        <!-- Items -->
+        <div class="col-lg-8">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Order Date:</strong><br>{{ order.created_at.strftime('%B %d, %Y') }}</p>
-                    <p><strong>Total Amount:</strong><br><span class="h4 text-brown">₹{{ "%.2f"|format(order.total) }}</span></p>
-                    
-                    <hr>
-                    
-                    <h6><i class="fas fa-map-marker-alt me-2"></i>Delivery Address:</h6>
-                    <p class="text-muted">{{ order.shipping_address }}</p>
-                    
-                    {% if order.status == 'delivered' %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        Order delivered successfully!
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-shopping-basket me-2" style="color:var(--gold);"></i>Order Items</h5></div>
+                <div class="card-body p-0">
+                    {% for item in order_items %}
+                    <div style="display:flex;align-items:center;gap:16px;padding:18px 22px;{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
+                        {% if item.product and item.product.image_url %}
+                        <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}"
+                             style="width:64px;height:64px;object-fit:cover;border-radius:12px;border:1px solid var(--glass-border);flex-shrink:0;">
+                        {% else %}
+                        <div style="width:64px;height:64px;border-radius:12px;background:var(--bg-card-2);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-bread-slice" style="color:var(--gold);"></i>
+                        </div>
+                        {% endif %}
+                        <div style="flex:1;">
+                            <div style="font-weight:600;font-size:0.92rem;margin-bottom:3px;">{{ item.product.name if item.product else item.get('name','Product') }}</div>
+                            {% if item.product %}
+                            <div style="color:var(--gold);font-size:0.72rem;letter-spacing:0.04em;text-transform:uppercase;">{{ item.product.category }}</div>
+                            {% endif %}
+                        </div>
+                        <div style="text-align:center;min-width:60px;">
+                            <div style="font-size:0.65rem;color:var(--cream-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">Qty</div>
+                            <div style="font-weight:700;font-size:0.9rem;">{{ item.quantity }}</div>
+                        </div>
+                        <div style="text-align:right;min-width:80px;">
+                            <div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--gold);font-size:1rem;">₹{{ "%.0f"|format(item.total) }}</div>
+                            <div style="font-size:0.72rem;color:var(--cream-muted);">₹{{ "%.0f"|format(item.price) }} each</div>
+                        </div>
                     </div>
-                    {% elif order.status == 'out_for_delivery' %}
-                    <div class="alert alert-warning">
-                        <i class="fas fa-truck me-2"></i>
-                        Your order is on the way!
+                    {% endfor %}
+                    <div style="padding:16px 22px;border-top:1px solid var(--glass-border);display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:600;color:var(--cream-muted);">Order Total</span>
+                        <span style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);">₹{{ "%.2f"|format(order.total) }}</span>
                     </div>
-                    {% elif order.status == 'preparing' %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-utensils me-2"></i>
-                        Your delicious treats are being prepared!
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Customer Support -->
-            <div class="card mt-3">
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="col-lg-4">
+            <!-- Order Info -->
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-receipt me-2" style="color:var(--gold);"></i>Summary</h5></div>
                 <div class="card-body">
-                    <h6 class="card-title"><i class="fas fa-headset me-2"></i>Need Help?</h6>
-                    <p class="card-text small">
-                        Contact our customer support team if you have any questions about your order.
-                    </p>
-                    <p class="small mb-0">
-                        <i class="fas fa-phone me-2"></i>(555) 123-CAKE<br>
-                        <i class="fas fa-envelope me-2"></i>support@sweetcrumbsbakery.com
-                    </p>
+                    {% for label, val in [('Order Date', order.created_at.strftime('%B %d, %Y')), ('Last Updated', order.updated_at.strftime('%d %b %Y, %I:%M %p')), ('Payment', ('Cash on Delivery' if order.payment_method=='cash_on_delivery' else 'UPI / QR Payment'))] %}
+                    <div class="d-flex justify-content-between mb-3 {% if not loop.last %}pb-3{% endif %}" style="{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
+                        <span style="color:var(--cream-muted);font-size:0.8rem;">{{ label }}</span>
+                        <span style="font-weight:600;font-size:0.82rem;text-align:right;max-width:160px;">{{ val }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>Delivery Address</h5></div>
+                <div class="card-body">
+                    <p style="color:var(--cream-dim);font-size:0.88rem;margin:0;line-height:1.7;">{{ order.shipping_address }}</p>
+                </div>
+            </div>
+
+            <!-- Status alerts -->
+            {% if order.status == 'delivered' %}
+            <div class="alert alert-success mb-3">
+                <i class="fas fa-check-circle me-2"></i>Order delivered successfully! Enjoy your treats.
+            </div>
+            {% elif order.status == 'out_for_delivery' %}
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-truck me-2"></i>Your order is on the way!
+            </div>
+            {% elif order.status == 'preparing' %}
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-fire me-2"></i>Your treats are being freshly baked!
+            </div>
+            {% endif %}
+
+            <!-- Need Help -->
+            <div class="card">
+                <div class="card-body" style="padding:18px 20px;">
+                    <h6 style="font-family:'Playfair Display',serif;margin-bottom:10px;"><i class="fas fa-headset me-2" style="color:var(--gold);"></i>Need Help?</h6>
+                    <p style="color:var(--cream-muted);font-size:0.8rem;margin-bottom:14px;">Contact our support team for any questions about this order.</p>
+                    <a href="{{ url_for('create_ticket') }}" class="btn btn-outline-brown btn-sm w-100">
+                        <i class="fas fa-plus me-1"></i>Open Support Ticket
+                    </a>
                 </div>
             </div>
         </div>

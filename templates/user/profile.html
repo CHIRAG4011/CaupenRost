@@ -1,85 +1,178 @@
 {% extends "base.html" %}
-
-{% block title %}My Profile - CaupenRost{% endblock %}
+{% block title %}My Profile — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <!-- Profile Info -->
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-brown text-white">
-                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Profile Information</h5>
-                </div>
-                <div class="card-body text-center">
-                    <i class="fas fa-user-circle fa-5x text-brown mb-3"></i>
-                    <h5>{{ current_user.username }}</h5>
-                    <p class="text-muted">{{ current_user.email }}</p>
-                    <p class="small">Member since {{ current_user.created_at.strftime('%B %Y') }}</p>
+
+<!-- Page Header -->
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:40px 0 0;">
+    <div class="container">
+        <div class="d-flex align-items-end gap-5 pb-0 flex-wrap">
+            <div style="position:relative;margin-bottom:-28px;">
+                <div style="width:90px;height:90px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:#080605;border:4px solid var(--bg-surface);box-shadow:0 0 30px rgba(212,168,67,0.3);">
+                    {{ current_user.username[0]|upper }}
                 </div>
             </div>
+            <div class="pb-4">
+                <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Member since {{ current_user.created_at.strftime('%B %Y') }}</div>
+                <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--cream);margin:0 0 4px;">{{ current_user.username }}</h1>
+                <p style="color:var(--cream-muted);font-size:0.88rem;margin:0;">{{ current_user.email }}</p>
+            </div>
         </div>
-        
-        <!-- Addresses -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-brown text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Delivery Addresses</h5>
-                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                        <i class="fas fa-plus me-1"></i>Add Address
-                    </button>
-                </div>
-                <div class="card-body">
-                    {% if addresses %}
-                    <div class="row">
-                        {% for address in addresses %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ address.name }}</h6>
-                                    <p class="card-text">
-                                        {{ address.street }}<br>
-                                        {{ address.city }}, {{ address.state }} {{ address.zip_code }}<br>
-                                        <small class="text-muted">{{ address.phone }}</small>
-                                    </p>
-                                </div>
+        <div class="d-flex gap-0 mt-5" style="border-top:1px solid var(--glass-border);">
+            {% for tab_id, tab_label, tab_icon in [('overview','Overview','fa-th-large'),('addresses','Addresses','fa-map-marker-alt'),('actions','Quick Actions','fa-bolt')] %}
+            <button onclick="showTab('{{ tab_id }}')" id="ptab_{{ tab_id }}"
+                    style="background:transparent;border:none;border-bottom:2px solid {% if loop.first %}var(--gold){% else %}transparent{% endif %};padding:14px 24px;font-size:0.82rem;font-weight:600;letter-spacing:0.04em;color:{% if loop.first %}var(--gold){% else %}var(--cream-muted){% endif %};cursor:pointer;transition:all 0.18s ease;display:flex;align-items:center;gap:8px;">
+                <i class="fas {{ tab_icon }}" style="font-size:0.8rem;"></i>{{ tab_label }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+
+    <!-- Overview Tab -->
+    <div id="tab_overview">
+        <div class="row g-4">
+            <!-- Stats Row -->
+            <div class="col-12">
+                <div class="row g-3">
+                    {% for icon, label, val, color in [
+                        ('fa-receipt','Saved Addresses', addresses|length, 'var(--gold)'),
+                        ('fa-user-shield','Account Type', 'Admin' if current_user.is_admin else 'Customer', '#4ade80'),
+                        ('fa-calendar-alt','Member Since', current_user.created_at.strftime('%b %Y'), '#60a5fa'),
+                        ('fa-envelope','Email', '—', '#a78bfa'),
+                    ] %}
+                    <div class="col-md-3 col-6">
+                        <div class="card text-center" style="padding:24px 16px;">
+                            <div style="width:48px;height:48px;border-radius:12px;background:rgba(212,168,67,0.08);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                                <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.1rem;"></i>
                             </div>
+                            <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:{{ color }};">{{ val }}</div>
+                            <div style="font-size:0.75rem;color:var(--cream-muted);font-weight:500;margin-top:4px;">{{ label }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Account Details -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-user me-2" style="color:var(--gold);"></i>Account Details</h5></div>
+                    <div class="card-body">
+                        {% for label, val in [
+                            ('Username', current_user.username),
+                            ('Email', current_user.email),
+                            ('Member Since', current_user.created_at.strftime('%d %B %Y')),
+                            ('Account Type', 'Administrator' if current_user.is_admin else 'Customer'),
+                            ('Role', (current_user.role or 'customer') | title),
+                        ] %}
+                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}mb-4 pb-4{% endif %}" style="{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
+                            <span style="color:var(--cream-muted);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">{{ label }}</span>
+                            <span style="font-weight:600;font-size:0.88rem;text-align:right;">{{ val }}</span>
                         </div>
                         {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No addresses saved</h5>
-                        <p class="text-muted">Add a delivery address to make checkout faster.</p>
-                        <button class="btn btn-brown" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                            <i class="fas fa-plus me-2"></i>Add Your First Address
-                        </button>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Quick Actions -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('user_orders') }}" class="btn btn-outline-brown w-100">
-                                <i class="fas fa-shopping-bag me-2"></i>View My Orders
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('products') }}" class="btn btn-outline-brown w-100">
-                                <i class="fas fa-shopping-cart me-2"></i>Continue Shopping
-                            </a>
-                        </div>
+
+            <!-- Quick links -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-bolt me-2" style="color:var(--gold);"></i>Quick Links</h5></div>
+                    <div class="card-body d-grid gap-2">
+                        <a href="{{ url_for('user_orders') }}" class="btn btn-outline-brown">
+                            <i class="fas fa-receipt me-2"></i>My Orders
+                        </a>
+                        <a href="{{ url_for('products') }}" class="btn btn-outline-brown">
+                            <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                        </a>
+                        <a href="{{ url_for('support_center') }}" class="btn btn-outline-brown">
+                            <i class="fas fa-headset me-2"></i>Support Center
+                        </a>
+                        <a href="{{ url_for('cart') }}" class="btn btn-outline-brown">
+                            <i class="fas fa-shopping-cart me-2"></i>View Cart
+                        </a>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Addresses Tab -->
+    <div id="tab_addresses" style="display:none;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin:0 0 4px;">Delivery Addresses</h2>
+                <p style="color:var(--cream-muted);font-size:0.85rem;margin:0;">{{ addresses|length }} saved address{{ 'es' if addresses|length != 1 }}</p>
+            </div>
+            <button class="btn btn-brown btn-sm" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                <i class="fas fa-plus me-1"></i>Add Address
+            </button>
+        </div>
+        {% if addresses %}
+        <div class="row g-3">
+            {% for address in addresses %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100" style="position:relative;">
+                    <div style="position:absolute;top:14px;right:14px;">
+                        <span style="background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.2);color:var(--gold);padding:3px 10px;border-radius:12px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">{{ address.name }}</span>
+                    </div>
+                    <div class="card-body pt-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <div style="width:40px;height:40px;border-radius:10px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+                                <i class="fas fa-map-marker-alt" style="color:var(--gold);"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:0.9rem;margin-bottom:6px;">{{ address.street }}</div>
+                                <div style="color:var(--cream-muted);font-size:0.82rem;line-height:1.6;">
+                                    {{ address.city }}, {{ address.state }} {{ address.zip_code }}
+                                    {% if address.phone %}<br><i class="fas fa-phone me-1" style="font-size:0.72rem;color:var(--gold);"></i>{{ address.phone }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div style="width:72px;height:72px;border-radius:50%;background:rgba(212,168,67,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                <i class="fas fa-map-marker-alt" style="font-size:1.5rem;color:var(--cream-muted);opacity:0.5;"></i>
+            </div>
+            <h4 style="color:var(--cream-muted);margin-bottom:8px;">No Addresses Saved</h4>
+            <p style="color:var(--cream-muted);margin-bottom:20px;font-size:0.88rem;">Add a delivery address to make checkout faster.</p>
+            <button class="btn btn-brown" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                <i class="fas fa-plus me-2"></i>Add Your First Address
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions Tab -->
+    <div id="tab_actions" style="display:none;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin:0 0 24px;">Quick Actions</h2>
+        <div class="row g-3">
+            {% for href, icon, title, desc, color in [
+                (url_for('user_orders'), 'fa-receipt', 'My Orders', 'Track your order history and status', '#d4a843'),
+                (url_for('products'), 'fa-shopping-bag', 'Continue Shopping', 'Browse our fresh bakery selection', '#4ade80'),
+                (url_for('support_center'), 'fa-headset', 'Support Center', 'Get help with orders or custom requests', '#60a5fa'),
+                (url_for('cart'), 'fa-shopping-cart', 'View Cart', 'Check your current cart items', '#a78bfa'),
+            ] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ href }}" style="text-decoration:none;">
+                    <div class="card text-center" style="padding:30px 20px;transition:all 0.2s ease;" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(212,168,67,0.3)'" onmouseout="this.style.transform='';this.style.borderColor=''">
+                        <div style="width:56px;height:56px;border-radius:16px;background:rgba(212,168,67,0.08);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                            <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.3rem;"></i>
+                        </div>
+                        <h5 style="font-size:0.95rem;margin-bottom:8px;">{{ title }}</h5>
+                        <p style="color:var(--cream-muted);font-size:0.78rem;margin:0;">{{ desc }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -89,53 +182,62 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add New Address</h5>
+                <h5 class="modal-title"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold);"></i>Add Delivery Address</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="{{ url_for('add_address') }}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="name" class="form-label">Address Name</label>
-                        <input type="text" class="form-control" id="name" name="name" 
-                               placeholder="e.g., Home, Office" required>
+                        <label class="form-label">Address Label</label>
+                        <input type="text" class="form-control" name="name" placeholder="e.g. Home, Office, Parents' House" required>
                     </div>
-                    
                     <div class="mb-3">
-                        <label for="street" class="form-label">Street Address</label>
-                        <input type="text" class="form-control" id="street" name="street" 
-                               placeholder="123 Main Street, Apt 4B" required>
+                        <label class="form-label">Street Address</label>
+                        <input type="text" class="form-control" name="street" placeholder="123 Main Street, Apt 4B" required>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">City</label>
+                            <input type="text" class="form-control" name="city" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="state" class="form-label">State</label>
-                            <input type="text" class="form-control" id="state" name="state" required>
+                        <div class="col-md-6">
+                            <label class="form-label">State</label>
+                            <input type="text" class="form-control" name="state" required>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="zip_code" class="form-label">ZIP Code</label>
-                            <input type="text" class="form-control" id="zip_code" name="zip_code" required>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label">PIN Code</label>
+                            <input type="text" class="form-control" name="zip_code" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone">
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-brown">
-                        <i class="fas fa-save me-2"></i>Save Address
-                    </button>
+                    <button type="button" class="btn btn-outline-brown btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brown btn-sm"><i class="fas fa-save me-1"></i>Save Address</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+var tabs = ['overview','addresses','actions'];
+function showTab(id) {
+    tabs.forEach(function(t) {
+        document.getElementById('tab_'+t).style.display = t===id ? '' : 'none';
+        var btn = document.getElementById('ptab_'+t);
+        if (btn) {
+            btn.style.borderBottomColor = t===id ? 'var(--gold)' : 'transparent';
+            btn.style.color = t===id ? 'var(--gold)' : 'var(--cream-muted)';
+        }
+    });
+}
+</script>
 {% endblock %}

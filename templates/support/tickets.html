@@ -1,73 +1,113 @@
-{% extends 'base.html' %}
-
-{% block title %}Support Center - CaupenRost{% endblock %}
+{% extends "base.html" %}
+{% block title %}Support Center — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i data-feather="headphones" class="me-2"></i>Support Center</h2>
-            <p class="text-muted mb-0">View and manage your support tickets</p>
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:48px 0 32px;">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">Support Center</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Help & Support</div>
+                <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;margin:0 0 6px;">Support Center</h1>
+                <p style="color:var(--cream-muted);margin:0;font-size:0.88rem;">We're here to help — view and manage your support tickets</p>
+            </div>
+            <a href="{{ url_for('create_ticket') }}" class="btn btn-brown">
+                <i class="fas fa-plus me-2"></i>New Ticket
+            </a>
         </div>
-        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
-            <i data-feather="plus" class="me-1"></i>New Ticket
-        </a>
     </div>
+</section>
 
+<div class="container py-5">
     {% if tickets %}
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Ticket ID</th>
-                        <th>Type</th>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        <th>Priority</th>
-                        <th>Created</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                    <tr>
-                        <td><strong>#{{ ticket.id }}</strong></td>
-                        <td>
+    <div class="d-flex flex-column gap-3">
+        {% for ticket in tickets %}
+        <div class="card" style="transition:all 0.2s ease;" onmouseover="this.style.borderColor='rgba(212,168,67,0.3)'" onmouseout="this.style.borderColor=''">
+            <div style="padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div class="d-flex align-items-center gap-4 flex-wrap">
+                    <!-- Icon -->
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(212,168,67,0.08);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        {% if ticket.ticket_type == 'damaged_order' %}
+                        <i class="fas fa-exclamation-triangle" style="color:#f87171;font-size:1rem;"></i>
+                        {% elif ticket.ticket_type == 'custom_order' %}
+                        <i class="fas fa-magic" style="color:#60a5fa;font-size:1rem;"></i>
+                        {% elif ticket.ticket_type == 'refund' %}
+                        <i class="fas fa-undo" style="color:#a78bfa;font-size:1rem;"></i>
+                        {% else %}
+                        <i class="fas fa-headset" style="color:var(--gold);font-size:1rem;"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:3px;">
+                            Ticket #{{ ticket.id[:8] }} · {{ ticket.created_at.strftime('%d %b %Y') }}
+                        </div>
+                        <div style="font-weight:600;font-size:0.92rem;margin-bottom:4px;">{{ ticket.subject }}</div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Type badge -->
                             {% if ticket.ticket_type == 'damaged_order' %}
-                            <span class="badge bg-danger">Damaged Order</span>
+                            <span class="status-pill status-cancelled" style="font-size:0.62rem;padding:3px 9px;">Damaged Order</span>
                             {% elif ticket.ticket_type == 'custom_order' %}
-                            <span class="badge bg-info">Custom Order</span>
-                            {% elif ticket.ticket_type == 'assistance' %}
-                            <span class="badge bg-warning text-dark">Assistance</span>
+                            <span class="status-pill status-confirmed" style="font-size:0.62rem;padding:3px 9px;">Custom Order</span>
+                            {% elif ticket.ticket_type == 'refund' %}
+                            <span class="status-pill status-preparing" style="font-size:0.62rem;padding:3px 9px;">Refund</span>
+                            {% elif ticket.ticket_type == 'delivery' %}
+                            <span class="status-pill status-delivery" style="font-size:0.62rem;padding:3px 9px;">Delivery Issue</span>
                             {% else %}
-                            <span class="badge bg-secondary">{{ ticket.ticket_type }}</span>
+                            <span class="status-pill status-closed" style="font-size:0.62rem;padding:3px 9px;">{{ ticket.ticket_type.replace('_',' ').title() if ticket.ticket_type else 'General' }}</span>
                             {% endif %}
-                        </td>
-                        <td>{{ ticket.subject[:50] if ticket.subject|length > 50 else ticket.subject }}{% if ticket.subject|length > 50 %}...{% endif %}</td>
-                        <td><span class="badge {{ ticket.get_status_badge_class() }}">{{ ticket.status.replace('_', ' ').title() }}</span></td>
-                        <td><span class="badge {{ ticket.get_priority_badge_class() }}">{{ ticket.priority.title() }}</span></td>
-                        <td>{{ ticket.created_at.strftime('%b %d, %Y') }}</td>
-                        <td>
-                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary">
-                                <i data-feather="eye" class="icon-sm"></i> View
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <!-- Priority badge -->
+                            <span class="status-pill {% if ticket.priority in ['high','urgent'] %}status-cancelled{% elif ticket.priority=='medium' %}status-pending{% else %}status-closed{% endif %}" style="font-size:0.62rem;padding:3px 9px;">
+                                {{ ticket.priority.title() }} Priority
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    {% set st = ticket.status %}
+                    <span class="status-pill {% if st=='open' %}status-open{% elif st=='in_progress' %}status-inprog{% elif st=='resolved' %}status-resolved{% else %}status-closed{% endif %}" style="padding:6px 14px;font-size:0.72rem;">
+                        {{ st.replace('_',' ').title() }}
+                    </span>
+                    <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-outline-brown btn-sm">
+                        <i class="fas fa-eye me-1"></i>View
+                    </a>
+                </div>
+            </div>
         </div>
+        {% endfor %}
     </div>
     {% else %}
     <div class="text-center py-5">
-        <i data-feather="inbox" style="width: 64px; height: 64px;" class="text-muted mb-3"></i>
-        <h4>No Support Tickets</h4>
-        <p class="text-muted">You haven't created any support tickets yet.</p>
-        <a href="{{ url_for('create_ticket') }}" class="btn btn-primary">
-            <i data-feather="plus" class="me-1"></i>Create Your First Ticket
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(212,168,67,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+            <i class="fas fa-headset" style="font-size:1.8rem;color:var(--cream-muted);opacity:0.4;"></i>
+        </div>
+        <h3 style="color:var(--cream-muted);margin-bottom:10px;">No Support Tickets</h3>
+        <p style="color:var(--cream-muted);margin-bottom:28px;font-size:0.9rem;">Haven't needed help yet? Great! If you ever do, we're just a click away.</p>
+        <a href="{{ url_for('create_ticket') }}" class="btn btn-brown">
+            <i class="fas fa-plus me-2"></i>Create Your First Ticket
         </a>
     </div>
     {% endif %}
+
+    <!-- Help Cards -->
+    <div class="row g-3 mt-4">
+        {% for icon, title, desc, color in [
+            ('fa-phone','Call Us','Mon–Sat: 7AM–9PM','#4ade80'),
+            ('fa-envelope','Email Support','hello@caupenrost.com','#60a5fa'),
+            ('fa-clock','Response Time','Within 24 hours','var(--gold)'),
+        ] %}
+        <div class="col-md-4">
+            <div class="card text-center" style="padding:24px;">
+                <i class="fas {{ icon }} mb-3" style="font-size:1.5rem;color:{{ color }};"></i>
+                <h6 style="margin-bottom:6px;">{{ title }}</h6>
+                <p style="color:var(--cream-muted);font-size:0.82rem;margin:0;">{{ desc }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

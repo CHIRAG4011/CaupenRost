@@ -1,93 +1,171 @@
-{% extends 'base.html' %}
-
-{% block title %}Create Support Ticket - CaupenRost{% endblock %}
+{% extends "base.html" %}
+{% block title %}Create Support Ticket — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:48px 0 32px;">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('support_center') }}">Support</a></li>
+        <li class="breadcrumb-item active">New Ticket</li>
+      </ol>
+    </nav>
+    <h1 class="display-heading mb-2" style="font-size:2.25rem;">Open a Support Ticket</h1>
+    <p style="color:var(--text-muted);max-width:520px;">Describe your issue in detail and our team will respond as quickly as possible.</p>
+  </div>
+</section>
+
+<section style="padding:56px 0 80px;">
+  <div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i data-feather="plus-circle" class="me-2"></i>Create Support Ticket</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('create_ticket') }}">
-                        <div class="mb-4">
-                            <label for="ticket_type" class="form-label">Ticket Type <span class="text-danger">*</span></label>
-                            <select class="form-select" id="ticket_type" name="ticket_type" required>
-                                <option value="">Select a ticket type...</option>
-                                <option value="damaged_order" {% if selected_order %}selected{% endif %}>Damaged Order</option>
-                                <option value="custom_order">Custom Order Request</option>
-                                <option value="assistance">General Assistance</option>
-                                <option value="refund">Refund Request</option>
-                                <option value="delivery">Delivery Issue</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
+      <div class="col-lg-7">
 
-                        <div class="mb-4" id="order_select_container" {% if not selected_order %}style="display: none;"{% endif %}>
-                            <label for="order_id" class="form-label">Related Order (Optional)</label>
-                            <select class="form-select" id="order_id" name="order_id">
-                                <option value="">No specific order</option>
-                                {% for order in orders %}
-                                <option value="{{ order.id }}" {% if selected_order and selected_order.id == order.id %}selected{% endif %}>
-                                    Order #{{ order.id }} - {{ order.created_at.strftime('%b %d, %Y') }} - Rs. {{ '%.2f'|format(order.total) }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="subject" class="form-label">Subject <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="subject" name="subject" 
-                                   placeholder="Brief description of your issue" required maxlength="200"
-                                   {% if selected_order %}value="Issue with Order #{{ selected_order.id }}"{% endif %}>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="priority" class="form-label">Priority</label>
-                            <select class="form-select" id="priority" name="priority">
-                                <option value="low">Low</option>
-                                <option value="normal" selected>Normal</option>
-                                <option value="high">High</option>
-                                <option value="urgent">Urgent</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="description" name="description" rows="6" 
-                                      placeholder="Please describe your issue in detail..." required></textarea>
-                            <div class="form-text">Provide as much detail as possible to help us assist you quickly.</div>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('support_center') }}" class="btn btn-outline-secondary">
-                                <i data-feather="arrow-left" class="me-1"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i data-feather="send" class="me-1"></i>Submit Ticket
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show mb-4">
+          <i class="fas fa-{{ 'check-circle' if cat == 'success' else 'exclamation-circle' }} me-2"></i>{{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="card" style="background:var(--bg-surface);border:1px solid var(--glass-border);border-radius:20px;">
+          <div class="card-body p-4 p-lg-5">
+            <form method="POST" action="{{ url_for('create_ticket') }}">
+
+              <!-- Ticket Type -->
+              <div class="mb-4">
+                <label class="form-label" style="color:var(--cream);font-weight:500;">
+                  Ticket Type <span style="color:#f87171;">*</span>
+                </label>
+                <select class="form-select" id="ticket_type" name="ticket_type" required
+                  style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+                  <option value="" style="background:#1a1710;">Select a ticket type…</option>
+                  <option value="damaged_order" style="background:#1a1710;" {% if selected_order %}selected{% endif %}>Damaged Order</option>
+                  <option value="custom_order" style="background:#1a1710;">Custom Order Request</option>
+                  <option value="assistance" style="background:#1a1710;">General Assistance</option>
+                  <option value="refund" style="background:#1a1710;">Refund Request</option>
+                  <option value="delivery" style="background:#1a1710;">Delivery Issue</option>
+                  <option value="other" style="background:#1a1710;">Other</option>
+                </select>
+              </div>
+
+              <!-- Related Order -->
+              <div class="mb-4" id="order_select_container" {% if not selected_order %}style="display:none;"{% endif %}>
+                <label class="form-label" style="color:var(--cream);font-weight:500;">Related Order (Optional)</label>
+                <select class="form-select" id="order_id" name="order_id"
+                  style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+                  <option value="" style="background:#1a1710;">No specific order</option>
+                  {% for order in orders %}
+                  <option value="{{ order.id }}" style="background:#1a1710;"
+                    {% if selected_order and selected_order.id == order.id %}selected{% endif %}>
+                    Order #{{ order.id }} — {{ order.created_at.strftime('%b %d, %Y') }} — ₹{{ '%.2f'|format(order.total) }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Subject -->
+              <div class="mb-4">
+                <label class="form-label" style="color:var(--cream);font-weight:500;">
+                  Subject <span style="color:#f87171;">*</span>
+                </label>
+                <input type="text" class="form-control" id="subject" name="subject"
+                  placeholder="Brief description of your issue"
+                  required maxlength="200"
+                  {% if selected_order %}value="Issue with Order #{{ selected_order.id }}"{% endif %}
+                  style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
+              </div>
+
+              <!-- Priority -->
+              <div class="mb-4">
+                <label class="form-label" style="color:var(--cream);font-weight:500;">Priority</label>
+                <div class="d-flex gap-2 flex-wrap" id="priority-pills">
+                  {% for val, label in [('low','Low'),('normal','Normal'),('high','High'),('urgent','Urgent')] %}
+                  <input type="radio" class="btn-check" name="priority" id="prio_{{ val }}" value="{{ val }}" {% if val == 'normal' %}checked{% endif %}>
+                  <label class="btn btn-sm" for="prio_{{ val }}"
+                    style="border:1px solid var(--glass-border);background:rgba(255,255,255,.04);color:var(--text-secondary);border-radius:8px;padding:.35rem .9rem;">
+                    {{ label }}
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-4">
+                <label class="form-label" style="color:var(--cream);font-weight:500;">
+                  Description <span style="color:#f87171;">*</span>
+                </label>
+                <textarea class="form-control" id="description" name="description" rows="6"
+                  placeholder="Please describe your issue in detail — include order numbers, dates, or any relevant information…"
+                  required
+                  style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;resize:vertical;">
+                </textarea>
+                <div class="form-text" style="color:var(--text-muted);margin-top:.4rem;">Providing more detail helps us resolve your issue faster.</div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <a href="{{ url_for('support_center') }}" class="btn btn-outline-brown">
+                  <i class="fas fa-arrow-left me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-brown">
+                  <i class="fas fa-paper-plane me-2"></i>Submit Ticket
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tips card -->
+        <div class="mt-4 p-4" style="background:rgba(212,168,67,.06);border:1px solid rgba(212,168,67,.18);border-radius:14px;">
+          <h6 style="color:var(--gold);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:.75rem;">
+            <i class="fas fa-lightbulb me-2"></i>Tips for faster resolution
+          </h6>
+          <ul style="color:var(--text-muted);font-size:.875rem;margin:0;padding-left:1.2rem;line-height:1.8;">
+            <li>Include your order number if the issue is order-related.</li>
+            <li>Describe exactly what happened and when.</li>
+            <li>Attach any relevant photos or screenshots in your message.</li>
+            <li>We typically respond within 24 hours on business days.</li>
+          </ul>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ticketType = document.getElementById('ticket_type');
-    const orderContainer = document.getElementById('order_select_container');
-    
-    ticketType.addEventListener('change', function() {
-        if (this.value === 'damaged_order' || this.value === 'delivery' || this.value === 'refund') {
-            orderContainer.style.display = 'block';
-        } else {
-            orderContainer.style.display = 'none';
-        }
+document.addEventListener('DOMContentLoaded', function () {
+  const ticketType = document.getElementById('ticket_type');
+  const orderContainer = document.getElementById('order_select_container');
+
+  ticketType.addEventListener('change', function () {
+    if (['damaged_order', 'delivery', 'refund'].includes(this.value)) {
+      orderContainer.style.display = 'block';
+    } else {
+      orderContainer.style.display = 'none';
+    }
+  });
+
+  // Highlight active priority pill
+  document.querySelectorAll('#priority-pills .btn-check').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      document.querySelectorAll('#priority-pills label').forEach(function(lbl) {
+        lbl.style.background = 'rgba(255,255,255,.04)';
+        lbl.style.color = 'var(--text-secondary)';
+        lbl.style.borderColor = 'var(--glass-border)';
+      });
+      var lbl = document.querySelector('label[for="' + radio.id + '"]');
+      if (lbl) {
+        lbl.style.background = 'rgba(212,168,67,.15)';
+        lbl.style.color = 'var(--gold)';
+        lbl.style.borderColor = 'rgba(212,168,67,.4)';
+      }
     });
+    if (radio.checked) radio.dispatchEvent(new Event('change'));
+  });
 });
 </script>
 {% endblock %}

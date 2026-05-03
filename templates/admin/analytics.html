@@ -1,360 +1,221 @@
-{% extends "base.html" %}
-
-{% block title %}Analytics - CaupenRost{% endblock %}
+{% extends "admin/base_admin.html" %}
+{% block title %}Analytics — Admin{% endblock %}
+{% block topbar_title %}Analytics{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-brown">
-            <i class="fas fa-chart-bar me-2"></i>Analytics Dashboard
-        </h2>
-        <div>
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-brown">
-                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-            </a>
-        </div>
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  {% set cards = [
+    ('Total Orders', stats.total_orders, 'fas fa-shopping-bag', '#3b82f6', '59,130,246'),
+    ('Total Revenue', '₹' ~ "%.0f"|format(stats.total_revenue), 'fas fa-indian-rupee-sign', '#d4a843', '212,168,67'),
+    ('Pending Orders', stats.pending_orders, 'fas fa-clock', '#f59e0b', '245,158,11'),
+    ('Completed', stats.completed_orders, 'fas fa-check-circle', '#22c55e', '34,197,94')
+  ] %}
+  {% for label, value, icon, color, rgb in cards %}
+  <div class="col-lg-3 col-md-6">
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:rgba({{ rgb }},.15);color:{{ color }};">
+        <i class="{{ icon }}"></i>
+      </div>
+      <div class="admin-stat-num" style="color:{{ color }};">{{ value }}</div>
+      <div class="admin-stat-label">{{ label }}</div>
     </div>
-    
-    <!-- Key Metrics Cards -->
-    <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-gradient-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">{{ stats.total_orders }}</h3>
-                            <p class="mb-0">Total Orders</p>
-                        </div>
-                        <div>
-                            <i class="fas fa-shopping-bag fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-gradient-success text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">₹{{ "%.0f"|format(stats.total_revenue) }}</h3>
-                            <p class="mb-0">Total Revenue</p>
-                        </div>
-                        <div>
-                            <i class="fas fa-rupee-sign fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-gradient-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">{{ stats.pending_orders }}</h3>
-                            <p class="mb-0">Pending Orders</p>
-                        </div>
-                        <div>
-                            <i class="fas fa-clock fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card bg-gradient-info text-white">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <h3 class="mb-0">{{ stats.completed_orders }}</h3>
-                            <p class="mb-0">Completed Orders</p>
-                        </div>
-                        <div>
-                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Visitor chart -->
+  <div class="col-lg-8">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <span><i class="fas fa-users me-2" style="color:var(--gold);"></i>Weekly Visitor Analytics</span>
+      </div>
+      <div class="admin-card-body">
+        <canvas id="visitorsChart" height="110"></canvas>
+      </div>
     </div>
-    
-    <div class="row">
-        <!-- Visitor Analytics -->
-        <div class="col-lg-8 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-users me-2"></i>Weekly Visitor Analytics
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="visitorsChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Order Status Breakdown -->
-        <div class="col-lg-4 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-pie-chart me-2"></i>Order Status Distribution
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="orderStatusChart"></canvas>
-                </div>
-            </div>
-        </div>
+  </div>
+  <!-- Order status doughnut -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <span><i class="fas fa-chart-pie me-2" style="color:var(--gold);"></i>Order Distribution</span>
+      </div>
+      <div class="admin-card-body">
+        <canvas id="orderStatusChart"></canvas>
+      </div>
     </div>
-    
-    <div class="row">
-        <!-- Product Performance -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-star me-2"></i>Top Performing Products
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Stock</th>
-                                    <th>Reviews</th>
-                                    <th>Rating</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for product in products %}
-                                {% if loop.index <= 10 %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <img src="{{ product.image_url }}" alt="{{ product.name }}" 
-                                                 style="width: 30px; height: 30px; object-fit: cover;" class="rounded me-2">
-                                            {{ product.name[:25] }}{% if product.name|length > 25 %}...{% endif %}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if product.stock < 5 %}
-                                        <span class="badge bg-danger">{{ product.stock }}</span>
-                                        {% elif product.stock < 10 %}
-                                        <span class="badge bg-warning">{{ product.stock }}</span>
-                                        {% else %}
-                                        <span class="badge bg-success">{{ product.stock }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ product.reviews.all()|length }}</td>
-                                    <td>
-                                        {% if product.get_average_rating() > 0 %}
-                                        <div class="text-warning">
-                                            {% for i in range(5) %}
-                                                {% if i < product.get_average_rating() %}
-                                                <i class="fas fa-star"></i>
-                                                {% else %}
-                                                <i class="far fa-star"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                            <small>({{ "%.1f"|format(product.get_average_rating()) }})</small>
-                                        </div>
-                                        {% else %}
-                                        <small class="text-muted">No ratings</small>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endif %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Top products -->
+  <div class="col-lg-6">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span><i class="fas fa-star me-2" style="color:var(--gold);"></i>Top Products</span>
+      </div>
+      <div class="admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead><tr><th>Product</th><th>Stock</th><th>Rating</th></tr></thead>
+            <tbody>
+              {% for product in products %}{% if loop.index <= 10 %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}"
+                         style="width:32px;height:32px;object-fit:cover;border-radius:6px;">
+                    <span style="color:var(--cream);font-size:.875rem;">{{ product.name[:28] }}{% if product.name|length > 28 %}…{% endif %}</span>
+                  </div>
+                </td>
+                <td>
+                  {% if product.stock < 5 %}
+                  <span class="status-pill status-cancelled">{{ product.stock }}</span>
+                  {% elif product.stock < 10 %}
+                  <span class="status-pill status-pending">{{ product.stock }}</span>
+                  {% else %}
+                  <span class="status-pill status-delivered">{{ product.stock }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if product.get_average_rating() > 0 %}
+                  <span style="color:var(--gold);font-size:.8rem;">
+                    {% for i in range(5) %}
+                    <i class="fas fa-{% if i < product.get_average_rating() %}star{% else %}star{% endif %}"
+                       style="opacity:{% if i < product.get_average_rating() %}1{% else %}.25{% endif %};"></i>
+                    {% endfor %}
+                    <span style="color:var(--text-muted);margin-left:.25rem;">{{ "%.1f"|format(product.get_average_rating()) }}</span>
+                  </span>
+                  {% else %}
+                  <span style="color:var(--text-muted);font-size:.8rem;">No ratings</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endif %}{% endfor %}
+            </tbody>
+          </table>
         </div>
-        
-        <!-- Recent Activity -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-activity me-2"></i>Recent Activity
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        {% for order in orders %}
-                        {% if loop.index <= 8 %}
-                        <div class="timeline-item mb-3">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0">
-                                    {% if order.status == 'pending' %}
-                                    <i class="fas fa-clock text-warning"></i>
-                                    {% elif order.status == 'confirmed' %}
-                                    <i class="fas fa-check text-info"></i>
-                                    {% elif order.status == 'preparing' %}
-                                    <i class="fas fa-utensils text-primary"></i>
-                                    {% elif order.status == 'delivered' %}
-                                    <i class="fas fa-check-circle text-success"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Order #{{ order.id }}</h6>
-                                    <p class="text-muted mb-1">
-                                        {% if order.user %}
-                                        {{ order.user.username }}
-                                        {% endif %}
-                                        placed an order for ₹{{ "%.2f"|format(order.total) }}
-                                    </p>
-                                    <small class="text-muted">{{ order.created_at.strftime('%m/%d/%Y %I:%M %p') }}</small>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-    
-    <!-- System Information -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>System Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-brown">{{ products|length }}</h4>
-                                <p class="text-muted">Total Products</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-brown">{{ users_count }}</h4>
-                                <p class="text-muted">Registered Users</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-brown">{{ reviews_count }}</h4>
-                                <p class="text-muted">Customer Reviews</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-brown">{{ addresses_count }}</h4>
-                                <p class="text-muted">Saved Addresses</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="col-lg-6">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span><i class="fas fa-bolt me-2" style="color:var(--gold);"></i>Recent Activity</span>
+      </div>
+      <div class="admin-card-body" style="max-height:340px;overflow-y:auto;">
+        <div style="display:flex;flex-direction:column;gap:.75rem;">
+          {% for order in orders %}{% if loop.index <= 8 %}
+          <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+              {% if order.status == 'delivered' %}background:rgba(34,197,94,.15);color:#86efac;
+              {% elif order.status == 'pending' %}background:rgba(245,158,11,.15);color:#fcd34d;
+              {% elif order.status == 'cancelled' %}background:rgba(220,38,38,.15);color:#f87171;
+              {% else %}background:rgba(59,130,246,.15);color:#93c5fd;{% endif %}">
+              <i class="fas fa-{% if order.status == 'delivered' %}check-circle{% elif order.status == 'pending' %}clock{% elif order.status == 'cancelled' %}times-circle{% else %}shopping-bag{% endif %}" style="font-size:.75rem;"></i>
             </div>
+            <div class="flex-grow-1">
+              <div style="color:var(--cream);font-size:.875rem;font-weight:500;">Order #{{ order.id }}</div>
+              <div style="color:var(--text-muted);font-size:.78rem;">
+                {% if order.user %}{{ order.user.username }}{% endif %}
+                · ₹{{ "%.2f"|format(order.total) }}
+              </div>
+            </div>
+            <div style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">{{ order.created_at.strftime('%d %b') }}</div>
+          </div>
+          {% endif %}{% endfor %}
         </div>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- System info -->
+<div class="admin-card">
+  <div class="admin-card-header">
+    <span><i class="fas fa-info-circle me-2" style="color:var(--gold);"></i>System Overview</span>
+  </div>
+  <div class="admin-card-body">
+    <div class="row g-4">
+      {% for label, value in [('Total Products', products|length), ('Registered Users', users_count), ('Customer Reviews', reviews_count), ('Saved Addresses', addresses_count)] %}
+      <div class="col-md-3 col-6 text-center">
+        <div style="font-size:1.75rem;font-weight:700;color:var(--gold);">{{ value }}</div>
+        <div style="color:var(--text-muted);font-size:.85rem;margin-top:.25rem;">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-// Weekly Visitors Chart
+const chartDefaults = {
+  color: 'rgba(244,232,204,.55)',
+  gridColor: 'rgba(255,255,255,.06)',
+  gold: '#d4a843'
+};
+
+// Visitor chart
 const visitorsCtx = document.getElementById('visitorsChart').getContext('2d');
 const weeklyVisitors = {{ weekly_visitors|tojson }};
-
 new Chart(visitorsCtx, {
-    type: 'line',
-    data: {
-        labels: Object.keys(weeklyVisitors),
-        datasets: [{
-            label: 'Daily Visitors',
-            data: Object.values(weeklyVisitors),
-            borderColor: '#8B4513',
-            backgroundColor: 'rgba(139, 69, 19, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
+  type: 'line',
+  data: {
+    labels: Object.keys(weeklyVisitors),
+    datasets: [{
+      label: 'Daily Visitors',
+      data: Object.values(weeklyVisitors),
+      borderColor: chartDefaults.gold,
+      backgroundColor: 'rgba(212,168,67,.08)',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: chartDefaults.gold,
+      pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: chartDefaults.color } } },
+    scales: {
+      x: { ticks: { color: chartDefaults.color }, grid: { color: chartDefaults.gridColor } },
+      y: { beginAtZero: true, ticks: { stepSize: 1, color: chartDefaults.color }, grid: { color: chartDefaults.gridColor } }
     }
+  }
 });
 
-// Order Status Distribution Chart
+// Order status doughnut
 const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
-const ordersData = [
-        {% for order in orders %}
-        {
-            id: {{ order.id }},
-            total: {{ order.total }},
-            status: "{{ order.status }}",
-            created_at: "{{ order.created_at.strftime('%Y-%m-%d') }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-
-// Calculate status distribution
+const ordersData = [{% for order in orders %}{"status":"{{ order.status }}"}{% if not loop.last %},{% endif %}{% endfor %}];
 const statusCounts = {};
-ordersData.forEach(order => {
-    statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
-});
-
+ordersData.forEach(o => { statusCounts[o.status] = (statusCounts[o.status] || 0) + 1; });
 new Chart(orderStatusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys(statusCounts).map(status => 
-            status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
-        ),
-        datasets: [{
-            data: Object.values(statusCounts),
-            backgroundColor: [
-                '#ffc107', // warning (pending)
-                '#17a2b8', // info (confirmed)
-                '#007bff', // primary (preparing)
-                '#fd7e14', // warning (out for delivery)
-                '#28a745', // success (delivered)
-                '#dc3545'  // danger (cancelled)
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
+  type: 'doughnut',
+  data: {
+    labels: Object.keys(statusCounts).map(s => s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' ')),
+    datasets: [{
+      data: Object.values(statusCounts),
+      backgroundColor: ['rgba(212,168,67,.7)','rgba(59,130,246,.7)','rgba(34,197,94,.7)','rgba(245,158,11,.7)','rgba(168,85,247,.7)','rgba(220,38,38,.7)'],
+      borderColor: 'rgba(255,255,255,.08)',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { color: chartDefaults.color, padding: 12, font: { size: 11 } } }
     }
+  }
 });
 </script>
 {% endblock %}

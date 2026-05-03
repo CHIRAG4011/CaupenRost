@@ -1,114 +1,105 @@
-{% extends "base.html" %}
-
-{% block title %}User Management - CaupenRost{% endblock %}
+{% extends "admin/base_admin.html" %}
+{% block title %}User Management — Admin{% endblock %}
+{% block topbar_title %}Users{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-brown"><i class="fas fa-users me-2"></i>User Management</h2>
-        <div>
-            <a href="{{ url_for('admin_roles') }}" class="btn btn-outline-brown me-2">
-                <i class="fas fa-user-tag me-1"></i>Manage Roles
-            </a>
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i>Dashboard
-            </a>
-        </div>
+<div class="admin-page-header">
+    <div>
+        <h1 class="admin-page-title">User Management</h1>
+        <p class="admin-page-sub">{{ users|length }} registered users</p>
     </div>
+    <a href="{{ url_for('admin_roles') }}" class="btn btn-outline-brown btn-sm">
+        <i class="fas fa-user-tag me-1"></i>Manage Roles
+    </a>
+</div>
 
-    <div class="card">
-        <div class="card-header bg-brown text-white">
-            <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Users ({{ users|length }})</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>User</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Admin</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-brown text-white d-flex align-items-center justify-content-center"
-                                         style="width:36px;height:36px;font-size:0.9rem;flex-shrink:0;">
-                                        {{ user.username[0].upper() }}
-                                    </div>
-                                    <div>
-                                        <strong>{{ user.username }}</strong>
-                                        {% if user.id == current_user.id %}
-                                        <span class="badge bg-secondary ms-1">You</span>
-                                        {% endif %}
-                                    </div>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h5><i class="fas fa-users"></i>All Users</h5>
+        <span style="font-size:0.78rem;color:var(--cream-muted);">{{ users|length }} total</span>
+    </div>
+    <div class="admin-card-body p-0">
+        <table class="admin-table w-100">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="u-avatar" style="background:hsl({{ (loop.index * 61) % 360 }},45%,35%);font-size:0.82rem;">
+                                {{ user.username[0].upper() }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:0.88rem;">
+                                    {{ user.username }}
+                                    {% if user.id == current_user.id %}
+                                    <span class="status-pill status-confirmed ms-1" style="font-size:0.6rem;padding:2px 7px;">You</span>
+                                    {% endif %}
                                 </div>
-                            </td>
-                            <td><small class="text-muted">{{ user.email }}</small></td>
-                            <td>
-                                <span class="badge
-                                    {% if user.role == 'admin' %}bg-danger
-                                    {% elif user.role == 'manager' %}bg-warning text-dark
-                                    {% elif user.role == 'staff' %}bg-info
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ (user.role or 'customer') | title }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if user.is_admin %}
-                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Admin</span>
-                                {% else %}
-                                <span class="badge bg-light text-dark border">User</span>
-                                {% endif %}
-                            </td>
-                            <td><small>{{ user.created_at.strftime('%d %b %Y') }}</small></td>
-                            <td>
-                                {% if user.id != current_user.id %}
-                                <div class="d-flex gap-1 flex-wrap">
-                                    <!-- Toggle Admin -->
-                                    <form method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}"
-                                          onsubmit="return confirm('Change admin status for {{ user.username }}?')">
-                                        {% if user.is_admin %}
-                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Remove Admin">
-                                            <i class="fas fa-user-minus"></i>
-                                        </button>
-                                        {% else %}
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Make Admin">
-                                            <i class="fas fa-user-plus"></i>
-                                        </button>
-                                        {% endif %}
-                                    </form>
-                                    <!-- Assign Role -->
-                                    <button class="btn btn-sm btn-outline-primary" title="Assign Role"
-                                            data-bs-toggle="modal" data-bs-target="#roleModal{{ user.id }}">
-                                        <i class="fas fa-user-tag"></i>
-                                    </button>
-                                </div>
-                                {% else %}
-                                <span class="text-muted small">—</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:var(--cream-muted);font-size:0.82rem;">{{ user.email }}</td>
+                    <td>
+                        {% set role = user.role or 'customer' %}
+                        <span class="status-pill {% if role=='admin' %}status-cancelled{% elif role=='manager' %}status-pending{% elif role=='staff' %}status-confirmed{% else %}status-closed{% endif %}" style="font-size:0.68rem;">
+                            {{ role | title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.is_admin %}
+                        <span class="status-pill status-delivered" style="font-size:0.68rem;"><i class="fas fa-shield-alt me-1"></i>Admin</span>
+                        {% else %}
+                        <span class="status-pill status-closed" style="font-size:0.68rem;">User</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--cream-muted);font-size:0.78rem;">{{ user.created_at.strftime('%d %b %Y') }}</td>
+                    <td>
+                        {% if user.id != current_user.id %}
+                        <div class="d-flex gap-1">
+                            <form method="POST" action="{{ url_for('toggle_admin', user_id=user.id) }}"
+                                  onsubmit="return confirm('Change admin status for {{ user.username }}?')">
+                                <button type="submit" class="tbl-btn {% if user.is_admin %}danger{% endif %}" title="{{ 'Remove Admin' if user.is_admin else 'Make Admin' }}">
+                                    <i class="fas fa-{{ 'user-minus' if user.is_admin else 'user-plus' }}"></i>
+                                </button>
+                            </form>
+                            <button class="tbl-btn primary" title="Assign Role"
+                                    data-bs-toggle="modal" data-bs-target="#roleModal{{ user.id }}">
+                                <i class="fas fa-user-tag"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <span style="color:var(--cream-muted);font-size:0.78rem;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="admin-card mt-4">
+    <div class="admin-card-body" style="padding:16px 22px;">
+        <div class="d-flex align-items-start gap-3">
+            <i class="fas fa-info-circle" style="color:var(--gold);margin-top:2px;flex-shrink:0;"></i>
+            <div style="font-size:0.82rem;color:var(--cream-muted);">
+                <strong style="color:var(--cream);">Admin Management Guide:</strong>
+                Click <i class="fas fa-user-plus" style="color:var(--gold);"></i> to grant admin access or
+                <i class="fas fa-user-minus" style="color:#f87171;"></i> to revoke it.
+                Click <i class="fas fa-user-tag" style="color:#60a5fa;"></i> to assign a custom role.
+                You cannot modify your own admin status.
             </div>
         </div>
-    </div>
-
-    <div class="alert alert-info mt-4">
-        <h6><i class="fas fa-info-circle me-2"></i>Admin Management</h6>
-        <ul class="mb-0">
-            <li>Click <i class="fas fa-user-plus"></i> to grant admin access, <i class="fas fa-user-minus"></i> to remove it</li>
-            <li>Click <i class="fas fa-user-tag"></i> to assign a custom role to a user</li>
-            <li>You cannot modify your own admin status</li>
-        </ul>
     </div>
 </div>
 
@@ -119,13 +110,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-user-tag me-2"></i>Assign Role to {{ user.username }}</h5>
+                <h5 class="modal-title"><i class="fas fa-user-tag me-2" style="color:var(--gold);"></i>Assign Role to {{ user.username }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('admin_assign_role', user_id=user.id) }}">
                 <div class="modal-body">
-                    <p class="text-muted">Current role: <strong>{{ (user.role or 'customer') | title }}</strong></p>
-                    <label class="form-label fw-semibold">Select New Role</label>
+                    <div style="background:var(--bg-card-2);border:1px solid var(--glass-border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+                        <div class="u-avatar" style="background:hsl({{ (loop.index * 61) % 360 }},45%,35%);">
+                            {{ user.username[0]|upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">{{ user.username }}</div>
+                            <div style="font-size:0.75rem;color:var(--cream-muted);">Current role: <strong style="color:var(--gold);">{{ (user.role or 'customer') | title }}</strong></div>
+                        </div>
+                    </div>
+                    <label class="form-label">Select New Role</label>
                     <select name="role" class="form-select">
                         {% for role_name in ['admin', 'manager', 'staff', 'customer'] %}
                         <option value="{{ role_name }}" {% if user.role == role_name %}selected{% endif %}>
@@ -133,16 +132,14 @@
                         </option>
                         {% endfor %}
                     </select>
-                    <div class="alert alert-warning mt-3 mb-0 small">
+                    <div class="alert alert-info mt-3 mb-0" style="font-size:0.8rem;">
                         <i class="fas fa-exclamation-triangle me-1"></i>
-                        Setting role to <strong>admin</strong> will also grant admin dashboard access.
+                        Setting role to <strong>admin</strong> will grant admin dashboard access.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-brown">
-                        <i class="fas fa-save me-1"></i>Assign Role
-                    </button>
+                    <button type="button" class="btn btn-outline-brown btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brown btn-sm"><i class="fas fa-save me-1"></i>Assign Role</button>
                 </div>
             </form>
         </div>
