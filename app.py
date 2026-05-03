@@ -91,6 +91,9 @@ with app.app_context():
             logging.warning(f"Index setup failed: {e}")
     initialize_database()
 
+from email_service import log_startup_config
+log_startup_config()
+
 SETTING_DEFAULTS = {
     'site_name': 'CaupenRost',
     'site_tagline': 'Freshly baked goods made with love',

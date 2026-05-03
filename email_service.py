@@ -114,6 +114,15 @@ def _check_email_config():
     return api_key
 
 
+def log_startup_config():
+    """Log email configuration at application startup"""
+    api_key = os.environ.get('RESEND_API_KEY', '').strip()
+    if api_key:
+        logging.info("Email startup: RESEND_API_KEY configured: True — Resend email sending is active")
+    else:
+        logging.warning("Email startup: RESEND_API_KEY configured: False — OTP codes will be logged only")
+
+
 def send_otp_email(to_email, otp, purpose='verification'):
     """Send OTP email using Resend"""
     api_key = _check_email_config()

@@ -3,142 +3,19 @@
 
 {% block extra_head %}
 <style>
-/* ── CSS 3D Product Viewer ────────────────────────────────────── */
-.css3d-scene {
-    perspective: 900px;
-    perspective-origin: center center;
-    width: 100%; height: 460px;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-    position: relative;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-}
-.css3d-scene:active { cursor: grabbing; }
-
-.css3d-scene::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at center, rgba(212,168,67,0.06) 0%, transparent 65%);
-    pointer-events: none;
-}
-
-/* Particle sparkles */
-.css3d-sparkle {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, #d4a843 0%, transparent 70%);
-    pointer-events: none;
-    animation: sparkleDrift linear infinite;
-    opacity: 0;
-}
-@keyframes sparkleDrift {
-    0%   { opacity: 0; transform: translateY(0) scale(0.5); }
-    15%  { opacity: 0.7; }
-    85%  { opacity: 0.4; }
-    100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
-}
-
-/* Main card wrapper */
-.css3d-card {
-    transform-style: preserve-3d;
-    position: relative;
-    width: 280px; height: 320px;
-    animation: css3dFloat 4s ease-in-out infinite;
-}
-@keyframes css3dFloat {
-    0%,100% { transform: translateY(0px); }
-    50%      { transform: translateY(-14px); }
-}
-
-/* Gold frame */
-.css3d-frame {
-    position: absolute;
-    inset: -8px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #d4a843 0%, #e8c564 30%, #c8952a 60%, #d4a843 100%);
-    box-shadow:
-        0 0 0 1px rgba(212,168,67,0.4),
-        0 8px 40px rgba(212,168,67,0.35),
-        0 20px 60px rgba(0,0,0,0.5),
-        inset 0 1px 0 rgba(255,255,255,0.2);
-    animation: frameGlow 3s ease-in-out infinite;
-}
-@keyframes frameGlow {
-    0%,100% { box-shadow: 0 0 0 1px rgba(212,168,67,0.4), 0 8px 40px rgba(212,168,67,0.35), 0 20px 60px rgba(0,0,0,0.5); }
-    50%      { box-shadow: 0 0 0 1px rgba(212,168,67,0.6), 0 8px 60px rgba(212,168,67,0.55), 0 20px 60px rgba(0,0,0,0.5); }
-}
-
-/* Product image face */
-.css3d-img-wrap {
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    overflow: hidden;
-    transform: translateZ(0px);
-}
-.css3d-img-wrap img {
-    width: 100%; height: 100%;
-    object-fit: cover;
+#product3DCanvas {
     display: block;
-    filter: brightness(0.95) contrast(1.08) saturate(1.1);
-    transition: filter 0.3s ease;
+    cursor: grab;
 }
-.css3d-scene:hover .css3d-img-wrap img { filter: brightness(1.05) contrast(1.1) saturate(1.2); }
-
-/* Glass sheen overlay */
-.css3d-sheen {
-    position: absolute; inset: 0;
-    border-radius: 12px;
-    background: linear-gradient(135deg,
-        rgba(255,255,255,0.12) 0%,
-        rgba(255,255,255,0) 50%,
-        rgba(212,168,67,0.06) 100%);
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-/* Corner diamonds */
-.css3d-diamond {
-    position: absolute;
-    width: 14px; height: 14px;
-    background: linear-gradient(135deg, #e8c564, #d4a843);
-    transform: rotate(45deg) translateZ(4px);
-    box-shadow: 0 0 10px rgba(212,168,67,0.7);
-    animation: diamondPulse 2s ease-in-out infinite;
-}
-.css3d-diamond:nth-child(1) { top: -13px;  left: -13px; }
-.css3d-diamond:nth-child(2) { top: -13px;  right: -13px; }
-.css3d-diamond:nth-child(3) { bottom: -13px; left: -13px; }
-.css3d-diamond:nth-child(4) { bottom: -13px; right: -13px; }
-@keyframes diamondPulse {
-    0%,100% { box-shadow: 0 0 8px rgba(212,168,67,0.6); transform: rotate(45deg) scale(1); }
-    50%      { box-shadow: 0 0 18px rgba(212,168,67,0.9); transform: rotate(45deg) scale(1.15); }
-}
-
-/* Shadow ground */
-.css3d-shadow {
-    position: absolute;
-    bottom: -30px; left: 50%;
-    transform: translateX(-50%);
-    width: 200px; height: 20px;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
-    animation: shadowPulse 4s ease-in-out infinite;
-    border-radius: 50%;
-}
-@keyframes shadowPulse {
-    0%,100% { width: 200px; opacity: 0.5; }
-    50%      { width: 160px; opacity: 0.3; }
-}
-
-/* Ambient light orb */
-.css3d-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(40px);
-    pointer-events: none;
-    opacity: 0.15;
+#product3DCanvas:active { cursor: grabbing; }
+.viewer-3d-wrap {
+    position: relative;
+    height: 460px;
+    background: radial-gradient(ellipse at 40% 35%, #1c1205 0%, #0a0806 100%);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    border: 1px solid rgba(212,168,67,0.18);
+    box-shadow: var(--shadow-lg);
 }
 </style>
 {% endblock %}
@@ -202,32 +79,11 @@
 
             <!-- 3D Viewer panel -->
             <div id="panel3D">
-                <div class="product-3d-viewer" style="height:460px;overflow:hidden;background:linear-gradient(135deg,#0a0806,#161008);">
-                    <div class="css3d-scene" id="css3dScene">
-                        <!-- Ambient orbs -->
-                        <div class="css3d-orb" style="width:300px;height:300px;background:#d4a843;top:10%;left:20%;"></div>
-                        <div class="css3d-orb" style="width:200px;height:200px;background:#c8952a;bottom:10%;right:15%;"></div>
-
-                        <!-- Sparkle particles (created by JS) -->
-
-                        <!-- Card -->
-                        <div class="css3d-card" id="css3dCard">
-                            <div class="css3d-frame"></div>
-                            <div class="css3d-diamond"></div>
-                            <div class="css3d-diamond"></div>
-                            <div class="css3d-diamond"></div>
-                            <div class="css3d-diamond"></div>
-                            <div class="css3d-img-wrap">
-                                <img src="{{ product.image_url }}" alt="{{ product.name }}" draggable="false">
-                            </div>
-                            <div class="css3d-sheen" id="css3dSheen"></div>
-                        </div>
-
-                        <!-- Shadow -->
-                        <div class="css3d-shadow" id="css3dShadow"></div>
-                    </div>
+                <div class="viewer-3d-wrap">
+                    <canvas id="product3DCanvas"></canvas>
                     <div class="viewer-controls">
-                        <i class="fas fa-mouse-pointer"></i>Drag to rotate
+                        <i class="fas fa-mouse-pointer"></i>Drag to rotate &nbsp;·&nbsp;
+                        <i class="fas fa-search-plus"></i>Scroll to zoom
                     </div>
                 </div>
             </div>
@@ -476,91 +332,490 @@ function switchTab(tab) {
     }
 }
 
-// ── CSS 3D Viewer ─────────────────────────────────────────────────
+// ── Canvas 2D – 3D Product Model Viewer ───────────────────────────
 (function() {
-    var scene  = document.getElementById('css3dScene');
-    var card   = document.getElementById('css3dCard');
-    if (!scene || !card) return;
+    var canvas = document.getElementById('product3DCanvas');
+    if (!canvas) return;
 
-    // Sparkle particles
-    for (var s = 0; s < 18; s++) {
-        var sp = document.createElement('div');
-        sp.className = 'css3d-sparkle';
-        var sz = 3 + Math.random() * 6;
-        sp.style.cssText = [
-            'width:' + sz + 'px', 'height:' + sz + 'px',
-            'left:' + (10 + Math.random() * 80) + '%',
-            'bottom:' + (5 + Math.random() * 80) + '%',
-            'animation-duration:' + (2.5 + Math.random() * 3.5) + 's',
-            'animation-delay:' + (Math.random() * 4) + 's'
-        ].join(';');
-        scene.appendChild(sp);
+    var IMG_URL  = {{ product.image_url | tojson }};
+    var CATEGORY = {{ (product.category or '') | lower | tojson }};
+    var NAME     = {{ product.name | lower | tojson }};
+    var combined = CATEGORY + ' ' + NAME;
+
+    // ── Detect shape ──
+    function getShape() {
+        if (/croissant/.test(combined))                                   return 'croissant';
+        if (/muffin|cupcake/.test(combined))                              return 'muffin';
+        if (/cake|gateau|tier|layer/.test(combined))                      return 'cake';
+        if (/cookie|biscuit|macaron/.test(combined))                      return 'cookie';
+        if (/pie|tart/.test(combined))                                    return 'pie';
+        if (/bagel/.test(combined))                                       return 'bagel';
+        if (/bread|loaf|sourdough|baguette|roll|bun|rye|wheat/.test(combined)) return 'loaf';
+        return 'loaf';
+    }
+    var SHAPE = getShape();
+
+    // ── Canvas 2D setup ──
+    var DPR = window.devicePixelRatio || 1;
+    var W   = canvas.parentElement.clientWidth || 500;
+    var H   = 460;
+    canvas.width  = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(DPR, DPR);
+    var cx = W / 2, cy = H / 2;
+
+    // ── Load product image ──
+    var productImg = new Image();
+    productImg.crossOrigin = 'anonymous';
+    productImg.src = IMG_URL;
+
+    // ── Gold dust particles ──
+    var PARTICLES = [];
+    for (var pi = 0; pi < 55; pi++) {
+        PARTICLES.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: 0.8 + Math.random() * 2.2,
+            speed: 0.12 + Math.random() * 0.22,
+            phase: Math.random() * Math.PI * 2,
+            opacity: 0.15 + Math.random() * 0.5
+        });
     }
 
-    // Drag state
-    var rotX = -8, rotY = 12;
-    var velX = 0, velY = 0;
+    // ── Rotation state ──
+    var angle   = 0.12;   // Y-axis rotation angle — start near side-on so loaf looks elongated
+    var velX    = 0.006;
     var isDragging = false, prevX = 0, prevY = 0;
-    var raf = null;
+    var floatT  = 0;
 
-    function applyTransform() {
-        var rX = Math.max(-38, Math.min(38, rotX));
-        var rY = Math.max(-50, Math.min(50, rotY));
-        card.style.transform = 'rotateX(' + (-rX) + 'deg) rotateY(' + rY + 'deg)';
+    // ── Shape helpers ──
 
-        // Sheen reacts to tilt
-        var sheen = document.getElementById('css3dSheen');
-        if (sheen) {
-            var gX = 50 + rY * 0.6;
-            var gY = 50 + rX * 0.6;
-            sheen.style.background = 'radial-gradient(circle at ' + gX + '% ' + gY + '%, ' +
-                'rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%, rgba(212,168,67,0.08) 100%)';
-        }
+    // Clip path helpers
+    function ellipsePath(ctx2, ex, ey, rx, ry) {
+        ctx2.beginPath();
+        ctx2.ellipse(ex, ey, rx, ry, 0, 0, Math.PI * 2);
     }
 
-    function tick() {
-        if (!isDragging) {
-            velX *= 0.92; velY *= 0.92;
-            if (Math.abs(velX) < 0.02 && Math.abs(velY) < 0.02) {
-                velY += 0.04;   // gentle idle auto-rotate
+    // Draw product image clipped to an ellipse
+    function drawImgEllipse(ex, ey, rx, ry, alpha) {
+        if (!productImg.complete || !productImg.naturalWidth) return;
+        ctx.save();
+        ellipsePath(ctx, ex, ey, rx, ry);
+        ctx.clip();
+        ctx.globalAlpha = (alpha === undefined ? 0.78 : alpha);
+        var iw = productImg.naturalWidth, ih = productImg.naturalHeight;
+        var scale = Math.max(rx * 2 / iw, ry * 2 / ih);
+        var dw = iw * scale, dh = ih * scale;
+        ctx.drawImage(productImg, ex - dw / 2, ey - dh / 2, dw, dh);
+        ctx.restore();
+    }
+
+    // Shading overlay: highlight top-left, darken bottom-right
+    function shadeEllipse(ex, ey, rx, ry, lightAngle) {
+        var la = lightAngle === undefined ? -0.8 : lightAngle;
+        var hlx = ex + Math.cos(la) * rx * 0.38;
+        var hly = ey + Math.sin(la) * ry * 0.45;
+        ctx.save();
+        ellipsePath(ctx, ex, ey, rx, ry);
+        ctx.clip();
+        var g = ctx.createRadialGradient(hlx, hly, rx * 0.05, ex, ey, rx * 1.1);
+        g.addColorStop(0,   'rgba(255,230,160,0.36)');
+        g.addColorStop(0.45,'rgba(0,0,0,0)');
+        g.addColorStop(1,   'rgba(0,0,0,0.42)');
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // Ground shadow — draws a flat ellipse below the object
+    function drawShadow(sx, sy, sW, sH) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, sW, sH, 0, 0, Math.PI * 2);
+        var g = ctx.createRadialGradient(sx, sy, 2, sx, sy, sW);
+        g.addColorStop(0, 'rgba(0,0,0,0.55)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // ── LOAF shape ──
+    // A bread loaf is an ellipsoid. Rotating around Y: apparent width =
+    // sqrt((L·cos)² + (R·sin)²), which naturally gives the oval → circle morph.
+    function drawLoaf(oy) {
+        var L   = 160;   // half-length (long axis — makes loaf clearly oblong)
+        var R   = 72;    // cross-section radius
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+
+        // Correct ellipsoid projection: width of the outline ellipse
+        var sW  = Math.sqrt((L * cos) * (L * cos) + (R * sin) * (R * sin));
+        if (sW < 2) sW = 2;
+        var sH  = R;
+
+        // Ground shadow
+        drawShadow(cx, oy + sH + 26, sW * 0.85, 17);
+
+        // ── Body fill — radial gradient so shading wraps the 3D shape ──
+        var litX = cx - sW * 0.28, litY = oy - sH * 0.38;
+        var bg = ctx.createRadialGradient(litX, litY, sH * 0.08, cx, oy, sW * 1.18);
+        bg.addColorStop(0,    '#d09848');
+        bg.addColorStop(0.25, '#c8892a');
+        bg.addColorStop(0.6,  '#8B4513');
+        bg.addColorStop(1,    '#3d1208');
+        ctx.save();
+        ellipsePath(ctx, cx, oy, sW, sH);
+        ctx.fillStyle = bg;
+        ctx.fill();
+        ctx.restore();
+
+        // ── Product image texture (blended over base colour) ──
+        drawImgEllipse(cx, oy, sW, sH, 0.68);
+
+        // ── Light/shade overlay ──
+        shadeEllipse(cx, oy, sW, sH, -0.85);
+
+        // ── Scoring lines (gold slash marks on top) ──
+        ctx.save();
+        ellipsePath(ctx, cx, oy, sW, sH);
+        ctx.clip();
+        ctx.strokeStyle = 'rgba(212,168,67,0.8)';
+        ctx.lineWidth   = 2;
+        ctx.lineCap     = 'round';
+        var scoreSpread = sW * 0.24;
+        [-0.36, 0, 0.36].forEach(function(off) {
+            var lx = cx + off * sW * 0.72;
+            ctx.beginPath();
+            ctx.moveTo(lx - scoreSpread, oy - sH * 0.80);
+            ctx.quadraticCurveTo(lx, oy - sH * 1.10, lx + scoreSpread, oy - sH * 0.80);
+            ctx.stroke();
+        });
+        ctx.restore();
+
+        // ── Rim glow ──
+        ctx.save();
+        ctx.shadowColor = 'rgba(212,168,67,0.22)';
+        ctx.shadowBlur  = 32;
+        ellipsePath(ctx, cx, oy, sW + 1, sH + 1);
+        ctx.strokeStyle = 'rgba(212,168,67,0.14)';
+        ctx.lineWidth   = 2;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // ── CAKE shape ──
+    function drawCake(oy) {
+        var R1 = 110, H1 = 44, R2 = 82, H2 = 36;
+        var cos = Math.cos(angle), sin = Math.sin(angle);
+        var eW1 = R1 * Math.abs(sin), eW2 = R2 * Math.abs(sin);
+        drawShadow(cx, oy + H1 + H2 + 24, R1 * 0.85, 16);
+
+        function drawTier(ty, R, H, eW, col1, col2) {
+            // Side face
+            var g = ctx.createLinearGradient(cx - R, ty, cx + R, ty + H);
+            g.addColorStop(0, col1); g.addColorStop(1, col2);
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, 0, Math.PI, 0);
+            ctx.lineTo(cx + R * Math.abs(cos), ty + H);
+            ctx.ellipse(cx, ty + H, R * Math.abs(cos) || 1, H * 0.28, 0, 0, Math.PI);
+            ctx.lineTo(cx - R * Math.abs(cos), ty);
+            ctx.fillStyle = g; ctx.fill(); ctx.restore();
+
+            // Top face ellipse
+            var topG = ctx.createRadialGradient(cx - 18, ty - 4, 8, cx, ty, R);
+            topG.addColorStop(0, '#fff5e0'); topG.addColorStop(0.6, '#f5dda0'); topG.addColorStop(1, '#c8a050');
+            ctx.save();
+            ellipsePath(ctx, cx, ty, R * Math.abs(cos) || 1, H * 0.28);
+            ctx.fillStyle = topG; ctx.fill();
+            drawImgEllipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, 0.55);
+            shadeEllipse(cx, ty, R * Math.abs(cos) || 1, H * 0.28, -1.0);
+            ctx.restore();
+
+            // Frosting rim
+            ctx.save();
+            ctx.strokeStyle = '#fff8e8'; ctx.lineWidth = 5;
+            ellipsePath(ctx, cx, ty, R * Math.abs(cos) || 1, H * 0.28);
+            ctx.stroke(); ctx.restore();
+        }
+
+        drawTier(oy - H1,     R1, H1, eW1, '#c8892a', '#3d1208');
+        drawTier(oy - H1*2 - H2 + 4, R2, H2, eW2, '#d4a030', '#5a2010');
+    }
+
+    // ── COOKIE shape ──
+    function drawCookie(oy) {
+        var R = 108, TH = 14;
+        var cos = Math.cos(angle), sin = Math.sin(angle);
+        var eW = R * Math.abs(sin);
+        drawShadow(cx, oy + TH + 20, R * 0.9, 14);
+
+        var g = ctx.createLinearGradient(cx - R, oy, cx + R, oy + TH);
+        g.addColorStop(0, '#c8892a'); g.addColorStop(1, '#3d1208');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, 0, Math.PI, 0);
+        ctx.lineTo(cx + R * Math.abs(cos), oy + TH);
+        ctx.ellipse(cx, oy + TH, R * Math.abs(cos) || 1, TH * 0.4, 0, 0, Math.PI);
+        ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+
+        var topG = ctx.createRadialGradient(cx - 20, oy - 5, 5, cx, oy, R);
+        topG.addColorStop(0, '#e0a040'); topG.addColorStop(1, '#8B4513');
+        ctx.save(); ellipsePath(ctx, cx, oy, R * Math.abs(cos) || 1, TH * 0.4);
+        ctx.fillStyle = topG; ctx.fill();
+        drawImgEllipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, 0.70);
+        shadeEllipse(cx, oy, R * Math.abs(cos) || 1, TH * 0.4, -1.1);
+        ctx.restore();
+
+        // Chocolate chips
+        [[0,0],[0.42,0.22],[-0.45,0.28],[0.18,-0.52],[-0.3,-0.4]].forEach(function(p) {
+            var chipX = cx + p[0] * R * Math.abs(cos);
+            var chipY = oy + p[1] * TH * 0.38 - 2;
+            ctx.save();
+            ctx.beginPath(); ctx.ellipse(chipX, chipY, 7, 5, 0, 0, Math.PI*2);
+            ctx.fillStyle = '#3b1c0a'; ctx.fill(); ctx.restore();
+        });
+    }
+
+    // ── MUFFIN shape ──
+    function drawMuffin(oy) {
+        var R = 85, baseH = 60, domeR = 92;
+        var cos = Math.cos(angle), sin = Math.sin(angle);
+        var bW = R * Math.abs(cos) || 1;
+        drawShadow(cx, oy + baseH + 24, R * 0.88, 14);
+
+        // Base cylinder
+        var gBase = ctx.createLinearGradient(cx - R, oy, cx + R, oy + baseH);
+        gBase.addColorStop(0, '#b8781a'); gBase.addColorStop(1, '#3d1208');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, oy, bW, baseH * 0.25, 0, Math.PI, 0);
+        ctx.lineTo(cx + bW, oy + baseH);
+        ctx.ellipse(cx, oy + baseH, bW, baseH * 0.25, 0, 0, Math.PI);
+        ctx.closePath(); ctx.fillStyle = gBase; ctx.fill(); ctx.restore();
+
+        // Dome top — use a half-ellipse
+        var dW = domeR * Math.abs(cos) || 1;
+        var dH = domeR * 0.62;
+        var gDome = ctx.createRadialGradient(cx - dW * 0.28, oy - dH * 0.6, 5, cx, oy - dH * 0.15, dW * 1.1);
+        gDome.addColorStop(0, '#d4a030'); gDome.addColorStop(0.5, '#a06820'); gDome.addColorStop(1, '#3d1208');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, oy, dW, dH, 0, Math.PI, 0);
+        ctx.fillStyle = gDome; ctx.fill();
+        drawImgEllipse(cx, oy - dH * 0.4, dW * 0.85, dH * 0.55, 0.70);
+        shadeEllipse(cx, oy - dH * 0.2, dW, dH * 0.8, -0.9);
+        ctx.restore();
+
+        // Wrapper lines on base
+        ctx.save(); ctx.strokeStyle = 'rgba(212,168,67,0.4)'; ctx.lineWidth = 1.2;
+        for (var wi = 0; wi < 4; wi++) {
+            var wy = oy + baseH * 0.18 + wi * baseH * 0.22;
+            ctx.beginPath(); ctx.ellipse(cx, wy, bW, baseH * 0.25 * 0.55, 0, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // ── CROISSANT shape ──
+    function drawCroissant(oy) {
+        var arcR = 100, tubeR = 34;
+        var cos = Math.cos(angle);
+        drawShadow(cx, oy + tubeR + 22, arcR * 0.9, 14);
+
+        var steps = 50;
+        var spread = Math.PI * 1.32;
+        var startA = Math.PI * 0.84;
+
+        function croissantPts(r) {
+            var pts = [];
+            for (var si = 0; si <= steps; si++) {
+                var a = startA + (si / steps) * spread;
+                pts.push({
+                    x: cx + arcR * Math.cos(a) * Math.abs(cos) * 0.95,
+                    y: oy + arcR * Math.sin(a) * 0.72 - tubeR * 0.2
+                });
             }
+            return pts;
         }
-        rotX += velY;
-        rotY += velX;
-        rotX = Math.max(-38, Math.min(38, rotX));
-        rotY = Math.max(-50, Math.min(50, rotY));
-        applyTransform();
-        raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
 
-    // Mouse
-    scene.addEventListener('mousedown', function(e) {
-        isDragging = true; prevX = e.clientX; prevY = e.clientY; velX = velY = 0;
-        card.style.animation = 'none';
+        var outerPts = croissantPts(arcR + tubeR);
+        var innerPts = croissantPts(arcR - tubeR);
+
+        var g = ctx.createRadialGradient(cx - 20, oy - 30, 10, cx, oy, arcR + tubeR);
+        g.addColorStop(0, '#e0a830'); g.addColorStop(0.4, '#c8892a'); g.addColorStop(1, '#3d1208');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(outerPts[0].x, outerPts[0].y);
+        outerPts.forEach(function(p) { ctx.lineTo(p.x, p.y); });
+        for (var si2 = innerPts.length - 1; si2 >= 0; si2--) { ctx.lineTo(innerPts[si2].x, innerPts[si2].y); }
+        ctx.closePath();
+        ctx.fillStyle = g; ctx.fill();
+        ctx.strokeStyle = 'rgba(212,168,67,0.3)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+        var hlG = ctx.createLinearGradient(cx - arcR, oy - tubeR*2, cx + arcR, oy + tubeR);
+        hlG.addColorStop(0, 'rgba(255,220,120,0.28)'); hlG.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = hlG; ctx.fill();
+        ctx.restore();
+    }
+
+    // ── PIE shape ──
+    function drawPie(oy) {
+        var R = 110, H1 = 30;
+        var cos = Math.cos(angle), sin = Math.sin(angle);
+        var bW = R * Math.abs(cos) || 1;
+        drawShadow(cx, oy + H1 + 24, R * 0.88, 16);
+
+        // Dish side
+        var g = ctx.createLinearGradient(cx - R, oy, cx + R, oy + H1);
+        g.addColorStop(0, '#c8892a'); g.addColorStop(1, '#3d1208');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, oy, bW, H1 * 0.3, 0, Math.PI, 0);
+        ctx.lineTo(cx + bW, oy + H1);
+        ctx.ellipse(cx, oy + H1, bW, H1 * 0.3, 0, 0, Math.PI);
+        ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+
+        // Pastry dome top
+        var dH = 30;
+        var domeG = ctx.createRadialGradient(cx - bW * 0.25, oy - dH * 0.55, 5, cx, oy, bW);
+        domeG.addColorStop(0, '#e8c050'); domeG.addColorStop(0.6, '#c8892a'); domeG.addColorStop(1, '#5a2010');
+        ctx.save();
+        ctx.beginPath(); ctx.ellipse(cx, oy, bW, dH, 0, Math.PI, 0);
+        ctx.fillStyle = domeG; ctx.fill();
+        drawImgEllipse(cx, oy - dH * 0.35, bW * 0.85, dH * 0.58, 0.65);
+        shadeEllipse(cx, oy - dH * 0.2, bW, dH * 0.85, -1.0);
+        ctx.restore();
+
+        // Pastry lattice lines
+        ctx.save(); ctx.strokeStyle = 'rgba(212,168,67,0.55)'; ctx.lineWidth = 1.5;
+        for (var li = -2; li <= 2; li++) {
+            ctx.beginPath(); ctx.moveTo(cx + li * bW * 0.22, oy - dH);
+            ctx.lineTo(cx + li * bW * 0.22, oy); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // ── BAGEL shape ──
+    function drawBagel(oy) {
+        var outerR = 105, innerR = 42, cos = Math.cos(angle), sin = Math.sin(angle);
+        var scX = Math.abs(cos);
+        drawShadow(cx, oy + outerR * 0.38 + 22, outerR * 0.88, 15);
+
+        var g = ctx.createRadialGradient(cx - 20, oy - 20, innerR, cx, oy, outerR * 1.1);
+        g.addColorStop(0, '#c8892a'); g.addColorStop(0.5, '#a06820'); g.addColorStop(1, '#3d1208');
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(cx, oy, outerR * (scX || 0.05), outerR * 0.48, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx, oy, innerR * (scX || 0.05), innerR * 0.48, 0, 0, Math.PI * 2, true);
+        ctx.fillStyle = g; ctx.fill();
+        shadeEllipse(cx, oy, outerR * (scX || 0.05), outerR * 0.48, -0.9);
+        ctx.restore();
+
+        // Sesame seeds
+        ctx.save(); ctx.fillStyle = '#e8d080';
+        [[0.65, -0.25],[0.35, 0.3],[-0.4, -0.35],[-0.6, 0.18],[0.05, -0.55]].forEach(function(p) {
+            ctx.save();
+            ctx.translate(cx + p[0] * outerR * scX, oy + p[1] * outerR * 0.48);
+            ctx.rotate(Math.random());
+            ctx.beginPath(); ctx.ellipse(0, 0, 5, 2.5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        });
+        ctx.restore();
+    }
+
+    // ── RENDER ──
+    function render() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Background gradient
+        var bg = ctx.createRadialGradient(cx, cy * 0.75, 40, cx, cy, Math.max(W, H) * 0.85);
+        bg.addColorStop(0, '#1e1305');
+        bg.addColorStop(0.5, '#110c04');
+        bg.addColorStop(1, '#0a0806');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        // Ambient glow behind model
+        var glow = ctx.createRadialGradient(cx, cy, 20, cx, cy, 180);
+        glow.addColorStop(0, 'rgba(212,168,67,0.07)');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, W, H);
+
+        // Gold dust particles
+        var now = Date.now() / 1000;
+        PARTICLES.forEach(function(p) {
+            p.y -= p.speed;
+            if (p.y < -5) p.y = H + 5;
+            var alpha = p.opacity * (0.5 + 0.5 * Math.sin(now * 1.4 + p.phase));
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#d4a843';
+            ctx.beginPath();
+            ctx.arc(p.x + Math.sin(now * 0.5 + p.phase) * 8, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Float offset
+        var floatOff = Math.sin(floatT * 0.72) * 9;
+        var oy = cy + floatOff;
+
+        // Draw the correct shape
+        if (SHAPE === 'cake')      drawCake(oy);
+        else if (SHAPE === 'cookie')    drawCookie(oy);
+        else if (SHAPE === 'muffin')    drawMuffin(oy);
+        else if (SHAPE === 'croissant') drawCroissant(oy);
+        else if (SHAPE === 'pie')       drawPie(oy);
+        else if (SHAPE === 'bagel')     drawBagel(oy);
+        else                            drawLoaf(oy);
+    }
+
+    // ── Animation loop ──
+    function tick() {
+        floatT += 0.016;
+        velX *= 0.90;
+        if (!isDragging && Math.abs(velX) < 0.002) velX = 0.008;
+        angle += velX;
+        render();
+        requestAnimationFrame(tick);
+    }
+    tick();
+
+    // ── Input ──
+    canvas.addEventListener('mousedown', function(e) {
+        isDragging = true; prevX = e.clientX; prevY = e.clientY; velX = 0;
     });
     window.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
-        velX = (e.clientX - prevX) * 0.35;
-        velY = (e.clientY - prevY) * 0.28;
+        velX = (e.clientX - prevX) * 0.018;
         prevX = e.clientX; prevY = e.clientY;
     });
     window.addEventListener('mouseup', function() { isDragging = false; });
 
-    // Touch
-    scene.addEventListener('touchstart', function(e) {
-        isDragging = true;
-        prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
-        velX = velY = 0;
-        card.style.animation = 'none';
+    canvas.addEventListener('touchstart', function(e) {
+        isDragging = true; prevX = e.touches[0].clientX; velX = 0;
     }, { passive: true });
-    scene.addEventListener('touchmove', function(e) {
+    canvas.addEventListener('touchmove', function(e) {
         if (!isDragging) return;
-        velX = (e.touches[0].clientX - prevX) * 0.35;
-        velY = (e.touches[0].clientY - prevY) * 0.28;
-        prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+        velX = (e.touches[0].clientX - prevX) * 0.018;
+        prevX = e.touches[0].clientX;
     }, { passive: true });
-    scene.addEventListener('touchend', function() { isDragging = false; }, { passive: true });
+    canvas.addEventListener('touchend', function() { isDragging = false; }, { passive: true });
+
+    // ── Resize ──
+    window.addEventListener('resize', function() {
+        var nW = canvas.parentElement.clientWidth || 500;
+        canvas.width  = nW * DPR; canvas.height = H * DPR;
+        canvas.style.width = nW + 'px'; canvas.style.height = H + 'px';
+        ctx.scale(DPR, DPR);
+        cx = nW / 2;
+    });
 })();
 
 // ── Taste Meter ──────────────────────────────────────────────────
