@@ -6,3 +6,10 @@ python-dotenv>=1.2.1
 requests>=2.32.4
 email-validator>=2.2.0
 gunicorn>=23.0.0
+bson
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+sqlalchemy
