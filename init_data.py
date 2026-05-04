@@ -33,15 +33,20 @@ def init_mongodb():
     if RESET_DB:
         logger.info("Resetting MongoDB collections...")
         db['users'].delete_many({})
-        db['categories'].delete_many({})
-        db['products'].delete_many({})
+        db['storecategory'].delete_many({})
+        db['storeitems'].delete_many({})
         db['orders'].delete_many({})
-        db['reviews'].delete_many({})
+        db['productreviews'].delete_many({})
         db['addresses'].delete_many({})
         db['visitor_logs'].delete_many({})
         db['otp_codes'].delete_many({})
         db['roles'].delete_many({})
         db['settings'].delete_many({})
+        db['tickets'].delete_many({})
+        db['ticket_messages'].delete_many({})
+        db['coupons'].delete_many({})
+        db['purchases'].delete_many({})
+        db['announcements'].delete_many({})
     
     if MongoUserRepo.count() == 0:
         logger.info("Creating admin user...")
