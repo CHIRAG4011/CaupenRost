@@ -367,6 +367,38 @@
         animation: slideInRight 0.3s ease; margin-top: 8px;
     }
     @keyframes slideInRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+
+    /* ── Bakery Cursor ── */
+    *, *::before, *::after { cursor: none !important; }
+    @media (hover: none) { *, *::before, *::after { cursor: auto !important; } }
+    .bakery-cursor {
+        position: fixed !important;
+        width: 36px; height: 36px;
+        font-size: 22px; line-height: 36px;
+        text-align: center;
+        pointer-events: none !important;
+        z-index: 2147483647 !important;
+        transform: translate(-50%, -50%);
+        filter: drop-shadow(0 2px 6px rgba(224,120,50,0.65));
+        transition: transform 0.12s ease;
+        top: -100px; left: -100px;
+        user-select: none;
+    }
+    .bakery-cursor.hover { transform: translate(-50%, -50%) scale(1.4); }
+    .bakery-cursor-trail {
+        position: fixed !important;
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(224,120,50,0.45) 0%, transparent 70%);
+        pointer-events: none !important;
+        z-index: 2147483646 !important;
+        transform: translate(-50%, -50%);
+        top: -100px; left: -100px;
+    }
+    @keyframes touchRippleAdmin {
+        0%   { transform: translate(-50%,-50%) scale(0); opacity:1; }
+        100% { transform: translate(-50%,-50%) scale(2.5); opacity:0; }
+    }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -505,36 +537,43 @@ function showToast(msg, type='success') {
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
 }
 
-// ── Bakery Cursor (same as storefront) ───────────────────────
-(function() {
+// ── Bakery Cursor ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
     if (window.matchMedia('(hover: none)').matches) return;
+
     var cursor = document.createElement('div');
     cursor.className = 'bakery-cursor';
     cursor.textContent = '🥐';
     document.body.appendChild(cursor);
+
     var trail = document.createElement('div');
     trail.className = 'bakery-cursor-trail';
     document.body.appendChild(trail);
-    var mx = -100, my = -100, tx = -100, ty = -100;
+
+    var mx = -200, my = -200, tx = -200, ty = -200;
+
     document.addEventListener('mousemove', function(e) {
         mx = e.clientX; my = e.clientY;
         cursor.style.left = mx + 'px';
         cursor.style.top  = my + 'px';
     });
+
     (function trailLoop() {
-        tx += (mx - tx) * 0.18;
-        ty += (my - ty) * 0.18;
+        tx += (mx - tx) * 0.15;
+        ty += (my - ty) * 0.15;
         trail.style.left = tx + 'px';
         trail.style.top  = ty + 'px';
         requestAnimationFrame(trailLoop);
     })();
-    document.querySelectorAll('a, button, .admin-nav-link, .admin-stat-card, input, select, textarea').forEach(function(el) {
+
+    document.querySelectorAll('a, button, input, select, textarea, .admin-nav-link, .admin-stat-card, [role="button"]').forEach(function(el) {
         el.addEventListener('mouseenter', function() { cursor.classList.add('hover'); });
         el.addEventListener('mouseleave', function() { cursor.classList.remove('hover'); });
     });
-    document.addEventListener('mouseleave', function() { cursor.style.opacity='0'; trail.style.opacity='0'; });
-    document.addEventListener('mouseenter', function() { cursor.style.opacity='1'; trail.style.opacity='1'; });
-})();
+
+    document.addEventListener('mouseleave', function() { cursor.style.opacity = '0'; });
+    document.addEventListener('mouseenter', function() { cursor.style.opacity = '1'; });
+});
 </script>
 {% block extra_scripts %}{% endblock %}
 </body>
