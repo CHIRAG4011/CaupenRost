@@ -152,6 +152,7 @@ def inject_active_announcement():
 
 
 from routes import *
+import api_routes  # noqa: F401 — registers /api/* JSON endpoints
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
