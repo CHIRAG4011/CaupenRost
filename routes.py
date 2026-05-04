@@ -1323,15 +1323,29 @@ def admin_add_coupon():
     if CouponRepo.find_by_code(code):
         flash(f'Coupon "{code}" already exists.', 'error')
         return redirect(url_for('admin_coupons'))
+    def _f(key): 
+        try: return float(request.form.get(key) or 0)
+        except (TypeError, ValueError): return 0.0
+    def _i(key):
+        try: return int(float(request.form.get(key) or 0))
+        except (TypeError, ValueError): return 0
+    exp_str = request.form.get('expires_at', '').strip()
+    expires_at = None
+    if exp_str:
+        try:
+            from datetime import datetime as _dt
+            expires_at = _dt.strptime(exp_str[:10], '%Y-%m-%d')
+        except ValueError:
+            expires_at = None
     CouponRepo.create({
         'code': code,
         'description': request.form.get('description', '').strip(),
         'discount_type': request.form.get('discount_type', 'percentage'),
-        'discount_value': request.form.get('discount_value', 0),
-        'min_order_amount': request.form.get('min_order_amount', 0),
-        'max_discount': request.form.get('max_discount', 0),
-        'max_uses': request.form.get('max_uses', 0),
-        'expires_at': request.form.get('expires_at', '')
+        'discount_value':   _f('discount_value'),
+        'min_order_amount': _f('min_order_amount'),
+        'max_discount':     _f('max_discount'),
+        'max_uses':         _i('max_uses'),
+        'expires_at': expires_at
     })
     flash(f'Coupon "{code}" created!', 'success')
     return redirect(url_for('admin_coupons'))
