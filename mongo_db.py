@@ -26,7 +26,14 @@ def get_mongo_db():
     
     try:
         from pymongo import MongoClient
-        _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+        _mongo_client = MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=10000,
+            maxPoolSize=1,          # serverless: one connection per function instance
+            retryWrites=True,
+        )
         _mongo_client.server_info()
         
         db_name = mongo_uri.split('/')[-1].split('?')[0].strip() or 'caupenrost'
