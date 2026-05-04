@@ -3,6 +3,15 @@
 ## Overview
 CaupenRost is a Flask-based bakery e-commerce website. It supports browsing products, adding items to a cart, placing orders via OTP-verified checkout, and an admin dashboard for managing the store.
 
+## UI Theme (last updated May 2026)
+- **Color palette**: Warm dark mahogany backgrounds (`#080604`, `#1a0f07`) with burnt orange/terracotta accent (`#e07832`) replacing the previous yellow-gold. Warm cream text (`#f6e8d5`).
+- **Custom cursor**: Croissant emoji 🥐 cursor with a glowing orange trail (desktop only).
+- **Mobile touch**: Orange radial ripple effect on every touch event.
+- **Review slider**: Auto-sliding carousel with swipe support, prev/next buttons, and dot indicators. Replaces static review grid. Falls back to a "Be first to review" CTA when no reviews.
+- **Clickable product cards**: Entire card navigates to product detail. Add-to-cart buttons stop event propagation.
+- **Animations**: Hero fade-up entrance, feature card pulse glow, button shimmer slides.
+- **Admin**: Prominent "Back to Site" branded button in topbar. Customer Testimonials section removed from settings page. Coupons stat cards use correct `.admin-stat-num` CSS class.
+
 ## Architecture
 - **Backend**: Python/Flask with Jinja2 templating
 - **Database**: PostgreSQL via Flask-SQLAlchemy (also supports MongoDB via environment variable)

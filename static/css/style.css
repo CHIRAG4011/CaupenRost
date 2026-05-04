@@ -6,34 +6,34 @@
 
 /* ── CSS Custom Properties ─────────────────────────────────── */
 :root {
-  --bg-base:     #080605;
-  --bg-surface:  #100d08;
-  --bg-card:     #161108;
-  --bg-card-2:   #1e1810;
-  --bg-card-3:   #252019;
+  --bg-base:     #080604;
+  --bg-surface:  #110a05;
+  --bg-card:     #1a0f07;
+  --bg-card-2:   #231508;
+  --bg-card-3:   #2c1c0e;
 
-  --gold:        #d4a843;
-  --gold-light:  #e8c060;
-  --gold-dark:   #a8822a;
-  --gold-glow:   rgba(212,168,67,0.3);
-  --amber:       #c07828;
-  --rust:        #b04820;
+  --gold:        #e07832;
+  --gold-light:  #f09248;
+  --gold-dark:   #b05a20;
+  --gold-glow:   rgba(224,120,50,0.32);
+  --amber:       #e8a030;
+  --rust:        #c03c18;
 
-  --cream:       #f4e8cc;
-  --cream-dim:   rgba(244,232,204,0.72);
-  --cream-muted: rgba(244,232,204,0.4);
+  --cream:       #f6e8d5;
+  --cream-dim:   rgba(246,232,213,0.75);
+  --cream-muted: rgba(246,232,213,0.42);
 
-  --glass-bg:    rgba(14,10,5,0.82);
-  --glass-border:rgba(212,168,67,0.14);
+  --glass-bg:    rgba(12,7,3,0.86);
+  --glass-border:rgba(224,120,50,0.16);
   --glass-blur:  blur(20px);
 
-  --grad-gold:   linear-gradient(135deg,#d4a843 0%,#e8c060 50%,#b08030 100%);
-  --grad-hero:   linear-gradient(135deg,#080605 0%,#140f08 60%,#0a0806 100%);
+  --grad-gold:   linear-gradient(135deg,#e07832 0%,#f09248 50%,#b85c28 100%);
+  --grad-hero:   linear-gradient(135deg,#080604 0%,#180c05 60%,#080604 100%);
 
   --shadow-sm:   0 2px 12px rgba(0,0,0,0.5);
   --shadow-md:   0 6px 28px rgba(0,0,0,0.6);
   --shadow-lg:   0 12px 56px rgba(0,0,0,0.7);
-  --shadow-gold: 0 0 40px rgba(212,168,67,0.2), 0 6px 24px rgba(0,0,0,0.6);
+  --shadow-gold: 0 0 40px rgba(224,120,50,0.25), 0 6px 24px rgba(0,0,0,0.6);
 
   --font-display:'Playfair Display', serif;
   --font-body:   'Inter', sans-serif;
@@ -48,6 +48,7 @@
   --t-normal: 0.3s cubic-bezier(0.4,0,0.2,1);
   --t-slow:   0.55s cubic-bezier(0.4,0,0.2,1);
   --t-spring: 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  --text-muted: rgba(246,232,213,0.42);
 }
 
 /* ── Reset & Base ───────────────────────────────────────────── */
@@ -987,3 +988,197 @@ footer p { color: var(--cream-muted); font-size: 0.85rem; line-height: 1.75; }
 .min-vh-50 { min-height: 50vh; }
 .rounded-4 { border-radius: var(--r-lg) !important; }
 .rounded-5 { border-radius: var(--r-xl) !important; }
+
+/* ── Custom Bakery Cursor ─────────────────────────────────── */
+* { cursor: none !important; }
+.bakery-cursor {
+  position: fixed;
+  width: 36px; height: 36px;
+  font-size: 22px;
+  line-height: 36px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s ease;
+  filter: drop-shadow(0 2px 6px rgba(224,120,50,0.6));
+  will-change: left, top;
+}
+.bakery-cursor.hover {
+  transform: translate(-50%, -50%) scale(1.35);
+}
+.bakery-cursor-trail {
+  position: fixed;
+  width: 18px; height: 18px;
+  background: radial-gradient(circle, rgba(224,120,50,0.45) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%, -50%);
+  transition: left 0.12s ease, top 0.12s ease;
+}
+@media (hover: none) {
+  .bakery-cursor, .bakery-cursor-trail { display: none !important; }
+  * { cursor: auto !important; }
+}
+
+/* ── Touch Ripple ─────────────────────────────────────────── */
+.touch-ripple {
+  position: fixed;
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(224,120,50,0.35) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  animation: touchRippleAnim 0.55s ease-out forwards;
+  pointer-events: none;
+  z-index: 99997;
+}
+@keyframes touchRippleAnim {
+  0%   { transform: translate(-50%,-50%) scale(0); opacity:1; }
+  100% { transform: translate(-50%,-50%) scale(2.5); opacity:0; }
+}
+
+/* ── Review Slider ───────────────────────────────────────── */
+.reviews-slider-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+}
+.reviews-slider {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+.review-slide {
+  flex: 0 0 calc(100% / 3);
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+@media (max-width: 991px) { .review-slide { flex: 0 0 50%; } }
+@media (max-width: 575px) { .review-slide { flex: 0 0 100%; } }
+
+.slider-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+.slider-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(224,120,50,0.1);
+  border: 1.5px solid rgba(224,120,50,0.3);
+  color: var(--gold);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  display: flex; align-items: center; justify-content: center;
+}
+.slider-btn:hover {
+  background: var(--grad-gold);
+  color: #080604;
+  border-color: transparent;
+  transform: scale(1.1);
+}
+.slider-dots { display: flex; gap: 8px; align-items: center; }
+.slider-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(224,120,50,0.25);
+  border: none;
+  cursor: pointer;
+  transition: all var(--t-normal);
+  padding: 0;
+}
+.slider-dot.active {
+  background: var(--gold);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ── Product Card as Link ────────────────────────────────── */
+.product-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+.product-card-link:hover { color: inherit; }
+
+/* ── Extra Animations ────────────────────────────────────── */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 18px rgba(224,120,50,0.15); }
+  50%       { box-shadow: 0 0 36px rgba(224,120,50,0.4); }
+}
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+.btn-brown:after, .btn-gold:after {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: shimmerSlide 2.5s infinite;
+}
+.feature-card { animation: pulseGlow 4s ease-in-out infinite; }
+.feature-card:hover { animation: none; }
+
+/* fade-up for hero content */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(28px); }
+  to   { opacity:1; transform:none; }
+}
+.hero-content > * { animation: fadeUp 0.7s ease both; }
+.hero-content > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-content > *:nth-child(2) { animation-delay: 0.22s; }
+.hero-content > *:nth-child(3) { animation-delay: 0.34s; }
+.hero-content > *:nth-child(4) { animation-delay: 0.46s; }
+
+/* floating bakery icons in background */
+.bg-float-icon {
+  position: absolute;
+  font-size: 2.4rem;
+  opacity: 0.04;
+  pointer-events: none;
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+/* Admin back to site button */
+.back-to-site-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  background: var(--grad-gold);
+  color: #080604 !important;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.back-to-site-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(224,120,50,0.4);
+  color: #080604 !important;
+}
+
+/* Swipe hint for mobile */
+.swipe-hint {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--cream-muted);
+  margin-top: 10px;
+  display: none;
+}
+@media (hover: none) { .swipe-hint { display: block; } }
+
+/* admin stat num fix */
+.admin-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}

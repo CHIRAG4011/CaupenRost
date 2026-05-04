@@ -101,52 +101,6 @@
     </div>
   </div>
 
-  <!-- Testimonials -->
-  <div class="admin-card mb-4">
-    <div class="admin-card-header">
-      <span><i class="fas fa-quote-left me-2" style="color:var(--gold);"></i>Customer Testimonials</span>
-    </div>
-    <div class="admin-card-body">
-      {% for i in [1, 2, 3] %}
-      <div style="background:rgba(255,255,255,.02);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;{% if not loop.last %}margin-bottom:1rem;{% endif %}">
-        <h6 style="color:var(--gold);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.85rem;">
-          <i class="fas fa-star me-1"></i>Testimonial {{ i }}
-        </h6>
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label" style="color:var(--cream);font-weight:500;">Name</label>
-            <input type="text" name="testimonial_{{ i }}_name" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_name'] }}"
-              style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label" style="color:var(--cream);font-weight:500;">Role / Title</label>
-            <input type="text" name="testimonial_{{ i }}_role" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_role'] }}"
-              style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label" style="color:var(--cream);font-weight:500;">Photo URL</label>
-            <input type="text" name="testimonial_{{ i }}_img" class="form-control" value="{{ settings['testimonial_' ~ i ~ '_img'] }}"
-              placeholder="https://… or /static/images/…"
-              style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;">
-            {% if settings['testimonial_' ~ i ~ '_img'] %}
-            <div class="mt-2">
-              <img src="{{ settings['testimonial_' ~ i ~ '_img'] }}"
-                   style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--glass-border);"
-                   onerror="this.style.display='none'">
-            </div>
-            {% endif %}
-          </div>
-          <div class="col-12">
-            <label class="form-label" style="color:var(--cream);font-weight:500;">Quote</label>
-            <textarea name="testimonial_{{ i }}_text" class="form-control" rows="2"
-              style="background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:var(--cream);border-radius:10px;resize:vertical;">{{ settings['testimonial_' ~ i ~ '_text'] }}</textarea>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
   <!-- CTA -->
   <div class="admin-card mb-4">
     <div class="admin-card-header">

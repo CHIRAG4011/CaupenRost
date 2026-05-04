@@ -95,7 +95,7 @@
             <div class="row g-4 stagger-children">
                 {% for product in products %}
                 <div class="col-xl-4 col-md-6 reveal">
-                    <div class="card product-card h-100">
+                    <div class="card product-card h-100" onclick="window.location='{{ url_for('product_detail', product_id=product.id) }}'">
                         <div class="product-image-wrapper">
                             <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}" loading="lazy">
 
@@ -110,11 +110,11 @@
                             {% endif %}
 
                             <div class="product-quick-actions">
-                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details">
+                                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details" onclick="event.stopPropagation()">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 {% if product.stock > 0 %}
-                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="d-inline">
+                                <form method="post" action="{{ url_for('add_to_cart_route', product_id=product.id) }}" class="d-inline" onclick="event.stopPropagation()">
                                     <button type="submit" class="quick-action-btn" title="Add to Cart">
                                         <i class="fas fa-cart-plus"></i>
                                     </button>
@@ -138,7 +138,7 @@
                                 {% endif %}
                             </div>
                             <p class="card-text">{{ (product.description or '')[:75] }}…</p>
-                            <div class="mt-auto pt-3" style="border-top:1px solid var(--glass-border);">
+                            <div class="mt-auto pt-3" style="border-top:1px solid var(--glass-border);" onclick="event.stopPropagation()">
                                 <div class="mb-2">
                                     {% if product.stock > 10 %}
                                     <small style="color:#5dba7d;font-size:0.75rem;"><i class="fas fa-check-circle me-1"></i>In Stock</small>
