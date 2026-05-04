@@ -19,8 +19,8 @@ def get_mongo_db():
         return _mongo_db
     
     mongo_uri = (
-        os.environ.get('MONGO_URI') or
-        (os.environ.get('DATABASE_URL') if os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL', '') else None) or
+        (os.environ.get('MONGO_URI') or '').strip() or
+        ((os.environ.get('DATABASE_URL') or '').strip() if os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL', '') else None) or
         'mongodb://localhost:27017/caupenrost'
     )
     
@@ -29,7 +29,7 @@ def get_mongo_db():
         _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         _mongo_client.server_info()
         
-        db_name = mongo_uri.split('/')[-1].split('?')[0] or 'caupenrost'
+        db_name = mongo_uri.split('/')[-1].split('?')[0].strip() or 'caupenrost'
         _mongo_db = _mongo_client[db_name]
         logging.info(f"Connected to MongoDB database: {db_name}")
         return _mongo_db
