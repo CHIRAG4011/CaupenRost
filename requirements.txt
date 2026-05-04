@@ -11,4 +11,3 @@ psycopg2-binary>=2.9.10
 sqlalchemy>=2.0.42
 flask-cors>=4.0.0
 bson
-flask-cors
