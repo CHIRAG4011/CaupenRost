@@ -1,890 +1,346 @@
-# CaupenRost - Deployment Guide
+# CaupenRost — Deployment Guide
 
-## Overview
-This comprehensive guide covers deploying the CaupenRost Flask e-commerce application both locally and on various free hosting platforms. The application uses Indian Rupee (₹) currency and includes features like product management, cart functionality, order tracking, and admin dashboard.
+> Artisan Bakery E-Commerce · Flask + MongoDB · Dual-Server Architecture
 
-## 🏠 Local Development Setup
+---
+
+## Architecture Overview
+
+CaupenRost runs as **two servers**:
+
+| Server | Port | Role | Command |
+|--------|------|------|---------|
+| **Frontend** | 5000 | HTML pages (Jinja2) + `/api/*` JSON endpoints | `python3 -m gunicorn --bind 0.0.0.0:5000 main:app` |
+| **API Server** | 8080 | Pure JSON REST API, CORS-enabled, MongoDB cart | `python3 -m gunicorn --bind 0.0.0.0:8080 'api_server:api_app'` |
+
+**Database:** MongoDB (primary) with PostgreSQL/SQLite fallback  
+**Email:** Resend API (OTP verification, order confirmations)  
+**Cart storage:** Flask session (frontend) · MongoDB `api_carts` collection (API server)
+
+---
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SESSION_SECRET` | ✅ Yes | Flask session signing key — use a long random string |
+| `MONGO_URI` | ✅ Recommended | MongoDB Atlas connection string |
+| `RESEND_API_KEY` | Optional | Enables real email delivery for OTPs |
+| `DATABASE_URL` | Optional | PostgreSQL URL (fallback if MONGO_URI not set) |
+
+> If neither `MONGO_URI` nor `DATABASE_URL` is set, the app falls back to SQLite at `/tmp/app.db`.
+
+---
+
+## Local Development Setup
 
 ### Prerequisites
-- **Python 3.11 or higher** (recommended: Python 3.11.7)
-- **Git** (for cloning the repository)
-- **Code Editor** (VS Code, PyCharm, or any preferred editor)
-- **Web Browser** (Chrome, Firefox, Safari, or Edge)
+- Python 3.11+
+- Git
+- MongoDB Atlas account (or local MongoDB)
 
-### Method 1: Quick Start (Recommended)
+### Quick Start
+
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd caupenrost
-
-# Install dependencies directly (uses uv.lock for consistency)
-pip install flask flask-mail werkzeug gunicorn email-validator
-
-# Set environment variable (Windows)
-set SESSION_SECRET=your-super-secret-key-change-this
-
-# Set environment variable (macOS/Linux)
-export SESSION_SECRET=your-super-secret-key-change-this
-
-# Run the application
-python main.py
-```
-
-### Method 2: Virtual Environment Setup
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd caupenrost
-
-# Create virtual environment
-python -m venv bakery_env
-
-# Activate virtual environment
-# On Windows:
-bakery_env\Scripts\activate
-# On macOS/Linux:
-source bakery_env/bin/activate
+# Clone the repo
+git clone https://github.com/CHIRAG4011/CaupenRost.git
+cd CaupenRost
 
 # Install dependencies
-pip install flask flask-mail werkzeug gunicorn email-validator
-
-# Run the application
-python main.py
-```
-
-### Method 3: Using requirements.txt
-Create a `requirements.txt` file if you need one:
-```txt
-Flask==3.0.0
-Flask-Mail==0.9.1
-Werkzeug==3.0.1
-gunicorn==21.2.0
-email-validator==2.1.0
-```
-
-Then install:
-```bash
 pip install -r requirements.txt
+
+# Copy and fill in environment variables
+cp .env.example .env
+# Edit .env with your values
+
+# Start the frontend server (port 5000)
+python3 -m gunicorn --bind 0.0.0.0:5000 --reload main:app
+
+# In a separate terminal — start the API server (port 8080)
+python3 -m gunicorn --bind 0.0.0.0:8080 --reload 'api_server:api_app'
 ```
 
-### Environment Configuration (Optional)
-For email functionality, create a `.env` file in the root directory:
+### .env File
+
 ```env
-# Required Settings
-SESSION_SECRET=your-super-secret-key-here-change-this
-
-# Email Configuration (Optional - for order confirmations)
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_DEFAULT_SENDER=your-email@gmail.com
-
-# Development Settings
-FLASK_ENV=development
-DEBUG=True
+SESSION_SECRET=your-super-secret-key-change-this-to-something-long
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/Caupenrost
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
 ```
 
-### Running the Application
-```bash
-# Method 1: Direct execution (recommended for development)
-python main.py
+### Accessing the App
 
-# Method 2: Using Gunicorn (production-like)
-gunicorn --bind 0.0.0.0:5000 --reload main:app
-
-# Method 3: Using Flask's built-in server
-python -m flask run --host=0.0.0.0 --port=5000
-```
-
-### Accessing Your Local Application
-- **Main Website:** http://localhost:5000
-- **Admin Panel:** http://localhost:5000/admin
-- **Products Page:** http://localhost:5000/products
-- **Cart:** http://localhost:5000/cart
+| URL | Description |
+|-----|-------------|
+| http://localhost:5000 | Main storefront |
+| http://localhost:5000/admin | Admin dashboard |
+| http://localhost:5000/products | Product listing |
+| http://localhost:5000/api/health | Frontend API health |
+| http://localhost:8080/api/health | Standalone API health |
 
 ### Default Admin Credentials
-- **Username:** admin
-- **Email:** admin@caupenrost.com
-- **Password:** admin123
+- **Email:** `admin@caupenrost.com`
+- **Password:** `admin123`
 
-### Sample Test Users
-The application comes with pre-loaded sample data:
-- **Customer Account:** john@example.com / password123
-- **Sample Products:** Various Indian bakery items with INR pricing
-- **Sample Orders:** Pre-loaded order history for testing
+> Change these immediately in the Admin → Users panel after first login.
 
-### Local Development Features
-- **Hot Reload:** Changes to Python files automatically restart the server
-- **Debug Mode:** Detailed error messages for easier development
-- **In-Memory Storage:** No database setup required - data resets on restart
-- **Sample Data:** Pre-loaded products, users, and orders for immediate testing
+---
 
-## 🌐 Free Hosting Options
+## API Endpoints Reference
 
-### Option 1: Replit (Recommended ⭐)
-**Best for:** Beginners, quick deployments, development
-**Free Tier:** Generous with automatic sleep after inactivity
+All endpoints return JSON. The `/api/*` routes are available on **both** port 5000 (same-origin, session-backed cart) and port 8080 (CORS-enabled, MongoDB-backed cart).
 
-#### Setup on Replit:
-1. **Import Repository:**
-   - Go to replit.com
-   - Click "Create Repl" → "Import from GitHub"
-   - Enter your repository URL
-   
-2. **Automatic Configuration:**
-   - Replit auto-detects Python projects
-   - Uses `main.py` as entry point
-   - Automatically installs dependencies from `pyproject.toml`
-
-3. **Set Environment Variables:**
-   - Click "Secrets" tab (lock icon)
-   - Add: `SESSION_SECRET` = Generate strong 32-character key
-   - Optional: Add email configuration variables
-
-4. **Deploy:**
-   - Click "Run" button
-   - Access via provided `.replit.app` URL
-   - Upgrade to "Always On" for $7/month to prevent sleeping
-
-#### Advantages:
-- ✅ Zero configuration required
-- ✅ Automatic HTTPS and custom domains
-- ✅ Built-in code editor and terminal
-- ✅ Instant deployments
-- ✅ Great for testing and small projects
-
-#### Limitations:
-- Apps sleep after 1 hour of inactivity (free tier)
-- Limited CPU and memory on free tier
-
-### Option 2: Railway 🚂
-**Best for:** Production-ready deployments, API services
-**Free Tier:** $5 credit monthly (very generous)
-
-#### Setup on Railway:
-1. **Connect Repository:**
-   - Visit railway.app
-   - Sign up with GitHub
-   - Click "New Project" → "Deploy from GitHub repo"
-
-2. **Automatic Deployment:**
-   - Railway auto-detects Python apps
-   - Uses `Procfile` or auto-generates start command
-
-3. **Environment Variables:**
-   ```
-   SESSION_SECRET=your-secret-key-32-chars
-   PORT=$PORT
-   ```
-
-4. **Custom Start Command:**
-   ```bash
-   gunicorn --bind 0.0.0.0:$PORT main:app
-   ```
-
-#### Advantages:
-- ✅ Automatic deployments on git push
-- ✅ Custom domains and HTTPS
-- ✅ Database add-ons available
-- ✅ No sleep limitations
-- ✅ Professional infrastructure
-
-#### Limitations:
-- Free credit expires monthly
-- Requires credit card for verification
-
-### Option 3: Render 🎨
-**Best for:** Static sites, web services, databases
-**Free Tier:** 750 hours/month (good for always-on apps)
-
-#### Setup on Render:
-1. **Create Web Service:**
-   - Go to render.com
-   - Connect GitHub repository
-   - Choose "Web Service"
-
-2. **Configuration:**
-   - **Name:** caupenrost
-   - **Environment:** Python 3
-   - **Build Command:** `pip install flask flask-mail werkzeug gunicorn email-validator`
-   - **Start Command:** `gunicorn --bind 0.0.0.0:$PORT main:app`
-
-3. **Environment Variables:**
-   - Add `SESSION_SECRET` in dashboard
-   - Optional: Email configuration
-
-#### Advantages:
-- ✅ No credit card required
-- ✅ 750 free hours monthly
-- ✅ Automatic SSL certificates
-- ✅ Built-in monitoring
-- ✅ PostgreSQL databases available
-
-#### Limitations:
-- Slower cold starts
-- Limited bandwidth on free tier
-
-### Option 4: Fly.io ✈️
-**Best for:** Global deployments, Docker containers
-**Free Tier:** Good allowances with credit card verification
-
-#### Setup on Fly.io:
-1. **Install Fly CLI:**
-   ```bash
-   # Install flyctl
-   curl -L https://fly.io/install.sh | sh
-   ```
-
-2. **Initialize App:**
-   ```bash
-   fly auth login
-   fly launch
-   ```
-
-3. **Configuration (fly.toml):**
-   ```toml
-   app = "caupenrost"
-   
-   [env]
-     PORT = "8080"
-   
-   [[services]]
-     http_checks = []
-     internal_port = 8080
-     processes = ["app"]
-     protocol = "tcp"
-   ```
-
-#### Advantages:
-- ✅ Global edge deployments
-- ✅ Docker-based (flexible)
-- ✅ Great performance
-- ✅ Volume storage available
-
-#### Limitations:
-- More complex setup
-- Requires Docker knowledge for advanced use
-
-### Option 5: Vercel + Serverless 🔺
-**Best for:** Serverless deployments, global CDN
-**Free Tier:** Generous for hobby projects
-
-#### Setup on Vercel:
-1. **Install Vercel CLI:**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **Create vercel.json:**
-   ```json
-   {
-     "builds": [
-       {
-         "src": "main.py",
-         "use": "@vercel/python"
-       }
-     ],
-     "routes": [
-       {
-         "src": "/(.*)",
-         "dest": "main.py"
-       }
-     ]
-   }
-   ```
-
-3. **Deploy:**
-   ```bash
-   vercel --prod
-   ```
-
-#### Advantages:
-- ✅ Global CDN
-- ✅ Instant scaling
-- ✅ Zero configuration
-- ✅ Analytics included
-
-#### Limitations:
-- Serverless limitations (stateless)
-- 10-second execution limit
-
-### Option 6: PythonAnywhere 🐍
-**Best for:** Python-specific hosting, learning
-**Free Tier:** Always-on web apps with limitations
-
-#### Setup on PythonAnywhere:
-1. **Create Free Account:**
-   - Sign up at pythonanywhere.com
-   - Upload your code files
-
-2. **Web App Configuration:**
-   - Create new web app
-   - Choose Python 3.11
-   - Set source code directory
-   - Configure WSGI file
-
-3. **WSGI Configuration:**
-   ```python
-   import sys
-   path = '/home/yourusername/caupenrost'
-   if path not in sys.path:
-       sys.path.append(path)
-   
-   from main import app as application
-   ```
-
-#### Advantages:
-- ✅ Python-focused platform
-- ✅ Always-on free tier
-- ✅ SSH access available
-- ✅ Good for learning
-
-#### Limitations:
-- Limited CPU seconds on free tier
-- No custom domains on free tier
-
-### Quick Comparison Table
-
-| Platform | Free Tier | Always-On | Custom Domain | Database | Difficulty |
-|----------|-----------|-----------|---------------|----------|------------|
-| Replit | ✅ Good | 💰 Paid | ✅ Yes | ✅ Yes | 🟢 Easy |
-| Railway | ✅ $5/month | ✅ Yes | ✅ Yes | ✅ Yes | 🟡 Medium |
-| Render | ✅ 750hrs | ✅ Yes | ✅ Yes | ✅ Yes | 🟡 Medium |
-| Fly.io | ✅ Good | ✅ Yes | ✅ Yes | ✅ Yes | 🔴 Hard |
-| Vercel | ✅ Good | ✅ Yes | ✅ Yes | ⚠️ Limited | 🟡 Medium |
-| PythonAnywhere | ✅ Limited | ✅ Yes | 💰 Paid | ⚠️ MySQL | 🟡 Medium |
-
-## 🔧 Deployment Configuration Files
-
-### Required Files for External Hosting
-
-#### Create `requirements.txt`:
-```txt
-Flask==3.0.0
-Flask-Mail==0.9.1
-Werkzeug==3.0.1
-gunicorn==21.2.0
-email-validator==2.1.0
+### Health
+```
+GET /api/health
 ```
 
-#### Create `Procfile` (for Railway, Heroku):
+### Products
+```
+GET /api/products              # List all products (supports ?q= and ?category=)
+GET /api/products/<id>         # Get single product
+```
+
+### Categories
+```
+GET /api/categories            # List active categories
+```
+
+### Cart (frontend — port 5000, session-based)
+```
+GET  /api/cart                 # Get cart contents
+POST /api/cart/add/<id>        # Add item  — body: {"quantity": 1}
+POST /api/cart/update          # Update qty — body: {"product_id": "...", "quantity": 2}
+POST /api/cart/remove/<id>     # Remove item
+```
+
+### Cart (API server — port 8080, MongoDB-based, CORS enabled)
+Same paths as above. Cart is identified by `api_cart_id` cookie returned in responses.
+
+---
+
+## Deploying to Replit (Current Environment)
+
+The project is already configured for Replit with two workflows:
+
+1. **Start application** — Frontend server on port 5000 (webview)
+2. **API Server** — Standalone API server on port 8080 (console)
+
+### Steps to Deploy on a New Replit
+
+1. Import from GitHub: `https://github.com/CHIRAG4011/CaupenRost`
+2. Add Secrets (Replit Secrets tab):
+   - `SESSION_SECRET` — random 32+ character string
+   - `MONGO_URI` — your MongoDB Atlas URI
+   - `RESEND_API_KEY` — your Resend API key
+3. The `python_database` integration provides `DATABASE_URL` automatically
+4. Click **Run** — both workflows start automatically
+
+### Replit Deployment (Publish)
+
+```
+Deployment target: Autoscale
+Run command: gunicorn --bind 0.0.0.0:5000 main:app
+```
+
+> The standalone API server (port 8080) should be deployed separately or the frontend's built-in `/api/*` routes used for production.
+
+---
+
+## Deploying to Vercel
+
+Vercel runs Python as serverless functions. Only the frontend Flask app is supported (not the port 8080 API server).
+
+### vercel.json (already in repo)
+```json
+{
+  "version": 2,
+  "builds": [{ "src": "main.py", "use": "@vercel/python" }],
+  "routes": [{ "src": "/(.*)", "dest": "main.py" }]
+}
+```
+
+### Steps
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run `vercel` in the project root
+3. Set environment variables in Vercel dashboard:
+   - `SESSION_SECRET`
+   - `MONGO_URI`
+   - `RESEND_API_KEY`
+
+> **Note:** Vercel serverless functions share no memory between requests. The app uses MongoDB for persistence which is compatible with serverless. Flask sessions (cart) use signed cookies so they work correctly.
+
+---
+
+## Deploying to Railway / Render / Fly.io
+
+These platforms support long-running processes — ideal for running both servers.
+
+### Railway
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and deploy
+railway login
+railway init
+railway up
+```
+
+Set environment variables in the Railway dashboard.
+
+**Start command:** `python3 -m gunicorn --bind 0.0.0.0:$PORT main:app`
+
+### Render
+
+1. Connect your GitHub repo at render.com
+2. Create a **Web Service**
+3. **Build command:** `pip install -r requirements.txt`
+4. **Start command:** `python3 -m gunicorn --bind 0.0.0.0:$PORT main:app`
+5. Add environment variables in Render dashboard
+
+For the API server, create a second Web Service with:
+- **Start command:** `python3 -m gunicorn --bind 0.0.0.0:$PORT 'api_server:api_app'`
+
+### Fly.io
+
+```bash
+# Install flyctl
+curl -L https://fly.io/install.sh | sh
+
+fly launch
+fly secrets set SESSION_SECRET=... MONGO_URI=... RESEND_API_KEY=...
+fly deploy
+```
+
+---
+
+## Deploying to Heroku
+
+```bash
+# Login
+heroku login
+
+# Create app
+heroku create caupenrost
+
+# Set config vars
+heroku config:set SESSION_SECRET=your-secret
+heroku config:set MONGO_URI=your-mongo-uri
+heroku config:set RESEND_API_KEY=your-resend-key
+
+# Deploy
+git push heroku main
+```
+
+**Procfile** (already in repo):
 ```
 web: gunicorn --bind 0.0.0.0:$PORT main:app
 ```
 
-#### Create `runtime.txt` (for Python version specification):
-```
-python-3.11.7
-```
-
-#### Create `.env.example` (for environment variable reference):
-```env
-# Copy this file to .env and fill in your values
-SESSION_SECRET=change-this-to-a-random-32-character-string
-
-# Email Configuration (Optional)
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_DEFAULT_SENDER=your-email@gmail.com
-
-# Development Settings
-FLASK_ENV=development
-DEBUG=True
-```
-
-#### Create `app.json` (for platform compatibility):
-```json
-{
-  "name": "CaupenRost",
-  "description": "A Flask e-commerce application for an Indian bakery",
-  "keywords": ["flask", "ecommerce", "bakery", "python"],
-  "website": "https://github.com/yourusername/caupenrost",
-  "repository": "https://github.com/yourusername/caupenrost",
-  "env": {
-    "SESSION_SECRET": {
-      "description": "A secret key for session management",
-      "generator": "secret"
-    }
-  },
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "free"
-    }
-  }
-}
-```
-
-### Docker Configuration (Advanced)
-
-#### Create `Dockerfile`:
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
-```
-
-#### Create `.dockerignore`:
-```
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.env
-.git
-.gitignore
-README.md
-.DS_Store
-.vscode/
-venv/
-bakery_env/
-```
-
-## 🔒 Production Considerations
-
-### Security Settings
-For production deployments, ensure:
-
-1. **Strong Session Secret:**
-   ```python
-   # Generate a secure secret key
-   import secrets
-   SESSION_SECRET = secrets.token_urlsafe(32)
-   # Example: "KmH8vR2_jP9x4LqWnZt3BcVy1FdGhJkMlN6OsQrTuA8"
-   ```
-
-2. **Environment Variables:**
-   ```env
-   FLASK_ENV=production
-   DEBUG=False
-   SESSION_SECRET=your-secure-32-character-key
-   ```
-
-3. **Security Headers (add to Flask app):**
-   ```python
-   @app.after_request
-   def security_headers(response):
-       response.headers['X-Content-Type-Options'] = 'nosniff'
-       response.headers['X-Frame-Options'] = 'DENY'
-       response.headers['X-XSS-Protection'] = '1; mode=block'
-       return response
-   ```
-
-4. **HTTPS Only:** All hosting platforms provide HTTPS automatically
-
-### Database Considerations
-**Current Setup:** In-memory storage (suitable for):
-- ✅ Development and testing
-- ✅ Small-scale applications
-- ✅ Demos and prototypes
-- ✅ Educational projects
-
-**For Production with Persistent Data:**
-- **SQLite:** File-based, simple, good for small apps
-- **PostgreSQL:** Recommended for production (available on most platforms)
-- **MySQL/MariaDB:** Alternative relational database
-- **MongoDB:** NoSQL option for flexible schemas
-
-### Email Configuration for Production
-**This project uses Gmail SMTP for sending emails.**
-
-**Gmail SMTP Setup:**
-1. Enable 2-Step Verification on your Google account
-2. Generate an App Password at https://myaccount.google.com/apppasswords
-3. Configure the following environment variables:
-
-```env
-GMAIL_EMAIL=your-email@gmail.com
-GMAIL_APP_PASSWORD=your-16-char-app-password
-```
-
-**Notes:**
-- Gmail allows 500 emails/day for regular accounts
-- App Passwords are required (regular passwords won't work)
-- The 16-character password looks like: `abcd efgh ijkl mnop`
-
-### Performance Optimization
-
-1. **Static File Serving:**
-   ```python
-   # Enable compression (add to Flask app)
-   from flask_compress import Compress
-   Compress(app)
-   ```
-   - Use CDN for static assets (Cloudflare, AWS CloudFront)
-   - Enable gzip compression
-
-2. **Caching Strategy:**
-   ```python
-   # Session storage with Redis (for multiple servers)
-   import redis
-   from flask_session import Session
-   
-   app.config['SESSION_TYPE'] = 'redis'
-   app.config['SESSION_REDIS'] = redis.from_url('redis://localhost:6379')
-   Session(app)
-   ```
-
-3. **Database Optimization:**
-   - Implement connection pooling
-   - Add database indexes for frequently queried fields
-   - Use database caching for product catalogs
-
-4. **Application Monitoring:**
-   - Add logging for production debugging
-   - Monitor response times and error rates
-   - Set up alerts for downtime
-
-### Scaling Considerations
-
-**Horizontal Scaling (Multiple Servers):**
-- Use external session storage (Redis)
-- Implement load balancing
-- Use external database
-
-**Vertical Scaling (More Resources):**
-- Upgrade hosting plan
-- Optimize database queries
-- Implement caching layers
-
-## Monitoring and Maintenance
-
-### Application Monitoring
-- Monitor application logs
-- Set up error tracking (Sentry, Rollbar)
-- Monitor resource usage
-
-### Backup Strategy
-- Regular data backups (when using persistent storage)
-- Code repository backups
-- Configuration backups
-
-### Updates and Maintenance
-- Regular dependency updates
-- Security patches
-- Monitor for vulnerabilities
-
-## 🛠️ Troubleshooting Guide
-
-### Local Development Issues
-
-#### Python/Flask Issues
-1. **"Module not found" Error:**
-   ```bash
-   # Ensure you're in the right directory
-   cd caupenrost
-   
-   # Check if virtual environment is activated
-   which python  # Should show your virtual environment path
-   
-   # Reinstall dependencies
-   pip install flask flask-mail werkzeug gunicorn email-validator
-   ```
-
-2. **Port Already in Use:**
-   ```bash
-   # Find and kill process using port 5000
-   lsof -ti:5000 | xargs kill -9
-   
-   # Or use a different port
-   python main.py --port=8000
-   ```
-
-3. **Session Secret Missing:**
-   ```bash
-   # Set environment variable
-   export SESSION_SECRET="your-32-character-secret-key"
-   
-   # Or create .env file with SESSION_SECRET
-   ```
-
-4. **Static Files Not Loading:**
-   - Verify file paths in templates
-   - Check static folder structure
-   - Clear browser cache
-
-#### Email Configuration Issues
-1. **Gmail SMTP Not Working:**
-   - Enable 2-Factor Authentication
-   - Generate App Password (not your regular password)
-   - Use app password in MAIL_PASSWORD
-
-2. **Connection Timeout:**
-   ```env
-   # Try alternative Gmail settings
-   MAIL_SERVER=smtp.gmail.com
-   MAIL_PORT=465
-   MAIL_USE_SSL=True
-   ```
-
-### Deployment Issues
-
-#### General Deployment Problems
-1. **Application Won't Start:**
-   ```bash
-   # Check logs for specific errors
-   # Most platforms provide build/deployment logs
-   
-   # Common fixes:
-   # - Verify main.py exists and has app object
-   # - Check if all dependencies are in requirements.txt
-   # - Ensure Python version compatibility
-   ```
-
-2. **Environment Variables Not Set:**
-   ```bash
-   # Verify environment variables are set on platform
-   # Check platform-specific documentation for setting env vars
-   ```
-
-3. **Build Failures:**
-   ```bash
-   # Common causes:
-   # - Missing requirements.txt
-   # - Incompatible Python version
-   # - Syntax errors in code
-   ```
-
-#### Platform-Specific Issues
-
-#### Replit Issues:
-- **App Not Accessible:** Use 0.0.0.0 as host, not localhost
-- **Environment Variables:** Set in Secrets panel, not .env file
-- **Build Errors:** Check Console tab for detailed error messages
-- **App Sleeping:** Upgrade to Always On or use UptimeRobot for periodic pings
-
-#### Railway Issues:
-- **Build Timeout:** Optimize build process, remove unnecessary dependencies
-- **Port Issues:** Ensure app listens on $PORT environment variable
-- **Memory Limits:** Monitor usage, optimize for free tier limits
-- **Credit Exhausted:** Upgrade plan or optimize resource usage
-
-#### Render Issues:
-- **Cold Starts:** Free tier has longer startup times
-- **Build Commands:** Ensure build command installs all dependencies
-- **Environment Variables:** Set in Render dashboard, not in code
-- **Health Checks:** Ensure app responds to health check requests
-
-#### Vercel Issues:
-- **Serverless Limitations:** App must be stateless for Vercel
-- **Request Timeout:** 10-second limit on free tier
-- **File Size Limits:** Large uploads may fail
-- **Memory Storage:** In-memory data won't persist between requests
-
-### Performance Issues
-
-#### Slow Loading Times
-1. **Optimize Images:**
-   - Use compressed images
-   - Implement lazy loading
-   - Consider image CDN
-
-2. **Database Optimization:**
-   - Add indexes for frequently queried fields
-   - Limit query results
-   - Implement pagination
-
-3. **Caching:**
-   ```python
-   # Add simple caching
-   from functools import lru_cache
-   
-   @lru_cache(maxsize=128)
-   def get_popular_products():
-       # Cached function
-       pass
-   ```
-
-#### Memory Issues
-1. **Memory Leaks:**
-   - Monitor memory usage
-   - Clear unused variables
-   - Optimize data structures
-
-2. **Free Tier Limits:**
-   - Implement efficient data structures
-   - Use streaming for large responses
-   - Optimize session storage
-
-### Common Error Messages and Solutions
-
-#### "Application Error" (Generic)
-```bash
-# Check application logs for specific error
-# Common causes:
-# 1. Missing environment variables
-# 2. Code syntax errors
-# 3. Import errors
-# 4. Port binding issues
-```
-
-#### "No module named 'flask'"
-```bash
-# Dependencies not installed properly
-pip install -r requirements.txt
-
-# Or install individually
-pip install flask flask-mail werkzeug gunicorn email-validator
-```
-
-#### "Address already in use"
-```bash
-# Port 5000 is occupied
-# Kill the process or use different port
-kill -9 $(lsof -ti:5000)
-python main.py --port=8080
-```
-
-#### "Internal Server Error"
-```bash
-# Enable debug mode to see detailed errors
-export FLASK_ENV=development
-export DEBUG=True
-python main.py
-```
-
-### Testing Your Deployment
-
-#### Functionality Checklist
-- [ ] Home page loads correctly
-- [ ] Product pages display with INR pricing
-- [ ] Cart functionality works (add/remove items)
-- [ ] User registration and login
-- [ ] Order placement with address validation
-- [ ] Admin panel access (admin@caupenrost.com / admin123)
-- [ ] Email functionality (if configured)
-- [ ] Responsive design on mobile/tablet
-
-#### Performance Testing
-```bash
-# Test response times
-curl -w "@curl-format.txt" -o /dev/null -s "https://your-app-url.com"
-
-# Monitor memory usage (local)
-ps aux | grep python
-```
-
-### Getting Help
-
-#### Debugging Steps
-1. **Check Logs:** Platform-specific log viewing
-2. **Test Locally:** Ensure it works on your machine first
-3. **Verify Environment:** Check all environment variables
-4. **Check Dependencies:** Ensure all packages are installed
-5. **Test Incrementally:** Deploy minimal version first
-
-#### Resources for Help
-- **Platform Documentation:** Each hosting platform has comprehensive docs
-- **Flask Documentation:** https://flask.palletsprojects.com/
-- **Stack Overflow:** Search for specific error messages
-- **GitHub Issues:** Check if others have similar problems
-- **Community Forums:** Platform-specific communities
-
-#### Creating Support Tickets
-When asking for help, include:
-- Exact error message
-- Platform being used
-- Steps to reproduce
-- Code snippets (relevant parts only)
-- Environment details (Python version, etc.)
-
-## 📚 Additional Resources
-
-### Official Documentation
-- **Flask:** https://flask.palletsprojects.com/
-- **Python:** https://docs.python.org/3/
-- **Replit:** https://docs.replit.com/
-- **Railway:** https://docs.railway.app/
-- **Render:** https://render.com/docs
-- **Vercel:** https://vercel.com/docs
-
-### Learning Resources
-- **Flask Tutorial:** https://flask.palletsprojects.com/tutorial/
-- **Python Deployment:** https://realpython.com/python-web-applications/
-- **Web Development Best Practices:** https://web.dev/
-
-### Community Support
-- **Flask Discord:** Official Flask community
-- **Reddit:** r/flask, r/Python, r/webdev
-- **Stack Overflow:** Tag questions with 'flask', 'python', 'deployment'
-- **GitHub Discussions:** Platform-specific repositories
-
-### Useful Tools
-- **SSL Testing:** https://www.ssllabs.com/ssltest/
-- **Performance Testing:** https://gtmetrix.com/
-- **Uptime Monitoring:** https://uptimerobot.com/ (free)
-- **Error Tracking:** https://sentry.io/ (free tier available)
-
-## 📞 Support and Maintenance
-
-### Regular Maintenance Tasks
-- **Weekly:** Check application logs and performance
-- **Monthly:** Update dependencies and security patches
-- **Quarterly:** Review hosting costs and optimization opportunities
-- **Annually:** Security audit and backup strategy review
-
-### Monitoring Setup
-```python
-# Basic logging setup (add to main.py)
-import logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(message)s',
-    handlers=[
-        logging.FileHandler('app.log'),
-        logging.StreamHandler()
-    ]
-)
-```
-
-### Backup Strategy
-- **Code:** Always use Git version control
-- **Data:** Regular exports if using persistent storage
-- **Configuration:** Document all environment variables
-- **Database:** Automated backups for production databases
+---
+
+## MongoDB Collections Reference
+
+The app uses MongoDB (database: `Caupenrost`) with the following collections:
+
+| Collection | Docs | Key Fields |
+|------------|------|------------|
+| `users` | user accounts | `username`, `email`, `password_hash`, `is_admin`, `role` |
+| `products` | product catalogue | `name`, `price`, `category`, `stock`, `image_url`, `is_available` |
+| `categories` | product categories | `name`, `description`, `image_url`, `is_active` |
+| `orders` | customer orders | `user_id`, `items`, `total`, `status`, `payment_method`, `shipping_address` |
+| `addresses` | delivery addresses | `user_id`, `name`, `phone`, `line1`, `city`, `state`, `pincode` |
+| `reviews` | product reviews | `product_id`, `user_id`, `rating`, `comment` |
+| `productreviews` | product reviews (v2) | `product_id`, `user_id`, `rating`, `comment` |
+| `tickets` | support tickets | `user_id`, `order_id`, `subject`, `status`, `priority` |
+| `ticket_messages` | ticket replies | `ticket_id`, `author_id`, `message`, `is_admin_reply` |
+| `coupons` | discount codes | `code`, `discount_type`, `discount_value`, `min_order`, `expires_at` |
+| `announcements` | site banners | `title`, `message`, `is_active`, `priority` |
+| `settings` | site config | `key`, `value` (site name, hero text, contact info, etc.) |
+| `roles` | admin roles | `name`, `description`, `permissions`, `is_system` |
+| `purchases` | payment records | `order_id`, `user_id`, `amount`, `payment_method`, `status` |
+| `otps` / `otp_codes` | OTP codes | `email`, `otp`, `purpose`, `expires_at`, `attempts` |
+| `visitor_logs` | analytics | `ip_address`, `user_agent`, `page`, `timestamp` |
+| `api_carts` | API server carts | `cart_id`, `items` (created by the port 8080 API server) |
+
+### OTP Verification Flow
+
+The app uses **Resend** to email 6-digit OTPs for:
+- **Registration** — verify email before account creation
+- **Login** — verify identity on each login
+- **Order placement** — confirm order before processing
+
+If `RESEND_API_KEY` is not set, OTPs are printed to the server logs (development mode).
 
 ---
 
-## 🎯 Quick Start Summary
+## Project File Structure
 
-### For Beginners (Replit - Recommended)
-1. Go to replit.com and import your GitHub repository
-2. Click "Run" - Replit handles everything automatically
-3. Set SESSION_SECRET in Secrets panel
-4. Access your app via the provided .replit.app URL
-
-### For Developers (Railway)
-1. Connect GitHub repository to railway.app
-2. Add SESSION_SECRET environment variable
-3. Deploy automatically on git push
-4. Get custom domain and HTTPS
-
-### For Local Testing
-1. `git clone <your-repo>`
-2. `pip install flask flask-mail werkzeug gunicorn email-validator`
-3. `export SESSION_SECRET="your-secret-key"`
-4. `python main.py`
-5. Open http://localhost:5000
+```
+CaupenRost/
+├── main.py              # Entry point — imports Flask app
+├── app.py               # Flask app factory, DB setup, context processors
+├── routes.py            # All HTML page routes (~1600 lines)
+├── api_routes.py        # JSON API routes registered on main app (/api/*)
+├── api_server.py        # Standalone API Flask app (port 8080, CORS enabled)
+├── models.py            # SQLAlchemy models (PostgreSQL/SQLite)
+├── db.py                # SQLAlchemy repository classes
+├── mongo_db.py          # MongoDB repository classes
+├── mongodb_models.py    # MongoDB model wrappers
+├── data_store.py        # DB abstraction layer (switches between SQL/Mongo)
+├── utils.py             # Cart logic, auth helpers (session-based)
+├── email_service.py     # Resend email sender, OTP generation/verification
+├── config.py            # Environment-based Flask config
+├── init_data.py         # Seeds DB with admin user + sample products
+├── static/
+│   ├── css/style.css    # Main stylesheet
+│   ├── css/admin.css    # Admin panel styles
+│   ├── js/cart.js       # Cart manager (uses /api/cart/* JSON endpoints)
+│   └── js/main.js       # UI animations, particles, review slider
+├── templates/           # Jinja2 HTML templates
+│   ├── index.html       # Homepage
+│   ├── admin/           # Admin dashboard templates
+│   ├── auth/            # Login / register / OTP verification
+│   ├── support/         # Support ticket templates
+│   └── user/            # Profile, orders, addresses
+├── requirements.txt     # Python dependencies
+├── Procfile             # Heroku start command
+└── vercel.json          # Vercel serverless config
+```
 
 ---
 
-**🚀 Ready to Deploy?**
-This application is production-ready for small to medium-scale deployments. The in-memory storage makes it perfect for demos, prototypes, and small businesses. For larger scale applications, consider implementing a persistent database solution.
+## Updating & Maintenance
 
-**📧 Need Help?**
-If you encounter issues not covered in this guide, check the platform-specific documentation or reach out to their support teams. Most hosting platforms have excellent documentation and responsive support communities.
+### Seed / Re-seed the Database
+```bash
+python3 init_data.py
+```
 
-**🔄 Keep Updated:**
-Web technologies evolve rapidly. Check for updates to Python, Flask, and your hosting platform regularly to ensure security and performance.
+### Push Code Changes to GitHub
+```bash
+git add .
+git commit -m "your message"
+git push origin main
+```
+
+### Install New Dependencies
+```bash
+pip install <package>
+pip freeze > requirements.txt
+```
+
+---
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| `gunicorn: command not found` | Not on PATH | Use `python3 -m gunicorn ...` |
+| `Bad database name "Caupenrost "` | Trailing space in MONGO_URI | Trim the URI in your secrets panel |
+| OTPs only appear in logs | `RESEND_API_KEY` not set | Add the key to your environment secrets |
+| Cart empty after API call | Different server / session | Use same-origin `/api/cart/*` on port 5000 for session-backed cart |
+| 500 on `/api/health` (port 8080) | PyMongo `bool()` check | Fixed — use `db is not None` |
+| Static files 404 on Vercel | Vercel doesn't serve `/static/` | Add static route or use CDN |
