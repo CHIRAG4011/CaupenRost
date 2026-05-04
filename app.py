@@ -9,7 +9,13 @@ try:
 except ImportError:
     pass
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s %(name)s: %(message)s')
+# Silence PyMongo's extremely verbose internal loggers
+logging.getLogger('pymongo').setLevel(logging.WARNING)
+logging.getLogger('pymongo.topology').setLevel(logging.WARNING)
+logging.getLogger('pymongo.connection').setLevel(logging.WARNING)
+logging.getLogger('pymongo.command').setLevel(logging.WARNING)
+logging.getLogger('pymongo.serverMonitor').setLevel(logging.WARNING)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
