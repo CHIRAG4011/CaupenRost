@@ -504,6 +504,37 @@ function showToast(msg, type='success') {
     c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all 0.3s'; setTimeout(()=>t.remove(),300); }, 3500);
 }
+
+// ── Bakery Cursor (same as storefront) ───────────────────────
+(function() {
+    if (window.matchMedia('(hover: none)').matches) return;
+    var cursor = document.createElement('div');
+    cursor.className = 'bakery-cursor';
+    cursor.textContent = '🥐';
+    document.body.appendChild(cursor);
+    var trail = document.createElement('div');
+    trail.className = 'bakery-cursor-trail';
+    document.body.appendChild(trail);
+    var mx = -100, my = -100, tx = -100, ty = -100;
+    document.addEventListener('mousemove', function(e) {
+        mx = e.clientX; my = e.clientY;
+        cursor.style.left = mx + 'px';
+        cursor.style.top  = my + 'px';
+    });
+    (function trailLoop() {
+        tx += (mx - tx) * 0.18;
+        ty += (my - ty) * 0.18;
+        trail.style.left = tx + 'px';
+        trail.style.top  = ty + 'px';
+        requestAnimationFrame(trailLoop);
+    })();
+    document.querySelectorAll('a, button, .admin-nav-link, .admin-stat-card, input, select, textarea').forEach(function(el) {
+        el.addEventListener('mouseenter', function() { cursor.classList.add('hover'); });
+        el.addEventListener('mouseleave', function() { cursor.classList.remove('hover'); });
+    });
+    document.addEventListener('mouseleave', function() { cursor.style.opacity='0'; trail.style.opacity='0'; });
+    document.addEventListener('mouseenter', function() { cursor.style.opacity='1'; trail.style.opacity='1'; });
+})();
 </script>
 {% block extra_scripts %}{% endblock %}
 </body>
