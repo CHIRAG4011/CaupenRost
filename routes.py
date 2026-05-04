@@ -1,7 +1,8 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app, USE_MONGODB
+from app import app, USE_MONGODB, MONGO_CONNECTION_ERROR, MONGO_CONNECTION_OK
 import logging
+import os
 from datetime import datetime
 
 if USE_MONGODB:
@@ -1623,3 +1624,41 @@ def admin_settings():
         settings = dict(SETTING_DEFAULTS)
 
     return render_template('admin/settings.html', settings=settings)
+
+
+# ── Database Status Page ──────────────────────────────────────────────────────
+
+@app.route('/db-status')
+def db_status():
+    """Show the current database connection state and any MongoDB error details."""
+    mongo_uri_raw = os.environ.get('MONGO_URI', '')
+    database_url_raw = os.environ.get('DATABASE_URL', '')
+
+    def _mask(uri):
+        """Hide credentials inside a connection string."""
+        if not uri:
+            return '(not set)'
+        try:
+            from urllib.parse import urlparse, urlunparse
+            p = urlparse(uri)
+            masked = p._replace(netloc=f"***:***@{p.hostname}{':'+str(p.port) if p.port else ''}")
+            return urlunparse(masked)
+        except Exception:
+            return uri[:12] + '…(masked)'
+
+    env_info = {
+        'MONGO_URI':    _mask(mongo_uri_raw),
+        'DATABASE_URL': _mask(database_url_raw),
+        'PGHOST':       os.environ.get('PGHOST', '(not set)'),
+        'PGDATABASE':   os.environ.get('PGDATABASE', '(not set)'),
+        'PGUSER':       os.environ.get('PGUSER', '(not set)'),
+    }
+
+    return render_template(
+        'db_status.html',
+        use_mongodb=USE_MONGODB,
+        mongo_ok=MONGO_CONNECTION_OK,
+        mongo_error=MONGO_CONNECTION_ERROR,
+        mongo_uri_set=bool(mongo_uri_raw),
+        env_info=env_info,
+    )

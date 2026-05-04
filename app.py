@@ -1,5 +1,6 @@
 import os
 import logging
+import traceback
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -22,18 +23,31 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 db = None
+
+# Track MongoDB connection state globally so it can be surfaced at /db-status
+MONGO_CONNECTION_ERROR = None   # full traceback string if connection failed
+MONGO_CONNECTION_OK = False     # True only when connection succeeded
+
 USE_MONGODB = bool(os.environ.get('MONGO_URI')) or (os.environ.get('DATABASE_URL') and 'mongodb' in os.environ.get('DATABASE_URL'))
 
 if USE_MONGODB:
-    logging.info("MongoDB mode enabled")
+    logging.info("MongoDB mode enabled — attempting connection …")
     try:
         from mongo_db import get_mongo_db
         mongo_db = get_mongo_db()
+        MONGO_CONNECTION_OK = True
         logging.info("MongoDB connection established successfully")
     except Exception as e:
-        logging.error(f"Failed to connect to MongoDB: {e}")
+        MONGO_CONNECTION_ERROR = traceback.format_exc()
+        logging.error("=" * 60)
+        logging.error("MONGODB CONNECTION FAILED — falling back to PostgreSQL/SQLite")
+        logging.error(f"Error type : {type(e).__name__}")
+        logging.error(f"Error detail: {e}")
+        logging.error("Full traceback:")
+        for line in MONGO_CONNECTION_ERROR.splitlines():
+            logging.error(line)
+        logging.error("=" * 60)
         USE_MONGODB = False
-        logging.info("Falling back to SQLAlchemy due to MongoDB connection failure")
 
 if not USE_MONGODB:
     from flask_sqlalchemy import SQLAlchemy

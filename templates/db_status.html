@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Status — CaupenRost</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:      #080604;
+            --surface: #110d08;
+            --border:  rgba(224, 120, 50, 0.15);
+            --gold:    #e07832;
+            --cream:   #f6e8d5;
+            --muted:   rgba(246, 232, 213, 0.5);
+            --green:   #4ade80;
+            --red:     #f87171;
+            --yellow:  #facc15;
+            --mono:    'Courier New', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--cream);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .page-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .page-header .back-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color .2s;
+        }
+        .page-header .back-link:hover { color: var(--gold); }
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            color: var(--cream);
+        }
+        .page-header .badge-db {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: auto;
+        }
+
+        /* ── Cards ── */
+        .card-status {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .card-status .card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        /* ── Status Row ── */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: .75rem;
+        }
+        .status-dot {
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .dot-green  { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+        .dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+        .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+        .status-label { font-size: .9rem; color: var(--cream); }
+        .status-sub   { font-size: .78rem; color: var(--muted); margin-left: auto; }
+
+        /* ── Env table ── */
+        .env-table { width: 100%; border-collapse: collapse; }
+        .env-table tr + tr td { border-top: 1px solid var(--border); }
+        .env-table td {
+            padding: .55rem .25rem;
+            font-size: .82rem;
+            vertical-align: top;
+        }
+        .env-table td:first-child {
+            color: var(--gold);
+            font-family: var(--mono);
+            white-space: nowrap;
+            width: 160px;
+            padding-right: 1rem;
+        }
+        .env-table td:last-child {
+            color: var(--muted);
+            font-family: var(--mono);
+            word-break: break-all;
+        }
+
+        /* ── Error block ── */
+        .error-block {
+            background: rgba(248, 113, 113, 0.06);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .error-block .error-title {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: .82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--red);
+            margin-bottom: .85rem;
+        }
+        .error-block pre {
+            font-family: var(--mono);
+            font-size: .75rem;
+            color: rgba(246, 232, 213, 0.75);
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* ── Tips ── */
+        .tip-list { list-style: none; padding: 0; }
+        .tip-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: .65rem;
+            font-size: .83rem;
+            color: var(--muted);
+            padding: .45rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .tip-list li:last-child { border-bottom: none; }
+        .tip-list li i { color: var(--gold); margin-top: 2px; flex-shrink: 0; }
+
+        /* ── Refresh button ── */
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--gold);
+            color: #080604;
+            font-weight: 700;
+            font-size: .82rem;
+            border: none;
+            border-radius: 8px;
+            padding: .55rem 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+        .btn-refresh:hover { opacity: .85; color: #080604; }
+    </style>
+</head>
+<body>
+<div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <a href="/" class="back-link"><i class="fas fa-arrow-left me-1"></i>Back to site</a>
+            <h1 class="mt-1">Database Status</h1>
+        </div>
+        {% if use_mongodb and mongo_ok %}
+            <span class="badge-db" style="background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);">
+                <i class="fas fa-circle me-1" style="font-size:.5rem;"></i>MongoDB Active
+            </span>
+        {% elif mongo_uri_set and not mongo_ok %}
+            <span class="badge-db" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">
+                <i class="fas fa-triangle-exclamation me-1"></i>MongoDB Failed → PostgreSQL
+            </span>
+        {% else %}
+            <span class="badge-db" style="background:rgba(96,165,250,0.12);color:#60a5fa;border:1px solid rgba(96,165,250,0.25);">
+                <i class="fas fa-database me-1"></i>PostgreSQL / SQLite
+            </span>
+        {% endif %}
+    </div>
+
+    <!-- Connection status overview -->
+    <div class="card-status">
+        <div class="card-title"><i class="fas fa-plug me-2"></i>Connection Overview</div>
+
+        <!-- MongoDB row -->
+        <div class="status-row">
+            {% if mongo_uri_set and mongo_ok %}
+                <span class="status-dot dot-green"></span>
+                <span class="status-label">MongoDB</span>
+                <span class="status-sub">Connected &amp; active</span>
+            {% elif mongo_uri_set and not mongo_ok %}
+                <span class="status-dot dot-red"></span>
+                <span class="status-label">MongoDB</span>
+                <span class="status-sub">MONGO_URI found but connection failed — see error below</span>
+            {% else %}
+                <span class="status-dot dot-yellow"></span>
+                <span class="status-label">MongoDB</span>
+                <span class="status-sub">MONGO_URI not set — skipped</span>
+            {% endif %}
+        </div>
+
+        <!-- Fallback DB row -->
+        <div class="status-row">
+            {% if not use_mongodb %}
+                <span class="status-dot dot-green"></span>
+                <span class="status-label">PostgreSQL / SQLite</span>
+                <span class="status-sub">Active (fallback{% if mongo_uri_set %} due to MongoDB failure{% endif %})</span>
+            {% else %}
+                <span class="status-dot dot-yellow"></span>
+                <span class="status-label">PostgreSQL / SQLite</span>
+                <span class="status-sub">Standby — MongoDB is primary</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MongoDB error (only shown when there is one) -->
+    {% if mongo_error %}
+    <div class="error-block">
+        <div class="error-title">
+            <i class="fas fa-circle-xmark"></i>
+            MongoDB Connection Error
+        </div>
+        <pre>{{ mongo_error }}</pre>
+    </div>
+
+    <!-- Troubleshooting tips -->
+    <div class="card-status">
+        <div class="card-title"><i class="fas fa-wrench me-2"></i>Common Fixes</div>
+        <ul class="tip-list">
+            <li>
+                <i class="fas fa-key"></i>
+                <span>Check that <code style="color:var(--gold)">MONGO_URI</code> is set correctly in your environment secrets — copy it exactly from MongoDB Atlas (no trailing spaces).</span>
+            </li>
+            <li>
+                <i class="fas fa-network-wired"></i>
+                <span>In MongoDB Atlas, go to <strong>Network Access</strong> and add <code style="color:var(--gold)">0.0.0.0/0</code> to allow connections from any IP (required for serverless/Vercel deployments).</span>
+            </li>
+            <li>
+                <i class="fas fa-user-lock"></i>
+                <span>Confirm your Atlas database user credentials — the username and password in the URI must match the database user, not your Atlas login.</span>
+            </li>
+            <li>
+                <i class="fas fa-database"></i>
+                <span>Make sure the database name at the end of your URI (e.g. <code style="color:var(--gold)">/caupenrost</code>) exists and the user has read/write access to it.</span>
+            </li>
+            <li>
+                <i class="fas fa-clock"></i>
+                <span>The connection timeout is 5 seconds. If your Atlas cluster is on the free tier and has been idle, it may need a moment to resume — try refreshing once more.</span>
+            </li>
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Environment variable info -->
+    <div class="card-status">
+        <div class="card-title"><i class="fas fa-sliders me-2"></i>Environment Variables (credentials masked)</div>
+        <table class="env-table">
+            {% for key, val in env_info.items() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ val }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div style="display:flex;gap:1rem;align-items:center;">
+        <a href="/db-status" class="btn-refresh">
+            <i class="fas fa-rotate-right"></i> Refresh Status
+        </a>
+        <span style="font-size:.78rem;color:var(--muted);">
+            Status is evaluated fresh on every page load.
+        </span>
+    </div>
+
+</div>
+</body>
+</html>
