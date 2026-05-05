@@ -1,0 +1,157 @@
+# 🚀 FULL UI/UX REDESIGN TASK PLAN (STRUCTURED)
+
+---
+
+## PHASE 1 — FOUNDATION
+
+### Task 1.1 — Define Design System
+
+* Finalize color palette
+* Select typography (heading + body)
+* Define spacing, border radius, shadows
+
+### Task 1.2 — Setup Animation Stack
+
+* Integrate animation libraries
+* Configure global animation settings
+
+---
+
+## PHASE 2 — HOMEPAGE (STORY EXPERIENCE)
+
+### Task 2.1 — Hero Section
+
+* Fullscreen layout
+* Add intro animation
+* Add main headline and visual
+
+### Task 2.2 — Scroll-Based Story Sections
+
+* Section 1 — Ingredients scene
+* Section 2 — Baking process scene
+* Section 3 — Final product showcase
+
+### Task 2.3 — Section Transitions
+
+* Implement smooth transitions between scenes
+* Add parallax and motion effects
+
+---
+
+## PHASE 3 — PRODUCTS PAGE
+
+### Task 3.1 — Layout Redesign
+
+* Implement new grid/card layout
+* Add visual styling to product cards
+
+### Task 3.2 — Product Interaction
+
+* Add hover animations
+* Add quick preview modal
+* Add click interaction
+
+---
+
+## PHASE 4 — CART & CHECKOUT
+
+### Task 4.1 — Cart UI
+
+* Implement slide-in cart panel
+* Add item update animations
+
+### Task 4.2 — Checkout Flow
+
+* Create step-based checkout
+* Add payment screenshot upload
+* Add order confirmation state
+
+---
+
+## PHASE 5 — USER PANEL (FULL REDESIGN)
+
+### Task 5.1 — Layout Structure
+
+* Replace sidebar with new layout
+* Implement navigation system
+
+### Task 5.2 — Dashboard
+
+* Add stats section
+* Add activity/graph section
+
+### Task 5.3 — Profile Management
+
+* Add editable profile fields
+* Add avatar upload
+
+---
+
+## PHASE 6 — CATEGORY PAGE
+
+### Task 6.1 — Category Layout
+
+* Create visual category cards
+* Add hover effects
+
+### Task 6.2 — Filtering System
+
+* Implement filters
+* Add dynamic update behavior
+
+---
+
+## PHASE 7 — LOGIN PAGE
+
+### Task 7.1 — Remove Demo Account
+
+* Remove demo account option
+
+### Task 7.2 — UI Redesign
+
+* Create new login layout
+* Add background animation
+
+---
+
+## PHASE 8 — LOGO REDESIGN
+
+### Task 8.1 — Logo Creation
+
+* Design new logo concept
+* Finalize icon and typography
+
+### Task 8.2 — Logo Animation
+
+* Add intro animation
+* Add hover/interaction effect
+
+---
+
+## PHASE 9 — GLOBAL IMPROVEMENTS
+
+### Task 9.1 — Cursor Effects
+
+* Implement custom cursor
+* Add hover states
+
+### Task 9.2 — Page Transitions
+
+* Add smooth page transitions
+* Ensure consistency across pages
+
+---
+
+## FINAL EXECUTION ORDER
+
+1. Foundation
+2. Homepage
+3. Products Page
+4. Cart & Checkout
+5. User Panel
+6. Category Page
+7. Login Page
+8. Logo
+9. Global Improvements
+
+---
