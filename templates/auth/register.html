@@ -2,91 +2,154 @@
 {% block title %}Create Account — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="auth-page" style="padding: 48px 0;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-9 col-lg-6">
-                <div class="auth-card reveal active">
-                    <div class="auth-card-header">
-                        <div class="auth-logo">
-                            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M16 3C16 3 10 7 10 14c0 3.3 2.7 6 6 6s6-2.7 6-6C22 7 16 3 16 3z" fill="currentColor" opacity="0.9"/>
-                                <path d="M16 20v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                <path d="M13 24.5c0 0 1-2.5 3-2.5s3 2.5 3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
-                                <ellipse cx="11" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(-20 11 12)"/>
-                                <ellipse cx="21" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(20 21 12)"/>
-                            </svg>
-                            CaupenRost
-                        </div>
-                        <h2>Join CaupenRost</h2>
-                        <p>Create your account to start ordering</p>
-                    </div>
-                    <div class="auth-card-body">
-                        <form method="post" class="needs-loading">
-                            <div class="mb-4">
-                                <label for="username" class="form-label">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-user" style="font-size:0.8rem;"></i></span>
-                                    <input type="text" class="form-control" id="username" name="username"
-                                           placeholder="Choose a username" required autofocus>
-                                </div>
-                            </div>
+<div class="auth-split">
 
-                            <div class="mb-4">
-                                <label for="email" class="form-label">Email Address</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-envelope" style="font-size:0.8rem;"></i></span>
-                                    <input type="email" class="form-control" id="email" name="email"
-                                           placeholder="your@email.com" required>
-                                </div>
-                            </div>
+    <div class="auth-visual d-none d-lg-flex">
+        <div class="auth-visual-grain"></div>
+        <div class="auth-visual-inner">
+            <div class="auth-visual-logo-mark">
+                <svg width="40" height="40" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 4C17 4 10 8.5 10 15c0 3.9 3.1 7 7 7s7-3.1 7-7C24 8.5 17 4 17 4z" fill="currentColor" opacity="0.95"/>
+                    <path d="M17 7C17 7 13 10 13 15" stroke="rgba(255,255,255,0.18)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+                    <path d="M17 22v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M17 27 C14 25 11 26 10 28" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <path d="M17 24 C20 22 23 23 24 25" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <ellipse cx="11.5" cy="13" rx="3" ry="4.5" fill="currentColor" opacity="0.5" transform="rotate(-22 11.5 13)"/>
+                    <ellipse cx="22.5" cy="13" rx="3" ry="4.5" fill="currentColor" opacity="0.5" transform="rotate(22 22.5 13)"/>
+                    <ellipse cx="8.5" cy="10" rx="2" ry="3.2" fill="currentColor" opacity="0.28" transform="rotate(-38 8.5 10)"/>
+                    <ellipse cx="25.5" cy="10" rx="2" ry="3.2" fill="currentColor" opacity="0.28" transform="rotate(38 25.5 10)"/>
+                </svg>
+                <span>CaupenRost</span>
+            </div>
 
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.8rem;"></i></span>
-                                    <input type="password" class="form-control" id="password" name="password"
-                                           placeholder="Create a password" required minlength="8">
-                                    <button type="button" class="input-group-text" style="cursor:pointer;" onclick="togglePwd('password', this)">
-                                        <i class="fas fa-eye" style="font-size:0.8rem;"></i>
-                                    </button>
-                                </div>
-                                <div class="pwd-req mt-2" id="password-requirements">
-                                    <div class="pwd-req-item" id="req-length"><i class="fas fa-circle"></i>At least 8 characters</div>
-                                    <div class="pwd-req-item" id="req-upper"><i class="fas fa-circle"></i>One uppercase letter</div>
-                                    <div class="pwd-req-item" id="req-lower"><i class="fas fa-circle"></i>One lowercase letter</div>
-                                    <div class="pwd-req-item" id="req-number"><i class="fas fa-circle"></i>One number</div>
-                                    <div class="pwd-req-item" id="req-special"><i class="fas fa-circle"></i>One special character</div>
-                                </div>
-                            </div>
+            <div class="auth-visual-quote">
+                <i class="fas fa-quote-left"></i>
+                <p>Every great loaf starts with a great recipe — and every great journey starts with you.</p>
+            </div>
 
-                            <div class="mb-4">
-                                <label for="confirm_password" class="form-label">Confirm Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.8rem;"></i></span>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                                           placeholder="Repeat your password" required>
-                                    <button type="button" class="input-group-text" style="cursor:pointer;" onclick="togglePwd('confirm_password', this)">
-                                        <i class="fas fa-eye" style="font-size:0.8rem;"></i>
-                                    </button>
-                                </div>
-                            </div>
+            <div class="auth-visual-headline">
+                <h2>Join Our<br><em>Artisan Community</em></h2>
+                <p>Create your account and start ordering freshly baked goods delivered to your door.</p>
+            </div>
 
-                            <button type="submit" class="btn btn-gold w-100 mb-3" style="padding:13px;">
-                                <i class="fas fa-user-plus me-2"></i>Create Account
-                            </button>
-                        </form>
-
-                        <div class="auth-divider">or</div>
-
-                        <div class="text-center">
-                            <p class="mb-3" style="color:var(--cream-muted);font-size:0.88rem;">Already have an account?</p>
-                            <a href="{{ url_for('login') }}" class="btn btn-outline-brown w-100">
-                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
-                            </a>
-                        </div>
+            <div class="auth-visual-perks">
+                <div class="auth-perk-item">
+                    <div class="auth-perk-icon"><i class="fas fa-shipping-fast"></i></div>
+                    <div>
+                        <div class="auth-perk-title">Same Day Delivery</div>
+                        <div class="auth-perk-sub">Order before 2 PM</div>
                     </div>
                 </div>
+                <div class="auth-perk-item">
+                    <div class="auth-perk-icon"><i class="fas fa-gift"></i></div>
+                    <div>
+                        <div class="auth-perk-title">Member Offers</div>
+                        <div class="auth-perk-sub">Exclusive discounts</div>
+                    </div>
+                </div>
+                <div class="auth-perk-item">
+                    <div class="auth-perk-icon"><i class="fas fa-history"></i></div>
+                    <div>
+                        <div class="auth-perk-title">Order History</div>
+                        <div class="auth-perk-sub">Reorder in one click</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-float-badge afb1"><i class="fas fa-cookie-bite"></i> Fresh Daily</div>
+            <div class="auth-float-badge afb2"><i class="fas fa-award"></i> Premium</div>
+            <div class="auth-float-badge afb3">🥐</div>
+            <div class="auth-float-badge afb5">🎂</div>
+        </div>
+    </div>
+
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+
+            <div class="auth-form-logo d-flex d-lg-none">
+                <svg width="26" height="26" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--gold);">
+                    <path d="M17 4C17 4 10 8.5 10 15c0 3.9 3.1 7 7 7s7-3.1 7-7C24 8.5 17 4 17 4z" fill="currentColor" opacity="0.95"/>
+                    <path d="M17 22v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M17 27 C14 25 11 26 10 28" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <path d="M17 24 C20 22 23 23 24 25" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+                    <ellipse cx="11.5" cy="13" rx="3" ry="4.5" fill="currentColor" opacity="0.5" transform="rotate(-22 11.5 13)"/>
+                    <ellipse cx="22.5" cy="13" rx="3" ry="4.5" fill="currentColor" opacity="0.5" transform="rotate(22 22.5 13)"/>
+                </svg>
+                <span>CaupenRost</span>
+            </div>
+
+            <p class="auth-form-eyebrow">Get started</p>
+            <h1 class="auth-form-title">Create Account</h1>
+            <p class="auth-form-sub">Join thousands of happy customers today</p>
+
+            <form method="post" class="needs-loading mt-4">
+                <div class="mb-4">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-user" style="font-size:0.85rem;"></i></span>
+                        <input type="text" class="form-control" id="username" name="username"
+                               placeholder="Choose a username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="email" class="form-label">Email Address</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-envelope" style="font-size:0.85rem;"></i></span>
+                        <input type="email" class="form-control" id="email" name="email"
+                               placeholder="your@email.com" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.85rem;"></i></span>
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Create a password" required minlength="8">
+                        <button type="button" class="input-group-text auth-eye-btn" onclick="togglePwd('password', this)">
+                            <i class="fas fa-eye" style="font-size:0.85rem;"></i>
+                        </button>
+                    </div>
+                    <div class="pwd-req mt-2" id="password-requirements">
+                        <div class="pwd-req-item" id="req-length"><i class="fas fa-circle"></i>At least 8 characters</div>
+                        <div class="pwd-req-item" id="req-upper"><i class="fas fa-circle"></i>One uppercase letter</div>
+                        <div class="pwd-req-item" id="req-lower"><i class="fas fa-circle"></i>One lowercase letter</div>
+                        <div class="pwd-req-item" id="req-number"><i class="fas fa-circle"></i>One number</div>
+                        <div class="pwd-req-item" id="req-special"><i class="fas fa-circle"></i>One special character</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="confirm_password" class="form-label">Confirm Password</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.85rem;"></i></span>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                               placeholder="Repeat your password" required>
+                        <button type="button" class="input-group-text auth-eye-btn" onclick="togglePwd('confirm_password', this)">
+                            <i class="fas fa-eye" style="font-size:0.85rem;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gold w-100 btn-glow auth-submit-btn">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </button>
+            </form>
+
+            <div class="auth-divider">or</div>
+
+            <p class="text-center mb-3" style="color:var(--cream-muted);font-size:0.88rem;">
+                Already have an account?
+            </p>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-brown w-100">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+
+            <div class="auth-form-footer">
+                <a href="{{ url_for('index') }}" style="color:var(--cream-muted);font-size:0.8rem;">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Home
+                </a>
             </div>
         </div>
     </div>
@@ -106,7 +169,6 @@ function togglePwd(fieldId, btn) {
         icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
 }
-
 document.getElementById('password').addEventListener('input', function() {
     const val = this.value;
     const checks = {
@@ -126,7 +188,6 @@ document.getElementById('password').addEventListener('input', function() {
     const allMet = Object.values(checks).every(v => v);
     this.setCustomValidity(allMet ? '' : 'Password does not meet all requirements');
 });
-
 document.getElementById('confirm_password').addEventListener('input', function() {
     const pwd = document.getElementById('password').value;
     this.setCustomValidity(pwd === this.value ? '' : 'Passwords do not match');

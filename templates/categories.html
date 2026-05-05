@@ -11,8 +11,9 @@
                 <li class="breadcrumb-item active">Categories</li>
             </ol>
         </nav>
-        <h1 class="mb-1"><i class="fas fa-tags me-3" style="color:var(--gold);"></i>Shop by Category</h1>
-        <p>Discover our delicious baked goods, organized just for you</p>
+        <div class="sc-chapter-num">Explore</div>
+        <h1 class="mb-2">Shop by <em class="text-gold" style="font-style:italic;">Category</em></h1>
+        <p>Discover our delicious baked goods, thoughtfully organised just for you</p>
     </div>
 </section>
 
@@ -20,28 +21,36 @@
     {% if categories %}
     <div class="row g-4">
         {% for category in categories %}
-        <div class="col-lg-3 col-md-6 reveal">
-            <a href="{{ url_for('category_products', category_name=category.name) }}" style="text-decoration:none;">
-                <div class="cat-grid-card">
-                    <div class="cat-grid-img-wrap">
+        <div class="col-xl-3 col-lg-4 col-md-6 reveal" data-delay="{{ loop.index0 * 80 }}">
+            <a href="{{ url_for('category_products', category_name=category.name) }}" class="cat-cinema-link">
+                <div class="cat-cinema-card">
+                    <div class="cat-cinema-img-wrap">
                         {% if category.image_url %}
-                        <img src="{{ category.image_url }}" class="cat-grid-img" alt="{{ category.name }}">
+                        <img src="{{ category.image_url }}" class="cat-cinema-img" alt="{{ category.name }}">
                         {% else %}
-                        <div style="width:100%;height:100%;background:var(--bg-card-3);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-image" style="font-size:2rem;color:var(--cream-muted);opacity:0.3;"></i>
+                        <div class="cat-cinema-placeholder">
+                            <i class="fas fa-layer-group"></i>
                         </div>
                         {% endif %}
-                        <div class="cat-grid-badge">
-                            {{ category.get_product_count() }} items
+                        <div class="cat-cinema-overlay"></div>
+                        <div class="cat-cinema-count">
+                            <i class="fas fa-box-open me-1"></i>{{ category.get_product_count() }} items
                         </div>
                     </div>
-                    <div class="cat-grid-body">
-                        <h5>{{ category.name }}</h5>
-                        {% if category.description %}
-                        <p>{{ category.description[:80] }}{% if category.description|length > 80 %}…{% endif %}</p>
-                        {% endif %}
-                        <div class="btn btn-outline-brown w-100 btn-sm">
-                            <i class="fas fa-shopping-bag me-2"></i>Browse {{ category.name }}
+                    <div class="cat-cinema-body">
+                        <div class="cat-cinema-icon">
+                            <i class="fas fa-{% if 'cake' in category.name|lower %}birthday-cake{% elif 'bread' in category.name|lower %}bread-slice{% elif 'pastry' in category.name|lower or 'pastries' in category.name|lower %}cookie{% elif 'cookie' in category.name|lower %}cookie-bite{% elif 'muffin' in category.name|lower %}cupcake{% else %}concierge-bell{% endif %}"></i>
+                        </div>
+                        <div class="cat-cinema-text">
+                            <h5 class="cat-cinema-name">{{ category.name }}</h5>
+                            {% if category.description %}
+                            <p class="cat-cinema-desc">{{ category.description[:60] }}{% if category.description|length > 60 %}…{% endif %}</p>
+                            {% else %}
+                            <p class="cat-cinema-desc">Fresh artisan baked goods</p>
+                            {% endif %}
+                        </div>
+                        <div class="cat-cinema-arrow">
+                            <i class="fas fa-arrow-right"></i>
                         </div>
                     </div>
                 </div>
@@ -50,19 +59,22 @@
         {% endfor %}
     </div>
 
-    <div class="text-center mt-5 reveal">
-        <a href="{{ url_for('products') }}" class="btn btn-outline-brown btn-lg px-5">
-            <i class="fas fa-th-large me-2"></i>View All Products
+    <div class="text-center mt-5 pt-3 reveal">
+        <p class="mb-4" style="color:var(--cream-muted);font-size:0.9rem;">
+            Looking for something specific? Browse our complete collection.
+        </p>
+        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow px-5">
+            <i class="fas fa-shopping-bag me-2"></i>View All Products
         </a>
     </div>
 
     {% else %}
     <div class="text-center py-5">
-        <div style="font-size:3.5rem;color:var(--cream-muted);opacity:0.3;margin-bottom:24px;">
+        <div class="cat-empty-icon">
             <i class="fas fa-tags"></i>
         </div>
-        <h3 style="color:var(--cream-muted);margin-bottom:10px;">No Categories Yet</h3>
-        <p style="color:var(--cream-muted);margin-bottom:28px;">We're organizing our products. Check back soon!</p>
+        <h3 class="mb-2" style="color:var(--cream-muted);">No Categories Yet</h3>
+        <p style="color:var(--cream-muted);margin-bottom:28px;">We're organising our products. Check back soon!</p>
         <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
             <i class="fas fa-shopping-bag me-2"></i>Browse All Products
         </a>

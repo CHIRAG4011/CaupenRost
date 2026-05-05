@@ -1758,3 +1758,923 @@ footer p { color: var(--cream-muted); font-size: 0.85rem; line-height: 1.75; }
   .otp-box { width: 42px; height: 52px; font-size: 1.3rem; }
   .cart-item-row { flex-wrap: wrap; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   REDESIGN v3 — All 9 Phases
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Phase 1: Foundation — Page Transitions ───────────────── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+main {
+  animation: pageEnter 0.55s cubic-bezier(0.4,0,0.2,1) both;
+}
+.page-transition-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg-base);
+  z-index: 99990;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+.page-transition-overlay.exit {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Phase 1: Foundation — Selection Color ───────────────── */
+::selection { background: rgba(224,120,50,0.28); color: var(--cream); }
+::-moz-selection { background: rgba(224,120,50,0.28); color: var(--cream); }
+
+/* ── Phase 1: Foundation — Gradient Text Utility ─────────── */
+.text-gradient-gold {
+  background: var(--grad-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Phase 1: Foundation — Enhanced Input Focus ──────────── */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(224,120,50,0.14), 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+.input-group:focus-within .input-group-text {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.auth-eye-btn {
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.auth-eye-btn:hover { background: rgba(224,120,50,0.12) !important; color: var(--gold) !important; }
+
+/* ── Phase 1: Foundation — Better Scrollbar ──────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--gold-dark), var(--gold)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ── Phase 2: Homepage — Counter Section ─────────────────── */
+.counter-section {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 64px 0;
+  position: relative;
+  overflow: hidden;
+}
+.counter-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(224,120,50,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.counter-card {
+  text-align: center;
+  padding: 32px 20px;
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  transition: all var(--t-normal);
+  position: relative;
+  overflow: hidden;
+}
+.counter-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--grad-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease;
+}
+.counter-card:hover::before { transform: scaleX(1); }
+.counter-card:hover {
+  border-color: rgba(224,120,50,0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-gold);
+}
+.counter-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: rgba(224,120,50,0.08);
+  border: 1px solid rgba(224,120,50,0.18);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  font-size: 1.2rem;
+  color: var(--gold);
+  transition: all var(--t-normal);
+}
+.counter-card:hover .counter-icon {
+  background: rgba(224,120,50,0.16);
+  transform: scale(1.1) rotate(-6deg);
+}
+.counter-num-wrap {
+  display: flex; align-items: flex-end; justify-content: center; gap: 2px;
+  margin-bottom: 8px;
+}
+.counter-number {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: var(--cream);
+  line-height: 1;
+  transition: color var(--t-normal);
+}
+.counter-card:hover .counter-number { color: var(--gold); }
+.counter-suffix {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.3;
+}
+.counter-desc {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cream-muted);
+}
+
+/* ── Phase 2: Homepage — Enhanced Feature Cards ──────────── */
+.story-feature-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 36px 28px;
+  transition: all var(--t-normal);
+  overflow: hidden;
+  height: 100%;
+}
+.story-feature-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 2px;
+  background: var(--grad-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+.story-feature-card:hover { border-color: rgba(224,120,50,0.28); transform: translateY(-6px); box-shadow: var(--shadow-gold); }
+.story-feature-card:hover::after { transform: scaleX(1); }
+.sfc-featured { border-color: rgba(224,120,50,0.25); }
+.sfc-featured-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(224,120,50,0.07) 0%, transparent 70%);
+}
+.sfc-icon-wrap {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: rgba(224,120,50,0.1);
+  border: 1px solid rgba(224,120,50,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px;
+  font-size: 1.3rem;
+  color: var(--gold);
+  transition: all var(--t-spring);
+}
+.story-feature-card:hover .sfc-icon-wrap {
+  background: rgba(224,120,50,0.18);
+  transform: scale(1.08) rotate(-5deg);
+}
+.story-feature-card h4 {
+  font-size: 1.15rem;
+  margin-bottom: 12px;
+}
+.story-feature-card p {
+  color: var(--cream-muted);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 0;
+}
+.sfc-line {
+  width: 36px; height: 2px;
+  background: var(--grad-gold);
+  border-radius: 2px;
+  margin-top: 20px;
+  transition: width var(--t-normal);
+}
+.story-feature-card:hover .sfc-line { width: 72px; }
+
+/* ── Phase 2: Homepage — Enhanced Story Categories ───────── */
+.story-cat-card {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  cursor: pointer;
+}
+.story-cat-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease, filter 0.7s ease;
+  filter: brightness(0.65) saturate(1.1);
+}
+.story-cat-card:hover img { transform: scale(1.07); filter: brightness(0.5) saturate(1.2); }
+.scc-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8,6,4,0.88) 0%, rgba(8,6,4,0.2) 55%, transparent 100%);
+  display: flex; flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 28px;
+  transition: background 0.4s ease;
+}
+.story-cat-card:hover .scc-overlay {
+  background: linear-gradient(to top, rgba(8,6,4,0.95) 0%, rgba(8,6,4,0.4) 55%, transparent 100%);
+}
+.scc-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(224,120,50,0.18);
+  border: 1px solid rgba(224,120,50,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  transition: all var(--t-normal);
+}
+.story-cat-card:hover .scc-icon {
+  background: rgba(224,120,50,0.3);
+  transform: scale(1.1);
+}
+.scc-overlay h5 {
+  font-size: 1.2rem;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+.scc-overlay p { font-size: 0.82rem; color: var(--cream-muted); margin-bottom: 14px; }
+.scc-arrow {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(224,120,50,0.18);
+  border: 1px solid rgba(224,120,50,0.35);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  font-size: 0.85rem;
+  transition: all var(--t-spring);
+  transform: translateX(-8px);
+  opacity: 0;
+}
+.story-cat-card:hover .scc-arrow {
+  transform: translateX(0);
+  opacity: 1;
+  background: rgba(224,120,50,0.3);
+}
+
+/* ── Phase 2: Homepage — Enhanced CTA Section ────────────── */
+.story-cta {
+  position: relative;
+  padding: 120px 0;
+  overflow: hidden;
+}
+.story-cta-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(30,14,5,1) 0%, rgba(8,6,4,1) 70%);
+  z-index: 0;
+}
+.story-cta .container { position: relative; z-index: 1; }
+.story-cta-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+.story-cta-sub {
+  color: var(--cream-muted);
+  font-size: 1rem;
+  max-width: 480px;
+  margin: 0 auto 40px;
+}
+.story-cta::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 1px dashed rgba(224,120,50,0.1);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.story-cta::after {
+  content: '';
+  position: absolute;
+  width: 800px; height: 800px;
+  border-radius: 50%;
+  border: 1px dashed rgba(224,120,50,0.05);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── Phase 6: Enhanced Categories Page ───────────────────── */
+.cat-cinema-link { display: block; text-decoration: none; }
+.cat-cinema-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: all var(--t-normal);
+  cursor: pointer;
+  height: 100%;
+}
+.cat-cinema-card:hover {
+  border-color: rgba(224,120,50,0.35);
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-6px);
+}
+.cat-cinema-img-wrap {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+.cat-cinema-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease, filter 0.5s ease;
+  filter: brightness(0.72) saturate(1.1);
+}
+.cat-cinema-card:hover .cat-cinema-img {
+  transform: scale(1.08);
+  filter: brightness(0.55) saturate(1.25);
+}
+.cat-cinema-placeholder {
+  width: 100%; height: 100%;
+  background: var(--bg-card-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  color: var(--cream-muted);
+  opacity: 0.3;
+}
+.cat-cinema-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8,6,4,0.7) 0%, transparent 60%);
+  transition: background 0.4s ease;
+}
+.cat-cinema-card:hover .cat-cinema-overlay {
+  background: linear-gradient(to top, rgba(8,6,4,0.85) 0%, transparent 60%);
+}
+.cat-cinema-count {
+  position: absolute; top: 14px; right: 14px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+}
+.cat-cinema-body {
+  padding: 18px 20px;
+  display: flex; align-items: center; gap: 14px;
+  transition: background var(--t-fast);
+}
+.cat-cinema-card:hover .cat-cinema-body {
+  background: rgba(224,120,50,0.04);
+}
+.cat-cinema-icon {
+  width: 42px; height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(224,120,50,0.1);
+  border: 1px solid rgba(224,120,50,0.18);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  font-size: 1rem;
+  transition: all var(--t-spring);
+}
+.cat-cinema-card:hover .cat-cinema-icon {
+  background: rgba(224,120,50,0.2);
+  transform: scale(1.1) rotate(-5deg);
+}
+.cat-cinema-text { flex: 1; min-width: 0; }
+.cat-cinema-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 3px;
+  transition: color var(--t-fast);
+}
+.cat-cinema-card:hover .cat-cinema-name { color: var(--gold); }
+.cat-cinema-desc {
+  font-size: 0.78rem;
+  color: var(--cream-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cat-cinema-arrow {
+  flex-shrink: 0;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream-muted);
+  font-size: 0.75rem;
+  transition: all var(--t-spring);
+}
+.cat-cinema-card:hover .cat-cinema-arrow {
+  background: rgba(224,120,50,0.15);
+  border-color: rgba(224,120,50,0.4);
+  color: var(--gold);
+  transform: translateX(3px);
+}
+.cat-empty-icon {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(224,120,50,0.05);
+  border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+  font-size: 2.5rem;
+  color: var(--cream-muted);
+  opacity: 0.4;
+}
+
+/* ── Phase 7: Auth Split Layout ───────────────────────────── */
+.auth-split {
+  display: flex;
+  min-height: 100vh;
+}
+.auth-visual {
+  flex: 0 0 42%;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--glass-border);
+  flex-direction: column;
+  overflow: hidden;
+}
+.auth-visual-grain {
+  position: absolute; inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-visual::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(224,120,50,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(30,14,5,0.9) 0%, transparent 60%);
+  z-index: 0;
+}
+.auth-visual-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: 48px 48px;
+}
+.auth-visual-logo-mark {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 48px;
+}
+.auth-visual-logo-mark svg { color: var(--gold); flex-shrink: 0; }
+.auth-visual-quote {
+  margin-bottom: 32px;
+  padding: 20px 22px;
+  background: rgba(224,120,50,0.07);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+}
+.auth-visual-quote i {
+  font-size: 1.1rem;
+  color: var(--gold);
+  opacity: 0.6;
+  display: block;
+  margin-bottom: 8px;
+}
+.auth-visual-quote p {
+  font-family: var(--font-script);
+  font-size: 1.1rem;
+  color: var(--cream-dim);
+  margin: 0;
+  line-height: 1.5;
+}
+.auth-visual-headline {
+  margin-bottom: 32px;
+}
+.auth-visual-headline h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 12px;
+}
+.auth-visual-headline h2 em { color: var(--gold); font-style: italic; }
+.auth-visual-headline p { color: var(--cream-muted); font-size: 0.9rem; line-height: 1.65; margin: 0; }
+.auth-visual-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  margin-top: 8px;
+}
+.auth-vis-stat { text-align: center; flex: 1; }
+.auth-vis-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.auth-vis-label { font-size: 0.72rem; color: var(--cream-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.auth-vis-divider { width: 1px; height: 36px; background: var(--glass-border); flex-shrink: 0; }
+.auth-visual-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 28px;
+}
+.auth-perk-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.auth-perk-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: rgba(224,120,50,0.1);
+  border: 1px solid rgba(224,120,50,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.auth-perk-title { font-size: 0.88rem; font-weight: 600; color: var(--cream); margin-bottom: 2px; }
+.auth-perk-sub { font-size: 0.75rem; color: var(--cream-muted); }
+
+/* Floating decorative badges on auth visual */
+.auth-float-badge {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cream);
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+.auth-float-badge i { color: var(--gold); margin-right: 6px; }
+.afb1 { bottom: 28%; right: -10px; animation: floatCard 3.5s ease-in-out infinite; }
+.afb2 { top: 22%; left: -8px; animation: floatCard 4s ease-in-out infinite; animation-delay: 1.2s; }
+.afb3 { top: 38%; right: 20px; font-size: 1.5rem; padding: 6px 10px; animation: floatCard 3.2s ease-in-out infinite; animation-delay: 0.6s; }
+.afb4 { bottom: 20%; left: 14px; font-size: 1.3rem; padding: 6px 10px; animation: floatCard 4.2s ease-in-out infinite; animation-delay: 2s; }
+.afb5 { top: 14%; right: 30%; font-size: 1.2rem; padding: 5px 9px; animation: floatCard 3.8s ease-in-out infinite; animation-delay: 1.6s; }
+
+/* Auth Form Panel */
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+.auth-form-inner {
+  width: 100%;
+  max-width: 460px;
+}
+.auth-form-logo {
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 36px;
+}
+.auth-form-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.auth-form-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 800;
+  color: var(--cream);
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+.auth-form-sub {
+  color: var(--cream-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+.auth-submit-btn {
+  padding: 14px !important;
+  font-size: 0.92rem !important;
+  letter-spacing: 0.06em;
+}
+.auth-form-footer {
+  text-align: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--glass-border);
+}
+.auth-form-footer a:hover { color: var(--gold) !important; }
+
+/* ── Phase 8: Enhanced Logo ───────────────────────────────── */
+.brand-logo {
+  color: var(--gold);
+  flex-shrink: 0;
+  transition: transform var(--t-spring), filter var(--t-normal);
+  filter: drop-shadow(0 0 6px rgba(224,120,50,0.0));
+}
+.navbar-brand:hover .brand-logo {
+  transform: rotate(-10deg) scale(1.1);
+  filter: drop-shadow(0 0 8px rgba(224,120,50,0.55));
+}
+
+/* ── Phase 9: Global — Enhanced Navbar ───────────────────── */
+.navbar-brand {
+  gap: 12px;
+}
+.navbar-brand span {
+  letter-spacing: -0.01em;
+  background: linear-gradient(90deg, var(--cream) 0%, rgba(246,232,213,0.85) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all var(--t-normal);
+}
+.navbar-brand:hover span {
+  background: linear-gradient(90deg, var(--gold-light) 0%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Phase 9: Global — Product Card Glow ─────────────────── */
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition: all var(--t-normal);
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+.product-card:hover {
+  border-color: rgba(224,120,50,0.3);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 30px rgba(224,120,50,0.12);
+}
+.product-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+}
+.product-image {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease, filter 0.4s ease;
+  filter: brightness(0.9) saturate(1.1);
+}
+.product-card:hover .product-image {
+  transform: scale(1.06);
+  filter: brightness(0.85) saturate(1.2);
+}
+.product-badge {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: var(--grad-gold);
+  color: #080604;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 12px rgba(224,120,50,0.4);
+}
+.product-quick-actions {
+  position: absolute;
+  top: 12px; right: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  opacity: 0; transform: translateX(10px);
+  transition: all var(--t-normal);
+}
+.product-card:hover .product-quick-actions { opacity: 1; transform: none; }
+.quick-action-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  color: var(--cream);
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--t-fast);
+}
+.quick-action-btn:hover { background: rgba(224,120,50,0.2); color: var(--gold); border-color: rgba(224,120,50,0.3); }
+.product-category {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.product-price {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+.product-rating { color: var(--amber); font-size: 0.75rem; margin-bottom: 10px; }
+.product-rating span { color: var(--cream-muted); margin-left: 5px; font-size: 0.8rem; }
+
+/* ── Phase 9: Global — Review Cards ──────────────────────── */
+.real-review-card {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  height: 100%;
+  transition: all var(--t-normal);
+}
+.real-review-card:hover { border-color: rgba(224,120,50,0.25); transform: translateY(-4px); box-shadow: var(--shadow-gold); }
+.real-review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.real-review-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--cream);
+  flex-shrink: 0;
+  border: 2px solid rgba(246,232,213,0.12);
+}
+.real-review-name { font-size: 0.9rem; font-weight: 700; color: var(--cream); }
+.real-review-product { font-size: 0.75rem; color: var(--gold); margin-top: 1px; }
+.real-review-badge {
+  font-size: 0.72rem; font-weight: 700;
+  background: rgba(224,120,50,0.1);
+  border: 1px solid rgba(224,120,50,0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  color: var(--amber);
+  white-space: nowrap;
+}
+.real-review-stars { color: var(--amber); font-size: 0.78rem; }
+.real-review-text {
+  color: var(--cream-dim);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  font-style: italic;
+  margin-bottom: 14px;
+}
+.real-review-date { font-size: 0.72rem; color: var(--cream-muted); }
+
+/* ── Phase 9: Global — Trust Strip Polish ────────────────── */
+.trust-item {
+  position: relative;
+  overflow: hidden;
+}
+.trust-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(224,120,50,0.06) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--t-normal);
+}
+.trust-item:hover::before { opacity: 1; }
+.trust-item i {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: rgba(224,120,50,0.1);
+  border: 1px solid rgba(224,120,50,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: all var(--t-spring);
+}
+.trust-item:hover i { background: rgba(224,120,50,0.2); transform: scale(1.1) rotate(-5deg); }
+
+/* ── Phase 9: Global — Footer Polish ─────────────────────── */
+.footer-brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--font-display);
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 18px;
+}
+footer p { color: var(--cream-muted); font-size: 0.88rem; line-height: 1.7; }
+.footer-links { list-style: none; padding: 0; }
+.footer-links li {
+  padding: 5px 0;
+  color: var(--cream-muted);
+  font-size: 0.88rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.footer-links a {
+  color: var(--cream-muted);
+  transition: color var(--t-fast), padding-left var(--t-fast);
+  display: inline-block;
+}
+.footer-links a:hover { color: var(--gold); padding-left: 4px; }
+footer h5 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  margin-bottom: 18px;
+  position: relative;
+  padding-bottom: 10px;
+}
+footer h5::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 24px; height: 2px;
+  background: var(--grad-gold);
+  border-radius: 2px;
+}
+.social-links { display: flex; gap: 10px; }
+.social-link {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cream-muted);
+  font-size: 0.85rem;
+  transition: all var(--t-spring);
+}
+.social-link:hover {
+  background: rgba(224,120,50,0.15);
+  border-color: rgba(224,120,50,0.3);
+  color: var(--gold);
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* ── Phase 9: Global — Dashboard Polish ──────────────────── */
+.dashboard-header {
+  padding: 40px 0 0;
+}
+.dash-avatar {
+  transition: all var(--t-spring);
+}
+.dash-avatar:hover {
+  transform: scale(1.06) rotate(-3deg);
+  box-shadow: 0 0 40px rgba(224,120,50,0.45);
+}
+
+/* ── Phase 9: Global — Page Section Header Polish ─────────── */
+.page-section-header {
+  padding: 56px 0 40px;
+}
+.page-section-header h1 em { color: var(--gold); }
+
+/* ── Phase 9: Global — Responsive Auth Split ─────────────── */
+@media (max-width: 991px) {
+  .auth-split { flex-direction: column; }
+  .auth-visual { display: none !important; }
+  .auth-form-panel {
+    min-height: 100vh;
+    padding: 60px 20px;
+    align-items: flex-start;
+    padding-top: 80px;
+  }
+  .auth-form-inner { max-width: 100%; }
+}
+@media (max-width: 575px) {
+  .auth-form-panel { padding: 60px 16px; }
+  .counter-card { padding: 24px 14px; }
+  .counter-number { font-size: 1.8rem; }
+  .cat-cinema-img-wrap { height: 160px; }
+}
+

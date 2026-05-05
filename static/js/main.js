@@ -434,6 +434,139 @@
         animateDots();
     }
 
+    // ── Page Transition System ────────────────────────────────────
+    function initPageTransitions() {
+        const overlay = document.getElementById('pageTransitionOverlay');
+        if (!overlay) return;
+
+        // Fade in on page load
+        overlay.classList.remove('exit');
+
+        // Intercept internal link clicks
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') ||
+                href.startsWith('tel:') || href.startsWith('javascript:') ||
+                link.hasAttribute('data-bs-toggle') || link.target === '_blank') return;
+            if (href.startsWith('http') && !href.includes(window.location.hostname)) return;
+
+            e.preventDefault();
+            overlay.classList.add('exit');
+            setTimeout(() => { window.location.href = href; }, 300);
+        });
+
+        // Back button
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) overlay.classList.remove('exit');
+        });
+    }
+
+    // ── Counter Animation ─────────────────────────────────────────
+    function initCounters() {
+        const counters = document.querySelectorAll('.counter-number[data-target]');
+        if (!counters.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const el = entry.target;
+                const target = parseInt(el.getAttribute('data-target'));
+                const isDecimal = el.hasAttribute('data-decimal');
+                const duration = 1800;
+                const steps = 60;
+                const stepTime = duration / steps;
+                let current = 0;
+                const increment = target / steps;
+
+                const timer = setInterval(() => {
+                    current = Math.min(current + increment, target);
+                    if (isDecimal) {
+                        el.textContent = (current / 10).toFixed(1);
+                    } else {
+                        el.textContent = Math.round(current).toLocaleString('en-IN');
+                    }
+                    if (current >= target) clearInterval(timer);
+                }, stepTime);
+
+                observer.unobserve(el);
+            });
+        }, { threshold: 0.3 });
+
+        counters.forEach(el => observer.observe(el));
+    }
+
+    // ── Enhanced Cursor with Multiple Emojis ─────────────────────
+    function initEnhancedCursor() {
+        if (window.matchMedia('(hover: none)').matches) return;
+
+        const emojis = ['🥐', '🎂', '🍞', '🥖', '🍰'];
+        let emojiIndex = 0;
+
+        const cursor = document.createElement('div');
+        cursor.className = 'bakery-cursor';
+        cursor.textContent = emojis[0];
+        document.body.appendChild(cursor);
+
+        const trail = document.createElement('div');
+        trail.className = 'bakery-cursor-trail';
+        document.body.appendChild(trail);
+
+        let mx = -100, my = -100, tx = -100, ty = -100;
+
+        document.addEventListener('mousemove', (e) => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top  = my + 'px';
+        });
+
+        function trailLoop() {
+            tx += (mx - tx) * 0.16;
+            ty += (my - ty) * 0.16;
+            trail.style.left = tx + 'px';
+            trail.style.top  = ty + 'px';
+            requestAnimationFrame(trailLoop);
+        }
+        trailLoop();
+
+        // Rotate emoji on click
+        document.addEventListener('click', () => {
+            emojiIndex = (emojiIndex + 1) % emojis.length;
+            cursor.textContent = emojis[emojiIndex];
+            cursor.style.transition = 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)';
+            cursor.style.transform = 'translate(-50%,-50%) scale(1.6) rotate(20deg)';
+            setTimeout(() => { cursor.style.transform = ''; cursor.style.transition = ''; }, 300);
+        });
+
+        document.querySelectorAll('a, button, .product-card, .story-cat-card, .cat-cinema-card, .slider-btn, .quick-action-btn, .counter-card').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; trail.style.opacity = '0'; });
+        document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; trail.style.opacity = '1'; });
+    }
+
+    // ── Navbar Active State Enhancement ──────────────────────────
+    function initNavbarActive() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            if (link.classList.contains('active')) {
+                link.style.color = 'var(--cream)';
+            }
+        });
+    }
+
+    // ── Stagger Children Delay ────────────────────────────────────
+    function initStaggerChildren() {
+        document.querySelectorAll('.stagger-children').forEach(parent => {
+            parent.querySelectorAll('.reveal').forEach((el, idx) => {
+                if (!el.dataset.delay) el.dataset.delay = idx * 80;
+            });
+        });
+    }
+
     // ── Init ──────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
         initParticles();
@@ -447,11 +580,15 @@
         initTooltips();
         handlePageLogic();
         initCardTilt();
-        initBakeryCursor();
+        initEnhancedCursor();
         initTouchRipple();
         initReviewSlider();
         initScrollProgress();
         initOrbitDots();
+        initPageTransitions();
+        initCounters();
+        initNavbarActive();
+        initStaggerChildren();
     });
 
     // ── Utils ─────────────────────────────────────────────────────
