@@ -1,102 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Categories - CaupenRost{% endblock %}
+{% block title %}Categories — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="text-center mb-5">
-        <h1 class="text-brown mb-3"><i class="fas fa-tags me-2"></i>Shop by Category</h1>
-        <p class="lead text-muted">Discover our delicious baked goods organized by category</p>
-    </div>
 
+<section class="page-section-header">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">Categories</li>
+            </ol>
+        </nav>
+        <h1 class="mb-1"><i class="fas fa-tags me-3" style="color:var(--gold);"></i>Shop by Category</h1>
+        <p>Discover our delicious baked goods, organized just for you</p>
+    </div>
+</section>
+
+<div class="container py-5">
     {% if categories %}
-    <div class="row">
+    <div class="row g-4">
         {% for category in categories %}
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card category-card h-100 shadow-sm">
-                <div class="position-relative overflow-hidden">
-                    {% if category.image_url %}
-                    <img src="{{ category.image_url }}" class="card-img-top category-image" 
-                         alt="{{ category.name }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                    <div class="bg-light d-flex align-items-center justify-content-center" 
-                         style="height: 200px;">
-                        <i class="fas fa-image fa-3x text-muted"></i>
+        <div class="col-lg-3 col-md-6 reveal">
+            <a href="{{ url_for('category_products', category_name=category.name) }}" style="text-decoration:none;">
+                <div class="cat-grid-card">
+                    <div class="cat-grid-img-wrap">
+                        {% if category.image_url %}
+                        <img src="{{ category.image_url }}" class="cat-grid-img" alt="{{ category.name }}">
+                        {% else %}
+                        <div style="width:100%;height:100%;background:var(--bg-card-3);display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-image" style="font-size:2rem;color:var(--cream-muted);opacity:0.3;"></i>
+                        </div>
+                        {% endif %}
+                        <div class="cat-grid-badge">
+                            {{ category.get_product_count() }} items
+                        </div>
                     </div>
-                    {% endif %}
-                    
-                    <!-- Product Count Badge -->
-                    <div class="position-absolute top-0 end-0 m-2">
-                        <span class="badge bg-brown">{{ category.get_product_count() }} items</span>
-                    </div>
-                </div>
-                
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title text-brown">{{ category.name }}</h5>
-                    {% if category.description %}
-                    <p class="card-text text-muted flex-grow-1">{{ category.description }}</p>
-                    {% endif %}
-                    
-                    <div class="mt-auto">
-                        <a href="{{ url_for('category_products', category_name=category.name) }}" 
-                           class="btn btn-brown w-100">
+                    <div class="cat-grid-body">
+                        <h5>{{ category.name }}</h5>
+                        {% if category.description %}
+                        <p>{{ category.description[:80] }}{% if category.description|length > 80 %}…{% endif %}</p>
+                        {% endif %}
+                        <div class="btn btn-outline-brown w-100 btn-sm">
                             <i class="fas fa-shopping-bag me-2"></i>Browse {{ category.name }}
-                        </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Quick Links -->
-    <div class="text-center mt-5">
-        <h4 class="text-brown mb-3">Quick Actions</h4>
-        <div class="d-flex flex-wrap justify-content-center gap-2">
-            <a href="{{ url_for('products') }}" class="btn btn-outline-brown">
-                <i class="fas fa-list me-2"></i>View All Products
-            </a>
-            <a href="{{ url_for('products', category='Bread') }}" class="btn btn-outline-brown">
-                <i class="fas fa-bread-slice me-2"></i>Fresh Bread
-            </a>
-            <a href="{{ url_for('products', category='Pastries') }}" class="btn btn-outline-brown">
-                <i class="fas fa-cookie me-2"></i>Pastries
-            </a>
-            <a href="{{ url_for('products', category='Desserts') }}" class="btn btn-outline-brown">
-                <i class="fas fa-birthday-cake me-2"></i>Desserts
-            </a>
-        </div>
+    <div class="text-center mt-5 reveal">
+        <a href="{{ url_for('products') }}" class="btn btn-outline-brown btn-lg px-5">
+            <i class="fas fa-th-large me-2"></i>View All Products
+        </a>
     </div>
-    
+
     {% else %}
     <div class="text-center py-5">
-        <i class="fas fa-tags fa-4x text-muted mb-4"></i>
-        <h3 class="text-muted mb-3">No categories available</h3>
-        <p class="text-muted mb-4">We're working on organizing our products. Please check back soon!</p>
-        <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
+        <div style="font-size:3.5rem;color:var(--cream-muted);opacity:0.3;margin-bottom:24px;">
+            <i class="fas fa-tags"></i>
+        </div>
+        <h3 style="color:var(--cream-muted);margin-bottom:10px;">No Categories Yet</h3>
+        <p style="color:var(--cream-muted);margin-bottom:28px;">We're organizing our products. Check back soon!</p>
+        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
             <i class="fas fa-shopping-bag me-2"></i>Browse All Products
         </a>
     </div>
     {% endif %}
 </div>
-
-<style>
-.category-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.category-image {
-    transition: transform 0.3s ease-in-out;
-}
-
-.category-card:hover .category-image {
-    transform: scale(1.05);
-}
-</style>
 {% endblock %}

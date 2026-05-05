@@ -77,7 +77,16 @@ function dismissBanner() {
 <nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
     <div class="container">
         <a class="navbar-brand" href="{{ url_for('index') }}">
-            <i class="fas fa-birthday-cake"></i>{{ site_settings.site_name }}
+            <svg class="brand-logo" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 3C16 3 10 7 10 14c0 3.3 2.7 6 6 6s6-2.7 6-6C22 7 16 3 16 3z" fill="currentColor" opacity="0.9"/>
+                <path d="M16 20v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M13 24.5c0 0 1-2.5 3-2.5s3 2.5 3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                <ellipse cx="11" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(-20 11 12)"/>
+                <ellipse cx="21" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(20 21 12)"/>
+                <ellipse cx="9" cy="9" rx="1.8" ry="3" fill="currentColor" opacity="0.35" transform="rotate(-35 9 9)"/>
+                <ellipse cx="23" cy="9" rx="1.8" ry="3" fill="currentColor" opacity="0.35" transform="rotate(35 23 9)"/>
+            </svg>
+            <span>{{ site_settings.site_name }}</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -116,7 +125,7 @@ function dismissBanner() {
                 <li class="nav-item dropdown ms-lg-2">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-2"
                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="user-avatar"><i class="fas fa-user-circle fa-lg"></i></span>
+                        <span class="user-avatar-nav">{{ current_user.username[0]|upper }}</span>
                         <span class="d-none d-lg-inline">{{ current_user.username }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -177,7 +186,13 @@ function dismissBanner() {
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
                 <div class="footer-brand">
-                    <i class="fas fa-birthday-cake"></i>
+                    <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--gold);">
+                        <path d="M16 3C16 3 10 7 10 14c0 3.3 2.7 6 6 6s6-2.7 6-6C22 7 16 3 16 3z" fill="currentColor" opacity="0.9"/>
+                        <path d="M16 20v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M13 24.5c0 0 1-2.5 3-2.5s3 2.5 3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                        <ellipse cx="11" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(-20 11 12)"/>
+                        <ellipse cx="21" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(20 21 12)"/>
+                    </svg>
                     <span>CaupenRost</span>
                 </div>
                 <p class="mb-4">Freshly baked goods made with love, premium ingredients, and traditional recipes passed down through generations.</p>

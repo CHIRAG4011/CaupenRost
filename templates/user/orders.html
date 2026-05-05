@@ -2,7 +2,8 @@
 {% block title %}My Orders — CaupenRost{% endblock %}
 
 {% block content %}
-<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:48px 0 32px;">
+
+<section class="page-section-header">
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
@@ -13,8 +14,8 @@
         </nav>
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1 style="font-family:'Playfair Display',serif;font-size:2rem;margin:0 0 6px;">My Orders</h1>
-                <p style="color:var(--cream-muted);margin:0;font-size:0.88rem;">Track and manage all your past orders</p>
+                <h1 class="mb-1">My Orders</h1>
+                <p>Track and manage all your past orders</p>
             </div>
             <a href="{{ url_for('products') }}" class="btn btn-outline-brown btn-sm">
                 <i class="fas fa-shopping-bag me-1"></i>Shop More
@@ -25,68 +26,72 @@
 
 <div class="container py-5">
     {% if orders %}
-    <div class="d-flex flex-column gap-3">
+    <div class="d-flex flex-column gap-0">
         {% for order in orders %}
-        <div class="card" style="transition:all 0.2s ease;" onmouseover="this.style.borderColor='rgba(212,168,67,0.3)'" onmouseout="this.style.borderColor=''">
-            <!-- Order Header -->
-            <div style="padding:18px 24px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div class="order-card reveal">
+            <div class="order-card-head">
                 <div class="d-flex align-items-center gap-4 flex-wrap">
-                    <div>
-                        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:2px;">Order ID</div>
-                        <div style="font-weight:700;color:var(--gold);font-size:0.9rem;">#{{ order.id[:12] }}…</div>
+                    <div class="order-meta-item">
+                        <div class="order-meta-label">Order ID</div>
+                        <div class="order-meta-val gold">#{{ order.id[:10] }}…</div>
                     </div>
-                    <div style="width:1px;height:30px;background:var(--glass-border);"></div>
-                    <div>
-                        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:2px;">Placed</div>
-                        <div style="font-weight:600;font-size:0.85rem;">{{ order.created_at.strftime('%d %b %Y') }}</div>
+                    <div class="order-sep"></div>
+                    <div class="order-meta-item">
+                        <div class="order-meta-label">Placed</div>
+                        <div class="order-meta-val">{{ order.created_at.strftime('%d %b %Y') }}</div>
                     </div>
-                    <div style="width:1px;height:30px;background:var(--glass-border);"></div>
-                    <div>
-                        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:2px;">Total</div>
-                        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;color:var(--gold);">₹{{ "%.0f"|format(order.total) }}</div>
+                    <div class="order-sep"></div>
+                    <div class="order-meta-item">
+                        <div class="order-meta-label">Total</div>
+                        <div class="order-meta-val gold">₹{{ "%.0f"|format(order.total) }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     {% set s = order.status %}
-                    <span class="status-pill {% if s=='pending' %}status-pending{% elif s=='confirmed' %}status-confirmed{% elif s=='preparing' %}status-preparing{% elif s=='out_for_delivery' %}status-delivery{% elif s=='delivered' %}status-delivered{% elif s=='cancelled' %}status-cancelled{% else %}status-payment{% endif %}" style="padding:6px 14px;font-size:0.72rem;">
+                    <span class="status-pill {% if s=='pending' %}status-pending{% elif s=='confirmed' %}status-confirmed{% elif s=='preparing' %}status-preparing{% elif s=='out_for_delivery' %}status-delivery{% elif s=='delivered' %}status-delivered{% elif s=='cancelled' %}status-cancelled{% else %}status-payment{% endif %}">
+                        <span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>
                         {{ s.replace('_',' ').title() }}
                     </span>
-                    <a href="{{ url_for('order_tracking', order_id=order.id) }}"
-                       class="btn btn-outline-brown btn-sm">
-                        <i class="fas fa-eye me-1"></i>Details
+                    <a href="{{ url_for('order_tracking', order_id=order.id) }}" class="btn btn-outline-brown btn-sm">
+                        <i class="fas fa-eye me-1"></i>Track
                     </a>
                 </div>
             </div>
-            <!-- Order Items -->
-            <div style="padding:16px 24px;">
-                <div class="d-flex align-items-start gap-4 flex-wrap">
+            <div class="order-card-body">
+                <div class="d-flex align-items-start gap-5 flex-wrap">
                     <div style="flex:1;min-width:200px;">
-                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:10px;">Items</div>
+                        <div class="order-meta-label mb-2">Items</div>
                         <div class="d-flex flex-wrap gap-2">
                             {% for item in order.items %}
-                            <span style="background:var(--bg-card-2);border:1px solid var(--glass-border);padding:4px 12px;border-radius:20px;font-size:0.75rem;color:var(--cream-dim);">
+                            <span style="background:var(--bg-card-2);border:1px solid var(--glass-border);padding:4px 12px;border-radius:20px;font-size:0.74rem;color:var(--cream-dim);">
                                 {{ item.quantity }}× {{ item.name if item.name else 'Product' }}
                             </span>
                             {% endfor %}
                         </div>
                     </div>
-                    <div style="min-width:160px;">
-                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:10px;">Delivery</div>
-                        <div style="font-size:0.82rem;color:var(--cream-dim);">{{ order.shipping_address[:50] }}{% if order.shipping_address|length > 50 %}…{% endif %}</div>
+                    {% if order.shipping_address %}
+                    <div style="min-width:160px;max-width:260px;">
+                        <div class="order-meta-label mb-2">Delivery</div>
+                        <div style="font-size:0.81rem;color:var(--cream-dim);line-height:1.5;">
+                            {{ order.shipping_address[:60] }}{% if order.shipping_address|length > 60 %}…{% endif %}
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-5">
-        <div style="width:80px;height:80px;border-radius:50%;background:rgba(212,168,67,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;">
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(224,120,50,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
             <i class="fas fa-receipt" style="font-size:1.8rem;color:var(--cream-muted);opacity:0.4;"></i>
         </div>
         <h3 style="color:var(--cream-muted);margin-bottom:10px;">No Orders Yet</h3>
-        <p style="color:var(--cream-muted);margin-bottom:28px;font-size:0.9rem;">When you place orders, they will appear here for easy tracking.</p>
-        <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg">
+        <p style="color:var(--cream-muted);margin-bottom:28px;font-size:0.9rem;max-width:360px;">
+            Your orders will appear here once you start shopping. Browse our fresh selection!
+        </p>
+        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg">
             <i class="fas fa-shopping-bag me-2"></i>Start Shopping
         </a>
     </div>

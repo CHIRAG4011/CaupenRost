@@ -3,28 +3,37 @@
 
 {% block content %}
 
-<!-- Page Header -->
-<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:40px 0 0;">
+<!-- Dashboard Header -->
+<section class="dashboard-header pb-0">
     <div class="container">
-        <div class="d-flex align-items-end gap-5 pb-0 flex-wrap">
+        <div class="d-flex align-items-end gap-4 pt-5 pb-0 flex-wrap" style="margin-bottom:-1px;">
             <div style="position:relative;margin-bottom:-28px;">
-                <div style="width:90px;height:90px;border-radius:50%;background:var(--grad-gold);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:#080605;border:4px solid var(--bg-surface);box-shadow:0 0 30px rgba(212,168,67,0.3);">
-                    {{ current_user.username[0]|upper }}
-                </div>
+                <div class="dash-avatar">{{ current_user.username[0]|upper }}</div>
+                <div style="position:absolute;bottom:4px;right:4px;width:16px;height:16px;background:#5dba7d;border-radius:50%;border:2px solid var(--bg-surface);"></div>
             </div>
-            <div class="pb-4">
-                <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;">Member since {{ current_user.created_at.strftime('%B %Y') }}</div>
-                <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--cream);margin:0 0 4px;">{{ current_user.username }}</h1>
-                <p style="color:var(--cream-muted);font-size:0.88rem;margin:0;">{{ current_user.email }}</p>
+            <div class="pb-5">
+                <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;">
+                    <i class="fas fa-seedling me-1"></i>Member since {{ current_user.created_at.strftime('%B %Y') }}
+                </div>
+                <h1 style="font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--cream);margin:0 0 4px;">{{ current_user.username }}</h1>
+                <p style="color:var(--cream-muted);font-size:0.85rem;margin:0;">
+                    <i class="fas fa-envelope me-1"></i>{{ current_user.email }}
+                    {% if current_user.is_admin %}
+                    <span style="background:rgba(224,120,50,0.12);border:1px solid rgba(224,120,50,0.25);color:var(--gold);padding:2px 10px;border-radius:12px;font-size:0.68rem;font-weight:700;margin-left:10px;">Admin</span>
+                    {% endif %}
+                </p>
             </div>
         </div>
-        <div class="d-flex gap-0 mt-5" style="border-top:1px solid var(--glass-border);">
-            {% for tab_id, tab_label, tab_icon in [('overview','Overview','fa-th-large'),('addresses','Addresses','fa-map-marker-alt'),('actions','Quick Actions','fa-bolt')] %}
-            <button onclick="showTab('{{ tab_id }}')" id="ptab_{{ tab_id }}"
-                    style="background:transparent;border:none;border-bottom:2px solid {% if loop.first %}var(--gold){% else %}transparent{% endif %};padding:14px 24px;font-size:0.82rem;font-weight:600;letter-spacing:0.04em;color:{% if loop.first %}var(--gold){% else %}var(--cream-muted){% endif %};cursor:pointer;transition:all 0.18s ease;display:flex;align-items:center;gap:8px;">
-                <i class="fas {{ tab_icon }}" style="font-size:0.8rem;"></i>{{ tab_label }}
+        <div class="dashboard-tabs" style="margin-top:28px;">
+            <button class="dashboard-tab-btn active" id="dtab_overview" onclick="showDashTab('overview')">
+                <i class="fas fa-th-large"></i>Overview
             </button>
-            {% endfor %}
+            <button class="dashboard-tab-btn" id="dtab_addresses" onclick="showDashTab('addresses')">
+                <i class="fas fa-map-marker-alt"></i>Addresses
+            </button>
+            <button class="dashboard-tab-btn" id="dtab_actions" onclick="showDashTab('actions')">
+                <i class="fas fa-bolt"></i>Quick Links
+            </button>
         </div>
     </div>
 </section>
@@ -32,24 +41,22 @@
 <div class="container py-5">
 
     <!-- Overview Tab -->
-    <div id="tab_overview">
+    <div id="dashTab_overview">
         <div class="row g-4">
-            <!-- Stats Row -->
+            <!-- Stats -->
             <div class="col-12">
                 <div class="row g-3">
                     {% for icon, label, val, color in [
-                        ('fa-receipt','Saved Addresses', addresses|length, 'var(--gold)'),
-                        ('fa-user-shield','Account Type', 'Admin' if current_user.is_admin else 'Customer', '#4ade80'),
-                        ('fa-calendar-alt','Member Since', current_user.created_at.strftime('%b %Y'), '#60a5fa'),
-                        ('fa-envelope','Email', '—', '#a78bfa'),
+                        ('fa-map-marker-alt', 'Saved Addresses', addresses|length, 'var(--gold)'),
+                        ('fa-user-shield', 'Account Type', 'Admin' if current_user.is_admin else 'Customer', '#4ade80'),
+                        ('fa-calendar-alt', 'Member Since', current_user.created_at.strftime('%b %Y'), '#60a5fa'),
+                        ('fa-receipt', 'My Orders', '→ View', '#a78bfa'),
                     ] %}
                     <div class="col-md-3 col-6">
-                        <div class="card text-center" style="padding:24px 16px;">
-                            <div style="width:48px;height:48px;border-radius:12px;background:rgba(212,168,67,0.08);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-                                <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.1rem;"></i>
-                            </div>
-                            <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:{{ color }};">{{ val }}</div>
-                            <div style="font-size:0.75rem;color:var(--cream-muted);font-weight:500;margin-top:4px;">{{ label }}</div>
+                        <div class="dash-stat-card reveal active">
+                            <div class="dash-stat-icon"><i class="fas {{ icon }}" style="color:{{ color }};"></i></div>
+                            <div class="dash-stat-val" style="color:{{ color }};">{{ val }}</div>
+                            <div class="dash-stat-label">{{ label }}</div>
                         </div>
                     </div>
                     {% endfor %}
@@ -60,7 +67,7 @@
             <div class="col-lg-6">
                 <div class="card h-100">
                     <div class="card-header"><h5 class="mb-0"><i class="fas fa-user me-2" style="color:var(--gold);"></i>Account Details</h5></div>
-                    <div class="card-body">
+                    <div class="card-body" style="padding:0;">
                         {% for label, val in [
                             ('Username', current_user.username),
                             ('Email', current_user.email),
@@ -68,19 +75,19 @@
                             ('Account Type', 'Administrator' if current_user.is_admin else 'Customer'),
                             ('Role', (current_user.role or 'customer') | title),
                         ] %}
-                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}mb-4 pb-4{% endif %}" style="{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
-                            <span style="color:var(--cream-muted);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">{{ label }}</span>
-                            <span style="font-weight:600;font-size:0.88rem;text-align:right;">{{ val }}</span>
+                        <div class="d-flex justify-content-between align-items-center" style="padding:14px 20px;{% if not loop.last %}border-bottom:1px solid var(--glass-border);{% endif %}">
+                            <span style="color:var(--cream-muted);font-size:0.76rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">{{ label }}</span>
+                            <span style="font-weight:600;font-size:0.88rem;text-align:right;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ val }}</span>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
 
-            <!-- Quick links -->
+            <!-- Quick Links -->
             <div class="col-lg-6">
                 <div class="card h-100">
-                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-bolt me-2" style="color:var(--gold);"></i>Quick Links</h5></div>
+                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-bolt me-2" style="color:var(--gold);"></i>Quick Actions</h5></div>
                     <div class="card-body d-grid gap-2">
                         <a href="{{ url_for('user_orders') }}" class="btn btn-outline-brown">
                             <i class="fas fa-receipt me-2"></i>My Orders
@@ -101,7 +108,7 @@
     </div>
 
     <!-- Addresses Tab -->
-    <div id="tab_addresses" style="display:none;">
+    <div id="dashTab_addresses" style="display:none;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin:0 0 4px;">Delivery Addresses</h2>
@@ -114,22 +121,20 @@
         {% if addresses %}
         <div class="row g-3">
             {% for address in addresses %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100" style="position:relative;">
+            <div class="col-md-6 col-lg-4 reveal active">
+                <div class="card h-100" style="position:relative;padding:20px;">
                     <div style="position:absolute;top:14px;right:14px;">
-                        <span style="background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.2);color:var(--gold);padding:3px 10px;border-radius:12px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">{{ address.name }}</span>
+                        <span style="background:rgba(224,120,50,0.1);border:1px solid rgba(224,120,50,0.2);color:var(--gold);padding:3px 10px;border-radius:12px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">{{ address.name }}</span>
                     </div>
-                    <div class="card-body pt-4">
-                        <div class="d-flex align-items-start gap-3">
-                            <div style="width:40px;height:40px;border-radius:10px;background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
-                                <i class="fas fa-map-marker-alt" style="color:var(--gold);"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight:600;font-size:0.9rem;margin-bottom:6px;">{{ address.street }}</div>
-                                <div style="color:var(--cream-muted);font-size:0.82rem;line-height:1.6;">
-                                    {{ address.city }}, {{ address.state }} {{ address.zip_code }}
-                                    {% if address.phone %}<br><i class="fas fa-phone me-1" style="font-size:0.72rem;color:var(--gold);"></i>{{ address.phone }}{% endif %}
-                                </div>
+                    <div class="d-flex align-items-start gap-3 mt-2">
+                        <div style="width:40px;height:40px;border-radius:10px;background:rgba(224,120,50,0.08);border:1px solid rgba(224,120,50,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+                            <i class="fas fa-map-marker-alt" style="color:var(--gold);"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9rem;margin-bottom:6px;">{{ address.street }}</div>
+                            <div style="color:var(--cream-muted);font-size:0.82rem;line-height:1.6;">
+                                {{ address.city }}, {{ address.state }} {{ address.zip_code }}
+                                {% if address.phone %}<br><i class="fas fa-phone me-1" style="font-size:0.72rem;color:var(--gold);"></i>{{ address.phone }}{% endif %}
                             </div>
                         </div>
                     </div>
@@ -139,11 +144,11 @@
         </div>
         {% else %}
         <div class="text-center py-5">
-            <div style="width:72px;height:72px;border-radius:50%;background:rgba(212,168,67,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <div style="width:72px;height:72px;border-radius:50%;background:rgba(224,120,50,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
                 <i class="fas fa-map-marker-alt" style="font-size:1.5rem;color:var(--cream-muted);opacity:0.5;"></i>
             </div>
-            <h4 style="color:var(--cream-muted);margin-bottom:8px;">No Addresses Saved</h4>
-            <p style="color:var(--cream-muted);margin-bottom:20px;font-size:0.88rem;">Add a delivery address to make checkout faster.</p>
+            <h4 style="color:var(--cream-muted);margin-bottom:8px;">No Addresses Yet</h4>
+            <p style="color:var(--cream-muted);margin-bottom:20px;font-size:0.88rem;">Add a delivery address to speed up checkout.</p>
             <button class="btn btn-brown" data-bs-toggle="modal" data-bs-target="#addAddressModal">
                 <i class="fas fa-plus me-2"></i>Add Your First Address
             </button>
@@ -151,20 +156,20 @@
         {% endif %}
     </div>
 
-    <!-- Quick Actions Tab -->
-    <div id="tab_actions" style="display:none;">
-        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin:0 0 24px;">Quick Actions</h2>
+    <!-- Quick Links Tab -->
+    <div id="dashTab_actions" style="display:none;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.5rem;margin:0 0 28px;">Quick Links</h2>
         <div class="row g-3">
             {% for href, icon, title, desc, color in [
-                (url_for('user_orders'), 'fa-receipt', 'My Orders', 'Track your order history and status', '#d4a843'),
+                (url_for('user_orders'), 'fa-receipt', 'My Orders', 'Track your order history and status', 'var(--gold)'),
                 (url_for('products'), 'fa-shopping-bag', 'Continue Shopping', 'Browse our fresh bakery selection', '#4ade80'),
                 (url_for('support_center'), 'fa-headset', 'Support Center', 'Get help with orders or custom requests', '#60a5fa'),
                 (url_for('cart'), 'fa-shopping-cart', 'View Cart', 'Check your current cart items', '#a78bfa'),
             ] %}
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-3 reveal active">
                 <a href="{{ href }}" style="text-decoration:none;">
-                    <div class="card text-center" style="padding:30px 20px;transition:all 0.2s ease;" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='rgba(212,168,67,0.3)'" onmouseout="this.style.transform='';this.style.borderColor=''">
-                        <div style="width:56px;height:56px;border-radius:16px;background:rgba(212,168,67,0.08);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <div class="card text-center" style="padding:32px 20px;cursor:pointer;" onmouseover="this.style.transform='translateY(-5px)';this.style.borderColor='rgba(224,120,50,0.3)'" onmouseout="this.style.transform='';this.style.borderColor=''">
+                        <div style="width:58px;height:58px;border-radius:16px;background:rgba(224,120,50,0.06);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;transition:all 0.2s ease;">
                             <i class="fas {{ icon }}" style="color:{{ color }};font-size:1.3rem;"></i>
                         </div>
                         <h5 style="font-size:0.95rem;margin-bottom:8px;">{{ title }}</h5>
@@ -189,7 +194,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Address Label</label>
-                        <input type="text" class="form-control" name="name" placeholder="e.g. Home, Office, Parents' House" required>
+                        <input type="text" class="form-control" name="name" placeholder="e.g. Home, Office" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Street Address</label>
@@ -228,15 +233,12 @@
 
 {% block extra_scripts %}
 <script>
-var tabs = ['overview','addresses','actions'];
-function showTab(id) {
-    tabs.forEach(function(t) {
-        document.getElementById('tab_'+t).style.display = t===id ? '' : 'none';
-        var btn = document.getElementById('ptab_'+t);
-        if (btn) {
-            btn.style.borderBottomColor = t===id ? 'var(--gold)' : 'transparent';
-            btn.style.color = t===id ? 'var(--gold)' : 'var(--cream-muted)';
-        }
+var dashTabs = ['overview', 'addresses', 'actions'];
+function showDashTab(id) {
+    dashTabs.forEach(function(t) {
+        document.getElementById('dashTab_' + t).style.display = t === id ? '' : 'none';
+        var btn = document.getElementById('dtab_' + t);
+        if (btn) btn.classList.toggle('active', t === id);
     });
 }
 </script>

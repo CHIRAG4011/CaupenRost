@@ -1,19 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Products – {{ site_settings.site_name }}{% endblock %}
+{% block title %}Products — {{ site_settings.site_name }}{% endblock %}
 
 {% block content %}
 
-<!-- Page Header -->
-<section style="background:var(--bg-surface);border-bottom:1px solid var(--glass-border);padding:56px 0 40px;">
+<section class="page-section-header">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-3">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
                 <li class="breadcrumb-item active">Products</li>
             </ol>
         </nav>
-        <h1 class="display-title mb-2">Our Products</h1>
-        <p style="color:var(--cream-muted);margin:0;font-size:0.9rem;">Handcrafted with love, baked fresh every morning</p>
+        <h1 class="mb-1">Our Products</h1>
+        <p>Handcrafted with love, baked fresh every morning</p>
     </div>
 </section>
 
@@ -22,20 +21,20 @@
 
         <!-- Sidebar Filters -->
         <div class="col-lg-3">
-            <div class="card border-0 sticky-top" style="top:90px;">
-                <div class="card-header">
-                    <h5 class="mb-0" style="font-size:0.85rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
+            <div class="filter-sidebar">
+                <div class="filter-sidebar-head">
+                    <h5 style="margin:0;font-size:0.82rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
                         <i class="fas fa-sliders-h me-2" style="color:var(--gold);"></i>Filters
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="filter-sidebar-body">
                     <form method="get" action="{{ url_for('products') }}">
                         <div class="mb-4">
                             <label for="search" class="form-label">Search</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-search" style="font-size:0.8rem;"></i></span>
                                 <input type="text" class="form-control" id="search" name="q"
-                                       value="{{ current_query }}" placeholder="Type to search…"
+                                       value="{{ current_query }}" placeholder="Search products…"
                                        style="border-left:none!important;">
                             </div>
                         </div>
@@ -43,8 +42,8 @@
                             <label for="category" class="form-label">Category</label>
                             <select class="form-select" id="category" name="category">
                                 <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
-                                {% for category in categories %}
-                                <option value="{{ category }}" {% if current_category == category %}selected{% endif %}>{{ category }}</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -60,20 +59,18 @@
                 </div>
             </div>
 
-            <div class="card border-0 mt-3">
-                <div class="card-body">
-                    <h6 style="color:var(--gold);font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">
-                        <i class="fas fa-th-large me-2"></i>Browse
-                    </h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        {% for cat in categories[:6] %}
-                        <a href="{{ url_for('products') }}?category={{ cat }}"
-                           class="badge text-decoration-none py-2 px-3"
-                           style="{% if current_category == cat %}background:var(--grad-gold);color:#080605;{% else %}background:rgba(212,168,67,0.08);color:var(--gold);border:1px solid rgba(212,168,67,0.2);{% endif %}font-size:0.72rem;border-radius:20px;transition:all 0.2s;font-weight:600;letter-spacing:0.03em;">
-                            {{ cat }}
-                        </a>
-                        {% endfor %}
-                    </div>
+            <div class="card mt-3" style="padding:18px;">
+                <h6 style="color:var(--gold);font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;">
+                    <i class="fas fa-th-large me-2"></i>Browse
+                </h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for cat in categories[:8] %}
+                    <a href="{{ url_for('products') }}?category={{ cat }}"
+                       class="badge text-decoration-none py-2 px-3"
+                       style="{% if current_category == cat %}background:var(--grad-gold);color:#080605;{% else %}background:rgba(224,120,50,0.08);color:var(--gold);border:1px solid rgba(224,120,50,0.2);{% endif %}font-size:0.72rem;border-radius:20px;transition:all 0.2s;font-weight:600;letter-spacing:0.03em;">
+                        {{ cat }}
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -84,8 +81,13 @@
                 <span style="color:var(--cream-muted);font-size:0.85rem;">
                     Showing <strong style="color:var(--gold);">{{ products|length }}</strong> product(s)
                     {% if current_query %}
-                    <span class="ms-2 badge" style="background:rgba(212,168,67,0.1);color:var(--gold);border:1px solid rgba(212,168,67,0.2);padding:5px 10px;border-radius:12px;">
+                    <span class="ms-2 badge" style="background:rgba(224,120,50,0.1);color:var(--gold);border:1px solid rgba(224,120,50,0.2);padding:5px 10px;border-radius:12px;">
                         <i class="fas fa-search me-1"></i>"{{ current_query }}"
+                    </span>
+                    {% endif %}
+                    {% if current_category and current_category != 'all' %}
+                    <span class="ms-2 badge" style="background:rgba(224,120,50,0.1);color:var(--gold);border:1px solid rgba(224,120,50,0.2);padding:5px 10px;border-radius:12px;">
+                        <i class="fas fa-tag me-1"></i>{{ current_category }}
                     </span>
                     {% endif %}
                 </span>
@@ -98,7 +100,6 @@
                     <div class="card product-card h-100" onclick="window.location='{{ url_for('product_detail', product_id=product.id) }}'">
                         <div class="product-image-wrapper">
                             <img src="{{ product.image_url }}" class="product-image" alt="{{ product.name }}" loading="lazy">
-
                             {% if product.stock <= 5 and product.stock > 0 %}
                             <span class="product-badge" style="background:linear-gradient(135deg,#9b6b1a,#e67e22);">
                                 <i class="fas fa-fire me-1"></i>Low Stock
@@ -108,7 +109,6 @@
                                 <i class="fas fa-times me-1"></i>Sold Out
                             </span>
                             {% endif %}
-
                             <div class="product-quick-actions">
                                 <a href="{{ url_for('product_detail', product_id=product.id) }}" class="quick-action-btn" title="View Details" onclick="event.stopPropagation()">
                                     <i class="fas fa-eye"></i>
@@ -157,7 +157,7 @@
                                         </button>
                                     </form>
                                     {% else %}
-                                    <button class="btn btn-secondary btn-sm" disabled>Sold Out</button>
+                                    <button class="btn btn-sm" style="background:rgba(246,232,213,0.05);color:var(--cream-muted);border:1px solid var(--glass-border);" disabled>Sold Out</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -168,7 +168,7 @@
             </div>
             {% else %}
             <div class="text-center py-5">
-                <div class="mb-4" style="font-size:4rem;color:var(--cream-muted);opacity:0.4;">
+                <div style="font-size:4rem;color:var(--cream-muted);opacity:0.3;margin-bottom:20px;">
                     <i class="fas fa-search"></i>
                 </div>
                 <h3 style="color:var(--cream-muted);">No products found</h3>

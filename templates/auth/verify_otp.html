@@ -1,116 +1,123 @@
 {% extends "base.html" %}
-
-{% block title %}Verify Email - CaupenRost{% endblock %}
+{% block title %}Verify Code — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow">
-                <div class="card-header bg-brown text-white text-center">
-                    {% if purpose == 'registration' %}
-                    <h4 class="mb-0"><i class="fas fa-user-check me-2"></i>Verify Your Email</h4>
-                    {% elif purpose == 'login' %}
-                    <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Login Verification</h4>
-                    {% elif purpose == 'order' %}
-                    <h4 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Confirm Your Order</h4>
-                    {% else %}
-                    <h4 class="mb-0"><i class="fas fa-key me-2"></i>Verify Code</h4>
-                    {% endif %}
-                </div>
-                <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="otp-icon mb-3">
-                            {% if purpose == 'registration' %}
-                            <i class="fas fa-envelope-open-text fa-3x text-primary"></i>
-                            {% elif purpose == 'login' %}
-                            <i class="fas fa-lock fa-3x text-primary"></i>
-                            {% elif purpose == 'order' %}
-                            <i class="fas fa-check-circle fa-3x text-success"></i>
-                            {% else %}
-                            <i class="fas fa-key fa-3x text-primary"></i>
-                            {% endif %}
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="auth-card reveal active">
+                    <div class="auth-card-header">
+                        <div class="auth-logo">
+                            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 3C16 3 10 7 10 14c0 3.3 2.7 6 6 6s6-2.7 6-6C22 7 16 3 16 3z" fill="currentColor" opacity="0.9"/>
+                                <path d="M16 20v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <ellipse cx="11" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(-20 11 12)"/>
+                                <ellipse cx="21" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(20 21 12)"/>
+                            </svg>
+                            CaupenRost
                         </div>
-                        <p class="text-muted">
-                            {% if purpose == 'registration' %}
-                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
-                            Enter it below to complete your registration.
-                            {% elif purpose == 'login' %}
-                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
-                            Enter it below to complete your login.
-                            {% elif purpose == 'order' %}
-                            We've sent a 6-digit verification code to <strong>{{ email }}</strong>. 
-                            Enter it below to confirm your order of <strong>₹{{ "%.2f"|format(amount) }}</strong>.
-                            {% else %}
-                            Enter the 6-digit code sent to <strong>{{ email }}</strong>.
-                            {% endif %}
-                        </p>
-                    </div>
-                    
-                    <form method="post">
-                        <div class="mb-4">
-                            <label for="otp" class="form-label">Verification Code</label>
-                            <input type="text" 
-                                   class="form-control form-control-lg text-center" 
-                                   id="otp" 
-                                   name="otp" 
-                                   maxlength="6" 
-                                   pattern="[0-9]{6}" 
-                                   placeholder="000000"
-                                   required 
-                                   autofocus
-                                   style="letter-spacing: 10px; font-size: 24px; font-weight: bold;">
-                            <div class="form-text text-center">Enter the 6-digit code</div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-brown w-100 btn-lg mb-3">
-                            {% if purpose == 'registration' %}
-                            <i class="fas fa-check-circle me-2"></i>Verify & Create Account
-                            {% elif purpose == 'login' %}
-                            <i class="fas fa-sign-in-alt me-2"></i>Verify & Login
-                            {% elif purpose == 'order' %}
-                            <i class="fas fa-shopping-bag me-2"></i>Verify & Place Order
-                            {% else %}
-                            <i class="fas fa-check me-2"></i>Verify
-                            {% endif %}
-                        </button>
-                    </form>
-                    
-                    <hr class="my-4">
-                    
-                    <div class="text-center">
-                        <p class="text-muted small mb-2">Didn't receive the code?</p>
-                        <form method="post" action="{% if purpose == 'registration' %}{{ url_for('resend_registration_otp') }}{% elif purpose == 'login' %}{{ url_for('resend_login_otp') }}{% elif purpose == 'order' %}{{ url_for('resend_order_otp') }}{% endif %}" class="d-inline">
-                            <button type="submit" class="btn btn-outline-brown btn-sm">
-                                <i class="fas fa-redo me-1"></i>Resend Code
-                            </button>
-                        </form>
-                    </div>
-                    
-                    <div class="text-center mt-3">
                         {% if purpose == 'registration' %}
-                        <a href="{{ url_for('register') }}" class="text-muted small">
-                            <i class="fas fa-arrow-left me-1"></i>Back to Registration
-                        </a>
+                        <h2>Verify Your Email</h2>
+                        <p>Complete your account setup</p>
                         {% elif purpose == 'login' %}
-                        <a href="{{ url_for('login') }}" class="text-muted small">
-                            <i class="fas fa-arrow-left me-1"></i>Back to Login
-                        </a>
+                        <h2>Login Verification</h2>
+                        <p>Confirm your identity</p>
                         {% elif purpose == 'order' %}
-                        <a href="{{ url_for('checkout') }}" class="text-muted small">
-                            <i class="fas fa-arrow-left me-1"></i>Back to Checkout
-                        </a>
+                        <h2>Confirm Your Order</h2>
+                        <p>One last step before checkout</p>
+                        {% else %}
+                        <h2>Enter Code</h2>
+                        <p>Verification required</p>
                         {% endif %}
                     </div>
-                </div>
-            </div>
-            
-            <div class="card mt-3">
-                <div class="card-body text-center">
-                    <p class="text-muted small mb-0">
-                        <i class="fas fa-info-circle me-1"></i>
-                        The verification code expires in 10 minutes. Check your spam folder if you don't see it.
-                    </p>
+                    <div class="auth-card-body">
+                        <div class="text-center mb-5">
+                            <div style="width:68px;height:68px;border-radius:50%;background:rgba(224,120,50,0.1);border:1px solid rgba(224,120,50,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+                                {% if purpose == 'registration' %}
+                                <i class="fas fa-envelope-open-text fa-xl" style="color:var(--gold);"></i>
+                                {% elif purpose == 'login' %}
+                                <i class="fas fa-shield-alt fa-xl" style="color:var(--gold);"></i>
+                                {% elif purpose == 'order' %}
+                                <i class="fas fa-shopping-bag fa-xl" style="color:var(--gold);"></i>
+                                {% else %}
+                                <i class="fas fa-key fa-xl" style="color:var(--gold);"></i>
+                                {% endif %}
+                            </div>
+                            <p style="color:var(--cream-dim);font-size:0.9rem;line-height:1.7;max-width:320px;margin:0 auto;">
+                                {% if purpose == 'registration' %}
+                                We sent a 6-digit code to <strong style="color:var(--cream);">{{ email }}</strong>.<br>Enter it below to activate your account.
+                                {% elif purpose == 'login' %}
+                                We sent a 6-digit code to <strong style="color:var(--cream);">{{ email }}</strong>.<br>Enter it below to sign in.
+                                {% elif purpose == 'order' %}
+                                We sent a 6-digit code to <strong style="color:var(--cream);">{{ email }}</strong>.<br>Enter it to confirm your order of <strong style="color:var(--gold);">₹{{ "%.2f"|format(amount) }}</strong>.
+                                {% else %}
+                                Enter the code sent to <strong style="color:var(--cream);">{{ email }}</strong>.
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <form method="post" id="otpForm">
+                            <div class="mb-4">
+                                <div class="otp-boxes" id="otpBoxes">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                    <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                                </div>
+                                <input type="hidden" name="otp" id="otpHidden">
+                                <p class="text-center mt-3" style="color:var(--cream-muted);font-size:0.75rem;">
+                                    <i class="fas fa-clock me-1"></i>Code expires in <span id="otpTimer" style="color:var(--gold);font-weight:600;">10:00</span>
+                                </p>
+                            </div>
+
+                            <button type="submit" class="btn btn-gold w-100 mb-3" style="padding:13px;" id="otpSubmit" disabled>
+                                {% if purpose == 'registration' %}
+                                <i class="fas fa-check-circle me-2"></i>Verify & Create Account
+                                {% elif purpose == 'login' %}
+                                <i class="fas fa-sign-in-alt me-2"></i>Verify & Sign In
+                                {% elif purpose == 'order' %}
+                                <i class="fas fa-shopping-bag me-2"></i>Verify & Place Order
+                                {% else %}
+                                <i class="fas fa-check me-2"></i>Verify
+                                {% endif %}
+                            </button>
+                        </form>
+
+                        <div class="text-center" style="margin-top:20px;">
+                            <p style="color:var(--cream-muted);font-size:0.82rem;margin-bottom:12px;">Didn't receive the code?</p>
+                            <form method="post" action="{% if purpose == 'registration' %}{{ url_for('resend_registration_otp') }}{% elif purpose == 'login' %}{{ url_for('resend_login_otp') }}{% elif purpose == 'order' %}{{ url_for('resend_order_otp') }}{% endif %}" class="d-inline">
+                                <button type="submit" class="btn btn-outline-brown btn-sm">
+                                    <i class="fas fa-redo me-1"></i>Resend Code
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            {% if purpose == 'registration' %}
+                            <a href="{{ url_for('register') }}" style="color:var(--cream-muted);font-size:0.8rem;">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Registration
+                            </a>
+                            {% elif purpose == 'login' %}
+                            <a href="{{ url_for('login') }}" style="color:var(--cream-muted);font-size:0.8rem;">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Login
+                            </a>
+                            {% elif purpose == 'order' %}
+                            <a href="{{ url_for('checkout') }}" style="color:var(--cream-muted);font-size:0.8rem;">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Checkout
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-4 p-3 rounded-3" style="background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.15);text-align:center;">
+                            <p style="color:var(--cream-muted);font-size:0.78rem;margin:0;">
+                                <i class="fas fa-info-circle me-1" style="color:#93c5fd;"></i>
+                                Code expires in 10 minutes. Check your spam folder if you don't see it.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,8 +127,58 @@
 
 {% block extra_scripts %}
 <script>
-document.getElementById('otp').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9]/g, '');
+// OTP box logic
+const boxes = document.querySelectorAll('.otp-box');
+const hidden = document.getElementById('otpHidden');
+const submitBtn = document.getElementById('otpSubmit');
+
+boxes.forEach((box, i) => {
+    box.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value && i < boxes.length - 1) boxes[i + 1].focus();
+        this.classList.toggle('filled', !!this.value);
+        updateHidden();
+    });
+    box.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !this.value && i > 0) {
+            boxes[i - 1].focus();
+            boxes[i - 1].value = '';
+            boxes[i - 1].classList.remove('filled');
+            updateHidden();
+        }
+    });
+    box.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+        pasted.split('').forEach((ch, j) => {
+            if (boxes[j]) { boxes[j].value = ch; boxes[j].classList.add('filled'); }
+        });
+        updateHidden();
+        if (pasted.length >= 6) submitBtn.disabled = false;
+    });
 });
+
+function updateHidden() {
+    const code = Array.from(boxes).map(b => b.value).join('');
+    hidden.value = code;
+    submitBtn.disabled = code.length < 6;
+}
+
+document.getElementById('otpForm').addEventListener('submit', function() {
+    updateHidden();
+});
+
+boxes[0].focus();
+
+// countdown timer
+let secs = 600;
+const timerEl = document.getElementById('otpTimer');
+const tick = setInterval(() => {
+    secs--;
+    if (secs <= 0) { clearInterval(tick); timerEl.textContent = 'Expired'; timerEl.style.color = '#e74c3c'; return; }
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    timerEl.textContent = m + ':' + String(s).padStart(2, '0');
+}, 1000);
 </script>
 {% endblock %}

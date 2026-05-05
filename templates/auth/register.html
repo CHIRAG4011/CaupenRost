@@ -1,56 +1,90 @@
 {% extends "base.html" %}
-
-{% block title %}Register - CaupenRost{% endblock %}
+{% block title %}Create Account — CaupenRost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow">
-                <div class="card-header bg-brown text-white text-center">
-                    <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Create Account</h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+<div class="auth-page" style="padding: 48px 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-9 col-lg-6">
+                <div class="auth-card reveal active">
+                    <div class="auth-card-header">
+                        <div class="auth-logo">
+                            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 3C16 3 10 7 10 14c0 3.3 2.7 6 6 6s6-2.7 6-6C22 7 16 3 16 3z" fill="currentColor" opacity="0.9"/>
+                                <path d="M16 20v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M13 24.5c0 0 1-2.5 3-2.5s3 2.5 3 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                                <ellipse cx="11" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(-20 11 12)"/>
+                                <ellipse cx="21" cy="12" rx="2.5" ry="4" fill="currentColor" opacity="0.55" transform="rotate(20 21 12)"/>
+                            </svg>
+                            CaupenRost
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required minlength="8">
-                            <div class="form-text small">
-                                <div id="password-requirements">
-                                    <span id="req-length" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>At least 8 characters</span><br>
-                                    <span id="req-upper" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One uppercase letter</span><br>
-                                    <span id="req-lower" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One lowercase letter</span><br>
-                                    <span id="req-number" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One number</span><br>
-                                    <span id="req-special" class="text-muted"><i class="fas fa-circle me-1" style="font-size: 6px;"></i>One special character (!@#$%^&*)</span>
+                        <h2>Join CaupenRost</h2>
+                        <p>Create your account to start ordering</p>
+                    </div>
+                    <div class="auth-card-body">
+                        <form method="post" class="needs-loading">
+                            <div class="mb-4">
+                                <label for="username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user" style="font-size:0.8rem;"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username"
+                                           placeholder="Choose a username" required autofocus>
                                 </div>
                             </div>
+
+                            <div class="mb-4">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope" style="font-size:0.8rem;"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           placeholder="your@email.com" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.8rem;"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                           placeholder="Create a password" required minlength="8">
+                                    <button type="button" class="input-group-text" style="cursor:pointer;" onclick="togglePwd('password', this)">
+                                        <i class="fas fa-eye" style="font-size:0.8rem;"></i>
+                                    </button>
+                                </div>
+                                <div class="pwd-req mt-2" id="password-requirements">
+                                    <div class="pwd-req-item" id="req-length"><i class="fas fa-circle"></i>At least 8 characters</div>
+                                    <div class="pwd-req-item" id="req-upper"><i class="fas fa-circle"></i>One uppercase letter</div>
+                                    <div class="pwd-req-item" id="req-lower"><i class="fas fa-circle"></i>One lowercase letter</div>
+                                    <div class="pwd-req-item" id="req-number"><i class="fas fa-circle"></i>One number</div>
+                                    <div class="pwd-req-item" id="req-special"><i class="fas fa-circle"></i>One special character</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock" style="font-size:0.8rem;"></i></span>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                                           placeholder="Repeat your password" required>
+                                    <button type="button" class="input-group-text" style="cursor:pointer;" onclick="togglePwd('confirm_password', this)">
+                                        <i class="fas fa-eye" style="font-size:0.8rem;"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-gold w-100 mb-3" style="padding:13px;">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </form>
+
+                        <div class="auth-divider">or</div>
+
+                        <div class="text-center">
+                            <p class="mb-3" style="color:var(--cream-muted);font-size:0.88rem;">Already have an account?</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-outline-brown w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-brown w-100 mb-3">
-                            <i class="fas fa-user-plus me-2"></i>Create Account
-                        </button>
-                    </form>
-                    
-                    <div class="text-center">
-                        <p class="mb-0">Already have an account?</p>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-brown">
-                            <i class="fas fa-sign-in-alt me-2"></i>Login
-                        </a>
                     </div>
                 </div>
             </div>
@@ -61,54 +95,41 @@
 
 {% block extra_scripts %}
 <script>
-// Password requirements validation
-document.getElementById('password').addEventListener('input', function() {
-    const password = this.value;
-    
-    // Check each requirement
-    const requirements = {
-        'req-length': password.length >= 8,
-        'req-upper': /[A-Z]/.test(password),
-        'req-lower': /[a-z]/.test(password),
-        'req-number': /[0-9]/.test(password),
-        'req-special': /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)
-    };
-    
-    // Update UI for each requirement
-    for (const [id, met] of Object.entries(requirements)) {
-        const element = document.getElementById(id);
-        if (met) {
-            element.classList.remove('text-muted', 'text-danger');
-            element.classList.add('text-success');
-            element.querySelector('i').classList.remove('fa-circle', 'fa-times-circle');
-            element.querySelector('i').classList.add('fa-check-circle');
-        } else {
-            element.classList.remove('text-success', 'text-danger');
-            element.classList.add('text-muted');
-            element.querySelector('i').classList.remove('fa-check-circle', 'fa-times-circle');
-            element.querySelector('i').classList.add('fa-circle');
-        }
-    }
-    
-    // Set validity
-    const allMet = Object.values(requirements).every(v => v);
-    if (!allMet) {
-        this.setCustomValidity('Password does not meet all requirements');
+function togglePwd(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    const icon = btn.querySelector('i');
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
     } else {
-        this.setCustomValidity('');
+        field.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
+}
+
+document.getElementById('password').addEventListener('input', function() {
+    const val = this.value;
+    const checks = {
+        'req-length':  val.length >= 8,
+        'req-upper':   /[A-Z]/.test(val),
+        'req-lower':   /[a-z]/.test(val),
+        'req-number':  /[0-9]/.test(val),
+        'req-special': /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(val),
+    };
+    for (const [id, met] of Object.entries(checks)) {
+        const el = document.getElementById(id);
+        const icon = el.querySelector('i');
+        el.classList.toggle('met', met);
+        icon.classList.toggle('fa-check-circle', met);
+        icon.classList.toggle('fa-circle', !met);
+    }
+    const allMet = Object.values(checks).every(v => v);
+    this.setCustomValidity(allMet ? '' : 'Password does not meet all requirements');
 });
 
-// Password confirmation validation
 document.getElementById('confirm_password').addEventListener('input', function() {
-    const password = document.getElementById('password').value;
-    const confirmPassword = this.value;
-    
-    if (password !== confirmPassword) {
-        this.setCustomValidity('Passwords do not match');
-    } else {
-        this.setCustomValidity('');
-    }
+    const pwd = document.getElementById('password').value;
+    this.setCustomValidity(pwd === this.value ? '' : 'Passwords do not match');
 });
 </script>
 {% endblock %}

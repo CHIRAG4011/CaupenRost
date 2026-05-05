@@ -1,5 +1,5 @@
 /**
- * CaupenRost – Premium Dark UI Animation System
+ * CaupenRost – Premium Dark UI Animation System v2
  */
 (function() {
     'use strict';
@@ -11,30 +11,27 @@
         const canvas = document.getElementById('particleCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        let W, H, particles = [], animId;
+        let W, H, particles = [];
 
         function resize() {
             W = canvas.width  = window.innerWidth;
             H = canvas.height = window.innerHeight;
         }
 
-        function Particle() {
-            this.reset();
-        }
+        function Particle() { this.reset(); }
         Particle.prototype.reset = function() {
             this.x  = Math.random() * W;
             this.y  = Math.random() * H;
             this.r  = Math.random() * 1.6 + 0.4;
-            this.vx = (Math.random() - 0.5) * 0.25;
-            this.vy = (Math.random() - 0.5) * 0.25 - 0.1;
+            this.vx = (Math.random() - 0.5) * 0.22;
+            this.vy = (Math.random() - 0.5) * 0.22 - 0.08;
             this.alpha = Math.random() * 0.5 + 0.1;
             const palette = ['212,168,67', '200,149,42', '232,197,100', '255,180,80'];
             this.color = palette[Math.floor(Math.random() * palette.length)];
         };
         Particle.prototype.update = function() {
-            this.x += this.vx;
-            this.y += this.vy;
-            this.alpha -= 0.0008;
+            this.x += this.vx; this.y += this.vy;
+            this.alpha -= 0.0007;
             if (this.y < -10 || this.alpha <= 0) this.reset();
         };
         Particle.prototype.draw = function() {
@@ -51,33 +48,32 @@
 
         resize();
         window.addEventListener('resize', resize, { passive: true });
-
-        for (let i = 0; i < 80; i++) particles.push(new Particle());
+        for (let i = 0; i < 70; i++) particles.push(new Particle());
 
         function loop() {
             ctx.clearRect(0, 0, W, H);
             particles.forEach(p => { p.update(); p.draw(); });
-            animId = requestAnimationFrame(loop);
+            requestAnimationFrame(loop);
         }
         loop();
     }
 
-    // ── Animated Background Gradient ────────────────────────────
+    // ── Animated Background Subtle Shift ─────────────────────────
     function initAnimatedBg() {
         let hue = 0;
         const body = document.body;
         function tick() {
-            hue = (hue + 0.02) % 360;
-            const r = Math.round(12  + Math.sin(hue * Math.PI / 180) * 2);
-            const g = Math.round(10  + Math.sin(hue * Math.PI / 180) * 1);
-            const b = Math.round(7   + Math.sin(hue * Math.PI / 180) * 1);
+            hue = (hue + 0.015) % 360;
+            const r = Math.round(12 + Math.sin(hue * Math.PI / 180) * 2);
+            const g = Math.round(9  + Math.sin(hue * Math.PI / 180) * 1);
+            const b = Math.round(6  + Math.sin(hue * Math.PI / 180) * 1);
             body.style.backgroundColor = `rgb(${r},${g},${b})`;
             requestAnimationFrame(tick);
         }
         tick();
     }
 
-    // ── Smooth Scroll ────────────────────────────────────────────
+    // ── Smooth Scroll ─────────────────────────────────────────────
     function initSmoothScroll() {
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', function(e) {
@@ -93,33 +89,63 @@
         });
     }
 
-    // ── Parallax on scroll ────────────────────────────────────────
+    // ── Hero Parallax ─────────────────────────────────────────────
     function initParallax() {
-        const hImg = document.querySelector('.hero-image');
+        const hImg = document.querySelector('.story-hero-img, .hero-image');
         if (!hImg) return;
         window.addEventListener('scroll', function() {
             const y = window.scrollY;
-            hImg.style.transform = `translateY(${y * 0.12}px)`;
+            if (y < window.innerHeight * 1.2) {
+                hImg.style.transform = `translateY(${y * 0.10}px)`;
+            }
         }, { passive: true });
     }
 
-    // ── Stagger entrance for product grids ──────────────────────
-    function initStaggeredEntrance() {
-        const grids = document.querySelectorAll('.row.g-4');
+    // ── Story Chapter Scroll Reveal ───────────────────────────────
+    function initScrollReveal() {
+        const revealEls = document.querySelectorAll('.reveal');
+        if (!revealEls.length) return;
+
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+            entries.forEach((entry, idx) => {
                 if (entry.isIntersecting) {
-                    const children = entry.target.querySelectorAll('.reveal');
-                    children.forEach((child, i) => {
-                        setTimeout(() => {
-                            child.classList.add('active');
-                        }, i * 90);
-                    });
+                    // slight stagger for sibling elements
+                    const delay = entry.target.dataset.delay || 0;
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, delay);
                     observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.08 });
-        grids.forEach(g => observer.observe(g));
+        }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+        revealEls.forEach((el, i) => {
+            // Auto-stagger children inside stagger-children containers
+            const parent = el.closest('.stagger-children');
+            if (parent) {
+                const siblings = parent.querySelectorAll('.reveal');
+                siblings.forEach((sib, idx) => {
+                    sib.dataset.delay = idx * 90;
+                });
+            }
+            observer.observe(el);
+        });
+    }
+
+    // ── Story Chapter Progress ────────────────────────────────────
+    function initStoryProgress() {
+        const chapters = document.querySelectorAll('.story-chapter');
+        if (!chapters.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('chapter-in-view');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        chapters.forEach(ch => observer.observe(ch));
     }
 
     // ── Auto-dismiss alerts ───────────────────────────────────────
@@ -144,6 +170,7 @@
                     btn.setAttribute('data-orig', btn.innerHTML);
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing…';
                     btn.disabled = true;
+                    setTimeout(() => { btn.disabled = false; btn.innerHTML = btn.getAttribute('data-orig'); }, 8000);
                 }
             }
         });
@@ -158,22 +185,10 @@
         }
     }
 
-    // ── Skeleton shimmer on images ────────────────────────────────
-    function initLazyImages() {
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            const wrapper = img.parentElement;
-            if (wrapper) wrapper.classList.add('skeleton');
-            img.onload = () => { if (wrapper) wrapper.classList.remove('skeleton'); };
-            img.src = img.dataset.src;
-        });
-    }
-
-    // ── Page-specific ─────────────────────────────────────────────
+    // ── Page-specific logic ───────────────────────────────────────
     function handlePageLogic() {
         const path = window.location.pathname;
-
         if (path === '/') {
-            // Counter animation for hero stats
             document.querySelectorAll('[data-count]').forEach(el => {
                 const target = parseInt(el.dataset.count);
                 let current = 0;
@@ -185,7 +200,6 @@
                 }, 20);
             });
         }
-
         if (path.includes('/admin')) {
             initAdminCharts();
         }
@@ -205,12 +219,12 @@
                     datasets: [{
                         label: 'Sales (₹)',
                         data: [12000, 19000, 15000, 25000, 22000, 30000],
-                        borderColor: '#d4a843',
-                        backgroundColor: 'rgba(212,168,67,0.08)',
+                        borderColor: '#e07832',
+                        backgroundColor: 'rgba(224,120,50,0.08)',
                         borderWidth: 2,
                         tension: 0.45,
                         fill: true,
-                        pointBackgroundColor: '#d4a843',
+                        pointBackgroundColor: '#e07832',
                         pointBorderColor: '#0c0a07',
                         pointBorderWidth: 2,
                         pointRadius: 5,
@@ -221,8 +235,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { color: 'rgba(212,168,67,0.08)' } },
-                        y: { grid: { color: 'rgba(212,168,67,0.08)' } }
+                        x: { grid: { color: 'rgba(224,120,50,0.08)' } },
+                        y: { grid: { color: 'rgba(224,120,50,0.08)' } }
                     }
                 }
             });
@@ -237,8 +251,8 @@
                     datasets: [{
                         label: 'Visitors',
                         data: [12, 19, 15, 25, 22, 30, 28],
-                        backgroundColor: 'rgba(212,168,67,0.25)',
-                        borderColor: '#d4a843',
+                        backgroundColor: 'rgba(224,120,50,0.25)',
+                        borderColor: '#e07832',
                         borderWidth: 1.5,
                         borderRadius: 6,
                     }]
@@ -248,12 +262,31 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { color: 'rgba(212,168,67,0.08)' } },
-                        y: { grid: { color: 'rgba(212,168,67,0.08)' } }
+                        x: { grid: { color: 'rgba(224,120,50,0.08)' } },
+                        y: { grid: { color: 'rgba(224,120,50,0.08)' } }
                     }
                 }
             });
         }
+    }
+
+    // ── Product card 3D tilt ──────────────────────────────────────
+    function initCardTilt() {
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('mousemove', function(e) {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transform = `translateY(-8px) scale(1.01) rotateX(${-y * 6}deg) rotateY(${x * 6}deg)`;
+            });
+            card.addEventListener('mouseleave', function() {
+                card.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+                card.style.transform = '';
+            });
+            card.addEventListener('mouseenter', function() {
+                card.style.transition = 'transform 0.1s ease';
+            });
+        });
     }
 
     // ── Custom Bakery Cursor ──────────────────────────────────────
@@ -286,7 +319,7 @@
         }
         trailLoop();
 
-        document.querySelectorAll('a, button, .product-card, .category-card, .slider-btn, .quick-action-btn').forEach(el => {
+        document.querySelectorAll('a, button, .product-card, .story-cat-card, .slider-btn, .quick-action-btn').forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
         });
@@ -350,20 +383,55 @@
         }
 
         let autoSlide = setInterval(() => goTo(current + 1), 4500);
-        slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
-        slider.addEventListener('mouseleave', () => {
+        slider.parentElement.addEventListener('mouseenter', () => clearInterval(autoSlide));
+        slider.parentElement.addEventListener('mouseleave', () => {
             clearInterval(autoSlide);
             autoSlide = setInterval(() => goTo(current + 1), 4500);
         });
 
         let startX = 0;
         slider.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-        slider.addEventListener('touchend',   (e) => {
+        slider.addEventListener('touchend', (e) => {
             const diff = startX - e.changedTouches[0].clientX;
             if (Math.abs(diff) > 45) goTo(current + (diff > 0 ? 1 : -1));
         }, { passive: true });
 
         window.addEventListener('resize', () => goTo(0));
+    }
+
+    // ── Scroll Progress Line ──────────────────────────────────────
+    function initScrollProgress() {
+        const bar = document.createElement('div');
+        bar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,#e07832,#f09248);z-index:99999;width:0%;transition:width 0.1s linear;pointer-events:none;';
+        document.body.appendChild(bar);
+        window.addEventListener('scroll', function() {
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            bar.style.width = scrolled + '%';
+        }, { passive: true });
+    }
+
+    // ── Story Hero Orbit Animation ────────────────────────────────
+    function initOrbitDots() {
+        const orbitRing = document.querySelector('.orbit-ring');
+        const dots = document.querySelectorAll('.orbit-dot');
+        if (!orbitRing || !dots.length) return;
+
+        let angle = 0;
+        const radius = orbitRing.offsetWidth / 2;
+
+        function animateDots() {
+            angle += 0.3;
+            dots.forEach((dot, i) => {
+                const offset = (angle + i * 120) * Math.PI / 180;
+                const x = Math.cos(offset) * (radius) + radius - 3.5;
+                const y = Math.sin(offset) * (radius) + radius - 3.5;
+                dot.style.left = x + 'px';
+                dot.style.top  = y + 'px';
+                dot.style.animation = 'none';
+            });
+            requestAnimationFrame(animateDots);
+        }
+        animateDots();
     }
 
     // ── Init ──────────────────────────────────────────────────────
@@ -372,18 +440,21 @@
         initAnimatedBg();
         initSmoothScroll();
         initParallax();
-        initStaggeredEntrance();
+        initScrollReveal();
+        initStoryProgress();
         autoDismissAlerts();
         initFormLoading();
         initTooltips();
-        initLazyImages();
         handlePageLogic();
+        initCardTilt();
         initBakeryCursor();
         initTouchRipple();
         initReviewSlider();
+        initScrollProgress();
+        initOrbitDots();
     });
 
-    // Expose globals
+    // ── Utils ─────────────────────────────────────────────────────
     window.CaupenRost.utils = {
         formatCurrency: (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n),
         formatDate: (d) => new Intl.DateTimeFormat('en-IN', { year:'numeric', month:'long', day:'numeric' }).format(new Date(d)),

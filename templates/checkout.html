@@ -1,334 +1,294 @@
 {% extends "base.html" %}
-
-{% block title %}Checkout - CaupenRost{% endblock %}
+{% block title %}Checkout — CaupenRost{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<section class="bg-cream py-4">
+
+<section class="page-section-header">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-2">
-                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-brown text-decoration-none">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ url_for('cart') }}" class="text-brown text-decoration-none">Cart</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('cart') }}">Cart</a></li>
+                <li class="breadcrumb-item active">Checkout</li>
             </ol>
         </nav>
-        <h1 class="display-title text-brown mb-0">
-            <i class="fas fa-lock me-3"></i>Secure Checkout
-        </h1>
+        <h1 class="mb-0"><i class="fas fa-lock me-3" style="color:var(--gold);"></i>Secure Checkout</h1>
     </div>
 </section>
 
-<!-- Checkout Steps -->
-<div class="container py-4">
-    <div class="checkout-steps mb-5">
+<div class="container py-5">
+
+    <!-- Checkout Steps -->
+    <div class="checkout-steps">
         <div class="checkout-step completed">
-            <div class="step-number"><i class="fas fa-check"></i></div>
+            <div class="step-circle"><i class="fas fa-check"></i></div>
             <span class="step-label">Cart</span>
         </div>
         <div class="checkout-step active">
-            <div class="step-number">2</div>
-            <span class="step-label">Checkout</span>
+            <div class="step-circle">2</div>
+            <span class="step-label">Details</span>
         </div>
         <div class="checkout-step">
-            <div class="step-number">3</div>
+            <div class="step-circle">3</div>
             <span class="step-label">Payment</span>
         </div>
         <div class="checkout-step">
-            <div class="step-number">4</div>
-            <span class="step-label">Confirmation</span>
+            <div class="step-circle">4</div>
+            <span class="step-label">Confirm</span>
         </div>
     </div>
-</div>
 
-<div class="container pb-5">
     <div class="row g-4">
+        <!-- Left: Form -->
         <div class="col-lg-8">
             <form method="post" action="{{ url_for('place_order') }}" onsubmit="return validateCheckoutForm()">
+
                 <!-- Delivery Address -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white py-4 border-0">
-                        <h5 class="mb-0 text-brown">
-                            <i class="fas fa-map-marker-alt me-2 text-gold"></i>Delivery Address
-                        </h5>
+                <div class="checkout-section">
+                    <div class="checkout-section-header">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h5>Delivery Address</h5>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="checkout-section-body">
                         {% if addresses %}
                         <div class="mb-4">
-                            <label class="form-label fw-semibold mb-3">Saved Addresses:</label>
+                            <p style="color:var(--cream-muted);font-size:0.82rem;margin-bottom:16px;">Select a saved address:</p>
                             {% for address in addresses %}
-                            <div class="form-check address-option p-3 rounded-3 mb-2" style="background: rgba(139, 69, 19, 0.03); border: 2px solid transparent; cursor: pointer;">
-                                <input class="form-check-input" type="radio" name="address_id" 
-                                       value="{{ address.id }}" id="address{{ address.id }}">
-                                <label class="form-check-label w-100" for="address{{ address.id }}" style="cursor: pointer;">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <strong>{{ address.name }}</strong>
-                                            <span class="badge bg-cream text-brown ms-2">Saved</span>
+                            <div class="address-option" id="addrOpt_{{ address.id }}" onclick="selectAddress('{{ address.id }}')">
+                                <div class="d-flex align-items-start gap-3">
+                                    <input class="form-check-input mt-1" type="radio" name="address_id"
+                                           value="{{ address.id }}" id="address{{ address.id }}">
+                                    <label class="w-100" for="address{{ address.id }}" style="cursor:pointer;">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <strong style="font-size:0.88rem;">{{ address.name }}</strong>
+                                            <span style="background:rgba(224,120,50,0.1);color:var(--gold);border:1px solid rgba(224,120,50,0.2);padding:2px 10px;border-radius:12px;font-size:0.65rem;font-weight:700;">Saved</span>
                                         </div>
-                                    </div>
-                                    <div class="text-muted small mt-1">
-                                        {{ address.street }}, {{ address.city }}, {{ address.state }} {{ address.zip_code }}
-                                    </div>
-                                    <div class="text-muted small"><i class="fas fa-phone me-1"></i>{{ address.phone }}</div>
-                                </label>
+                                        <div style="color:var(--cream-muted);font-size:0.81rem;margin-top:4px;line-height:1.5;">
+                                            {{ address.street }}, {{ address.city }}, {{ address.state }} {{ address.zip_code }}
+                                        </div>
+                                        {% if address.phone %}
+                                        <div style="color:var(--cream-muted);font-size:0.78rem;margin-top:3px;">
+                                            <i class="fas fa-phone me-1" style="color:var(--gold);font-size:0.7rem;"></i>{{ address.phone }}
+                                        </div>
+                                        {% endif %}
+                                    </label>
+                                </div>
                             </div>
                             {% endfor %}
-                        </div>
-                        <hr class="my-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="address_type" 
-                                   value="new" id="newAddress" onclick="toggleNewAddress(true)">
-                            <label class="form-check-label fw-semibold" for="newAddress">
-                                <i class="fas fa-plus me-2"></i>Use a different address
-                            </label>
+                            <hr style="border-color:var(--glass-border);margin:20px 0;">
+                            <div class="address-option" onclick="selectNewAddress()">
+                                <div class="d-flex align-items-center gap-3">
+                                    <input class="form-check-input" type="radio" name="address_type" value="new" id="newAddress">
+                                    <label for="newAddress" style="cursor:pointer;font-size:0.88rem;font-weight:600;">
+                                        <i class="fas fa-plus me-2" style="color:var(--gold);"></i>Use a different address
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
-                        
-                        <div id="newAddressForm" class="mt-3" {% if addresses %}style="display:none;"{% endif %}>
-                            <div class="alert alert-info border-0 mb-3">
-                                <i class="fas fa-info-circle me-2"></i>Please enter your complete delivery address
-                            </div>
-                            <div class="mb-3">
-                                <label for="new_address" class="form-label fw-semibold">Full Address <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="new_address" name="new_address" rows="4"
-                                          placeholder="Enter your name, street address, city, state, PIN code, and phone number"
-                                          {% if not addresses %}required{% endif %}></textarea>
-                            </div>
+
+                        <div id="newAddressForm" {% if addresses %}style="display:none;"{% endif %}>
+                            <label for="new_address" class="form-label">Full Delivery Address <span style="color:#e74c3c;">*</span></label>
+                            <textarea class="form-control" id="new_address" name="new_address" rows="4"
+                                      placeholder="Enter your name, street address, city, state, PIN code, and phone number"
+                                      {% if not addresses %}required{% endif %}></textarea>
+                            <p style="color:var(--cream-muted);font-size:0.76rem;margin-top:8px;">
+                                <i class="fas fa-info-circle me-1"></i>Include all details for smooth delivery
+                            </p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Payment Method -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white py-4 border-0">
-                        <h5 class="mb-0 text-brown">
-                            <i class="fas fa-credit-card me-2 text-gold"></i>Payment Method
-                        </h5>
+                <div class="checkout-section">
+                    <div class="checkout-section-header">
+                        <i class="fas fa-credit-card"></i>
+                        <h5>Payment Method</h5>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="payment-methods">
-                            <div class="form-check mb-0">
+                    <div class="checkout-section-body">
+                        <div class="payment-option selected" id="payOpt_qr" onclick="selectPayment('qr_payment')">
+                            <div class="d-flex align-items-center gap-3">
                                 <input class="form-check-input" type="radio" name="payment_method" value="qr_payment" id="qr_payment" checked>
-                                <label class="form-check-label w-100" for="qr_payment">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-qrcode fa-2x text-brown me-3"></i>
-                                        <div>
-                                            <strong>QR Code Payment</strong>
-                                            <small class="d-block text-muted">Scan with any UPI app - Google Pay, PhonePe, Paytm</small>
-                                        </div>
-                                        <span class="badge bg-success ms-auto">Recommended</span>
+                                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(224,120,50,0.1);border:1px solid rgba(224,120,50,0.2);display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas fa-qrcode" style="color:var(--gold);font-size:1.2rem;"></i>
                                     </div>
-                                </label>
+                                    <div>
+                                        <div style="font-weight:600;font-size:0.9rem;">QR Code Payment</div>
+                                        <div style="color:var(--cream-muted);font-size:0.76rem;">Google Pay, PhonePe, Paytm & more</div>
+                                    </div>
+                                    <span style="margin-left:auto;background:rgba(93,186,125,0.1);color:#5dba7d;border:1px solid rgba(93,186,125,0.2);padding:3px 10px;border-radius:12px;font-size:0.67rem;font-weight:700;">Recommended</span>
+                                </div>
                             </div>
-                            <div class="form-check mb-0">
+                        </div>
+
+                        <div class="payment-detail-box active" id="qr_payment_details">
+                            <h6 style="color:var(--gold);font-size:0.82rem;margin-bottom:12px;"><i class="fas fa-mobile-alt me-2"></i>How it works</h6>
+                            <ol style="color:var(--cream-muted);font-size:0.82rem;padding-left:20px;margin:0;line-height:2;">
+                                <li>Place your order below</li>
+                                <li>Scan the QR code with any UPI app</li>
+                                <li>Upload your payment screenshot</li>
+                                <li>Order confirmed after verification</li>
+                            </ol>
+                        </div>
+
+                        <div class="payment-option" id="payOpt_cod" onclick="selectPayment('cash_on_delivery')">
+                            <div class="d-flex align-items-center gap-3">
                                 <input class="form-check-input" type="radio" name="payment_method" value="cash_on_delivery" id="cash_on_delivery">
-                                <label class="form-check-label w-100" for="cash_on_delivery">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-money-bill-wave fa-2x text-success me-3"></i>
-                                        <div>
-                                            <strong>Cash on Delivery</strong>
-                                            <small class="d-block text-muted">Pay when your order arrives</small>
-                                        </div>
-                                        <span class="badge bg-warning text-dark ms-auto">+₹20 Fee</span>
+                                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(93,186,125,0.08);border:1px solid rgba(93,186,125,0.15);display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas fa-money-bill-wave" style="color:#5dba7d;font-size:1.2rem;"></i>
                                     </div>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div id="qr_payment_details" class="mt-4 p-4 rounded-3" style="background: rgba(40, 167, 69, 0.05); border: 1px dashed #28a745;">
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <h6 class="text-success mb-3"><i class="fas fa-mobile-alt me-2"></i>How it works:</h6>
-                                    <ol class="mb-0 ps-3">
-                                        <li class="mb-2">Click "Place Order" to continue</li>
-                                        <li class="mb-2">Scan QR code with any UPI app</li>
-                                        <li class="mb-2">Upload payment screenshot</li>
-                                        <li>Order confirmed after verification</li>
-                                    </ol>
-                                </div>
-                                <div class="col-md-6 text-center">
-                                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                        <span class="badge bg-white text-dark shadow-sm p-2"><i class="fab fa-google-pay me-1"></i>GPay</span>
-                                        <span class="badge bg-white text-dark shadow-sm p-2"><i class="fas fa-mobile me-1"></i>PhonePe</span>
-                                        <span class="badge bg-white text-dark shadow-sm p-2"><i class="fas fa-wallet me-1"></i>Paytm</span>
+                                    <div>
+                                        <div style="font-weight:600;font-size:0.9rem;">Cash on Delivery</div>
+                                        <div style="color:var(--cream-muted);font-size:0.76rem;">Pay when your order arrives</div>
                                     </div>
+                                    <span style="margin-left:auto;background:rgba(232,160,48,0.08);color:var(--amber);border:1px solid rgba(232,160,48,0.2);padding:3px 10px;border-radius:12px;font-size:0.67rem;font-weight:700;">+₹20 Fee</span>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div id="cash_delivery_details" class="mt-4 p-4 rounded-3" style="background: rgba(255, 193, 7, 0.1); border: 1px dashed #ffc107; display: none;">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-info-circle text-warning me-3 mt-1"></i>
-                                <div>
-                                    <p class="mb-2"><strong>Cash on Delivery Terms:</strong></p>
-                                    <ul class="mb-0 ps-3 text-muted">
-                                        <li>Additional ₹20 handling charges apply</li>
-                                        <li>Please have exact change ready</li>
-                                        <li>Payment required at time of delivery</li>
-                                    </ul>
-                                </div>
+
+                        <div class="payment-detail-box" id="cash_delivery_details">
+                            <div class="d-flex align-items-start gap-3">
+                                <i class="fas fa-info-circle" style="color:var(--amber);margin-top:2px;"></i>
+                                <ul style="color:var(--cream-muted);font-size:0.82rem;padding-left:16px;margin:0;line-height:2;">
+                                    <li>Additional ₹20 handling charges apply</li>
+                                    <li>Please have exact change ready</li>
+                                    <li>Payment required at delivery</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Special Instructions -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white py-4 border-0">
-                        <h5 class="mb-0 text-brown">
-                            <i class="fas fa-comment-alt me-2 text-gold"></i>Special Instructions
-                            <small class="text-muted fw-normal">(Optional)</small>
-                        </h5>
+                <div class="checkout-section">
+                    <div class="checkout-section-header">
+                        <i class="fas fa-comment-alt"></i>
+                        <h5>Special Instructions <small style="color:var(--cream-muted);font-weight:400;font-size:0.78rem;">(Optional)</small></h5>
                     </div>
-                    <div class="card-body p-4">
-                        <textarea class="form-control" name="notes" rows="3" 
-                                  placeholder="Any special delivery instructions, preferred time, or notes for the baker..."></textarea>
+                    <div class="checkout-section-body">
+                        <textarea class="form-control" name="notes" rows="3"
+                                  placeholder="Special delivery instructions, preferred time, or notes for the baker..."></textarea>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn btn-brown btn-lg w-100 py-3" id="placeOrderBtn">
+
+                <button type="submit" class="btn btn-gold w-100" style="padding:15px;font-size:0.95rem;" id="placeOrderBtn">
                     <i class="fas fa-lock me-2"></i>Place Order Securely
                 </button>
-                
-                <p class="text-center text-muted small mt-3">
+                <p class="text-center mt-3" style="color:var(--cream-muted);font-size:0.76rem;">
                     <i class="fas fa-shield-alt me-1"></i>Your order information is secure and encrypted
                 </p>
             </form>
         </div>
-        
+
         <!-- Order Summary Sidebar -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
-                <div class="card-header bg-brown text-white py-3">
-                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+            <div class="cart-summary-card">
+                <div class="cart-summary-header">
+                    <h5 style="margin:0;font-size:0.9rem;font-weight:700;"><i class="fas fa-receipt me-2" style="color:var(--gold);"></i>Order Summary</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="cart-summary-body">
 
-                    <!-- Coupon Code Section -->
+                    <!-- Coupon -->
+                    {% set applied_coupon = session.get('applied_coupon_code') %}
+                    {% set coupon_discount = session.get('applied_coupon_discount', 0) %}
                     <div class="mb-4">
-                        {% set applied_coupon = session.get('applied_coupon_code') %}
-                        {% set coupon_discount = session.get('applied_coupon_discount', 0) %}
-
                         {% if applied_coupon %}
-                        <!-- Coupon Applied -->
-                        <div class="p-3 rounded-3 border border-success mb-2" style="background:rgba(25,135,84,.05);">
+                        <div style="background:rgba(93,186,125,0.06);border:1px solid rgba(93,186,125,0.2);border-radius:var(--r-md);padding:12px 14px;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <i class="fas fa-tag text-success me-2"></i>
-                                    <strong class="text-success" style="letter-spacing:2px;">{{ applied_coupon }}</strong>
-                                    <div class="small text-muted mt-1">Saving ₹{{ "%.2f"|format(coupon_discount|float) }}</div>
+                                    <i class="fas fa-tag" style="color:#5dba7d;margin-right:6px;"></i>
+                                    <strong style="color:#5dba7d;letter-spacing:2px;font-size:0.88rem;">{{ applied_coupon }}</strong>
+                                    <div style="color:var(--cream-muted);font-size:0.74rem;margin-top:3px;">Saving ₹{{ "%.2f"|format(coupon_discount|float) }}</div>
                                 </div>
                                 <form method="POST" action="{{ url_for('remove_coupon') }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-times"></i> Remove
+                                    <button type="submit" class="btn btn-sm" style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.2);color:#e74c3c;font-size:0.72rem;padding:5px 10px;">
+                                        <i class="fas fa-times me-1"></i>Remove
                                     </button>
                                 </form>
                             </div>
                         </div>
                         {% else %}
-                        <!-- Coupon Input -->
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Have a coupon?</label>
+                        <label class="form-label" style="font-size:0.74rem;">Have a coupon code?</label>
                         <form method="POST" action="{{ url_for('apply_coupon') }}" class="d-flex gap-2">
                             <input type="text" name="coupon_code" class="form-control form-control-sm"
-                                   placeholder="Enter coupon code" style="text-transform:uppercase;letter-spacing:1px;">
-                            <button type="submit" class="btn btn-outline-brown btn-sm px-3 flex-shrink-0">
-                                <i class="fas fa-tag me-1"></i>Apply
-                            </button>
+                                   placeholder="ENTER CODE" style="text-transform:uppercase;letter-spacing:1px;">
+                            <button type="submit" class="btn btn-outline-brown btn-sm px-3 flex-shrink-0">Apply</button>
                         </form>
                         {% endif %}
                     </div>
 
-                    <hr class="my-3">
-
-                    <!-- Price Breakdown -->
                     {% set delivery = 0 if cart_total >= 500 else 50 %}
                     {% set subtotal_with_delivery = cart_total + delivery %}
                     {% set tax = subtotal_with_delivery * 0.18 %}
                     {% set applied_discount = session.get('applied_coupon_discount', 0)|float %}
                     {% set final_total = subtotal_with_delivery + tax - applied_discount %}
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Items ({{ cart_count }})</span>
+                    <div class="cart-summary-row">
+                        <span style="color:var(--cream-muted);">Items ({{ cart_count }})</span>
                         <span>₹{{ "%.0f"|format(cart_total) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">
+                    <div class="cart-summary-row">
+                        <span style="color:var(--cream-muted);">
                             Delivery
                             {% if cart_total >= 500 %}
-                            <span class="badge bg-success ms-1">FREE</span>
+                            <span style="background:rgba(93,186,125,0.12);color:#5dba7d;border:1px solid rgba(93,186,125,0.2);padding:2px 8px;border-radius:10px;font-size:0.66rem;font-weight:700;margin-left:6px;">FREE</span>
                             {% endif %}
                         </span>
                         <span>{% if cart_total >= 500 %}₹0{% else %}₹50{% endif %}</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">GST (18%)</span>
+                    <div class="cart-summary-row">
+                        <span style="color:var(--cream-muted);">GST (18%)</span>
                         <span>₹{{ "%.0f"|format(tax) }}</span>
                     </div>
-
                     {% if applied_discount > 0 %}
-                    <div class="d-flex justify-content-between mb-2 text-success">
+                    <div class="cart-summary-row" style="color:#5dba7d;">
                         <span><i class="fas fa-tag me-1"></i>Coupon Discount</span>
-                        <span>- ₹{{ "%.2f"|format(applied_discount) }}</span>
+                        <span>−₹{{ "%.2f"|format(applied_discount) }}</span>
                     </div>
                     {% endif %}
 
-                    <hr>
-
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="h5 mb-0">Total</span>
-                        <span class="h4 text-brown mb-0">₹{{ "%.0f"|format([final_total, 1]|max) }}</span>
+                    <div class="cart-summary-total">
+                        <span style="font-family:var(--font-display);font-size:1rem;font-weight:700;">Total</span>
+                        <span style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--gold);">₹{{ "%.0f"|format([final_total, 1]|max) }}</span>
                     </div>
+
                     {% if applied_discount > 0 %}
-                    <div class="text-success text-end small">
+                    <p style="color:#5dba7d;font-size:0.76rem;text-align:right;margin-top:6px;">
                         <i class="fas fa-check-circle me-1"></i>You save ₹{{ "%.2f"|format(applied_discount) }}!
-                    </div>
+                    </p>
                     {% endif %}
-
-                    <!-- Order Items Preview -->
-                    <div class="border-top pt-3 mt-3">
-                        <small class="text-muted d-block mb-2">Order Items:</small>
-                        <div style="max-height: 200px; overflow-y: auto;">
-                            {% for item in session.get('cart', {}).items() %}
-                            <div class="d-flex align-items-center mb-2 small">
-                                <span class="badge bg-cream text-brown me-2">{{ item[1] }}x</span>
-                                <span class="text-truncate">Item #{{ item[0] }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
                 </div>
             </div>
-            
+
             <!-- Trust Badges -->
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="feature-icon me-3" style="width: 40px; height: 40px; background: rgba(40, 167, 69, 0.1);">
-                            <i class="fas fa-shield-alt text-success" style="font-size: 0.9rem;"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0 small">Secure Checkout</h6>
-                            <small class="text-muted">SSL Encrypted</small>
-                        </div>
+            <div class="card mt-3" style="padding:20px;">
+                <div class="cart-trust-item">
+                    <div class="cart-trust-icon" style="background:rgba(93,186,125,0.1);">
+                        <i class="fas fa-shield-alt" style="color:#5dba7d;font-size:0.9rem;"></i>
                     </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="feature-icon me-3" style="width: 40px; height: 40px; background: rgba(0, 123, 255, 0.1);">
-                            <i class="fas fa-truck text-primary" style="font-size: 0.9rem;"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0 small">Fast Delivery</h6>
-                            <small class="text-muted">Same day available</small>
-                        </div>
+                    <div>
+                        <div style="font-size:0.82rem;font-weight:600;">Secure Checkout</div>
+                        <div style="font-size:0.73rem;color:var(--cream-muted);">SSL Encrypted</div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <div class="feature-icon me-3" style="width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1);">
-                            <i class="fas fa-undo text-gold" style="font-size: 0.9rem;"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-0 small">Quality Guarantee</h6>
-                            <small class="text-muted">100% Satisfaction</small>
-                        </div>
+                </div>
+                <div class="cart-trust-item">
+                    <div class="cart-trust-icon" style="background:rgba(96,165,250,0.1);">
+                        <i class="fas fa-truck" style="color:#60a5fa;font-size:0.9rem;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.82rem;font-weight:600;">Fast Delivery</div>
+                        <div style="font-size:0.73rem;color:var(--cream-muted);">Same day available</div>
+                    </div>
+                </div>
+                <div class="cart-trust-item">
+                    <div class="cart-trust-icon" style="background:rgba(224,120,50,0.1);">
+                        <i class="fas fa-undo" style="color:var(--gold);font-size:0.9rem;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.82rem;font-weight:600;">Quality Guarantee</div>
+                        <div style="font-size:0.73rem;color:var(--cream-muted);">100% Satisfaction</div>
                     </div>
                 </div>
             </div>
@@ -339,26 +299,18 @@
 
 {% block extra_scripts %}
 <script>
-function validateCheckoutForm() {
-    const addressRadios = document.querySelectorAll('input[name="address_id"]');
-    const newAddressField = document.getElementById('new_address');
-    const newAddressRadio = document.getElementById('newAddress');
-    let hasSelectedAddress = false;
-    addressRadios.forEach(radio => { if (radio.checked) hasSelectedAddress = true; });
-    if (newAddressRadio && newAddressRadio.checked) {
-        if (!newAddressField.value.trim()) {
-            alert('Please enter a delivery address.');
-            newAddressField.focus();
-            return false;
-        }
-        hasSelectedAddress = true;
-    }
-    if (!hasSelectedAddress && (!newAddressField || !newAddressField.value.trim())) {
-        alert('Please provide a delivery address to continue.');
-        if (newAddressField) newAddressField.focus();
-        return false;
-    }
-    return true;
+function selectAddress(id) {
+    document.querySelectorAll('.address-option').forEach(o => o.classList.remove('selected'));
+    const opt = document.getElementById('addrOpt_' + id);
+    if (opt) opt.classList.add('selected');
+    const radio = document.getElementById('address' + id);
+    if (radio) radio.checked = true;
+    toggleNewAddress(false);
+}
+function selectNewAddress() {
+    document.querySelectorAll('.address-option').forEach(o => o.classList.remove('selected'));
+    document.getElementById('newAddress').checked = true;
+    toggleNewAddress(true);
 }
 function toggleNewAddress(show) {
     const form = document.getElementById('newAddressForm');
@@ -366,34 +318,41 @@ function toggleNewAddress(show) {
     if (show) { form.style.display = 'block'; field.required = true; }
     else { form.style.display = 'none'; field.required = false; }
 }
-document.addEventListener('DOMContentLoaded', function() {
-    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-    const qrDetails = document.getElementById('qr_payment_details');
-    const cashDetails = document.getElementById('cash_delivery_details');
-    paymentMethods.forEach(method => {
-        method.addEventListener('change', function() {
-            if (this.value === 'qr_payment') { qrDetails.style.display = 'block'; cashDetails.style.display = 'none'; }
-            else { qrDetails.style.display = 'none'; cashDetails.style.display = 'block'; }
-        });
-    });
+function selectPayment(val) {
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('.payment-detail-box').forEach(d => d.classList.remove('active'));
+    if (val === 'qr_payment') {
+        document.getElementById('payOpt_qr').classList.add('selected');
+        document.getElementById('qr_payment').checked = true;
+        document.getElementById('qr_payment_details').classList.add('active');
+    } else {
+        document.getElementById('payOpt_cod').classList.add('selected');
+        document.getElementById('cash_on_delivery').checked = true;
+        document.getElementById('cash_delivery_details').classList.add('active');
+    }
+}
+function validateCheckoutForm() {
     const addressRadios = document.querySelectorAll('input[name="address_id"]');
-    addressRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            toggleNewAddress(false);
-            const newAddressRadio = document.getElementById('newAddress');
-            if (newAddressRadio) newAddressRadio.checked = false;
-        });
-    });
-    const addressOptions = document.querySelectorAll('.address-option');
-    addressOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            addressOptions.forEach(o => o.style.borderColor = 'transparent');
-            this.style.borderColor = 'var(--brown-primary)';
-        });
-    });
-    // Uppercase coupon input
-    const couponInput = document.querySelector('input[name="coupon_code"]');
-    if (couponInput) couponInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
-});
+    const newAddressField = document.getElementById('new_address');
+    const newAddressRadio = document.getElementById('newAddress');
+    let hasAddr = false;
+    addressRadios.forEach(r => { if (r.checked) hasAddr = true; });
+    if (newAddressRadio && newAddressRadio.checked) {
+        if (!newAddressField.value.trim()) {
+            alert('Please enter a delivery address.');
+            newAddressField.focus();
+            return false;
+        }
+        hasAddr = true;
+    }
+    if (!hasAddr && (!newAddressField || !newAddressField.value.trim())) {
+        alert('Please provide a delivery address.');
+        if (newAddressField) newAddressField.focus();
+        return false;
+    }
+    return true;
+}
+const couponInput = document.querySelector('input[name="coupon_code"]');
+if (couponInput) couponInput.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
 </script>
 {% endblock %}

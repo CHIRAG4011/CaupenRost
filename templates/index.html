@@ -3,70 +3,83 @@
 
 {% block content %}
 
-<!-- ── Hero ─────────────────────────────────────────────────── -->
-<section class="hero-section">
-    <div class="container">
-        <div class="row align-items-center g-5 min-vh-75">
-            <div class="col-lg-6 hero-content">
-                <div class="hero-eyebrow">
-                    <i class="fas fa-star"></i>
+<!-- ── STORY HERO ─────────────────────────────────────────────── -->
+<section class="story-hero">
+    <div class="story-hero-bg"></div>
+    <div class="story-hero-grain"></div>
+    <div class="container h-100">
+        <div class="story-hero-inner">
+            <div class="story-hero-content">
+                <div class="story-eyebrow">
+                    <span class="eyebrow-line"></span>
                     <span>{{ site_settings.hero_badge }}</span>
+                    <span class="eyebrow-line"></span>
                 </div>
-                <h1 class="hero-title">
+                <h1 class="story-hero-title">
                     {{ site_settings.hero_title }}<br>
-                    <span class="highlight">{{ site_settings.hero_highlight }}</span><br>
-                    {{ site_settings.hero_title_end }}
+                    <em class="story-hero-em">{{ site_settings.hero_highlight }}</em><br>
+                    <span class="story-hero-sub">{{ site_settings.hero_title_end }}</span>
                 </h1>
-                <p class="hero-subtitle">{{ site_settings.hero_subtitle }}</p>
-                <div class="hero-buttons">
-                    <a href="{{ url_for('products') }}" class="btn btn-brown btn-lg btn-glow">
+                <p class="story-hero-desc">{{ site_settings.hero_subtitle }}</p>
+                <div class="story-hero-cta">
+                    <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow story-btn-primary">
                         <i class="fas fa-shopping-bag me-2"></i>Shop Now
                     </a>
-                    <a href="#featured" class="btn btn-outline-brown btn-lg">
-                        <i class="fas fa-arrow-down me-2"></i>View Menu
+                    <a href="#story-chapter" class="btn story-btn-ghost btn-lg">
+                        <i class="fas fa-arrow-down me-2"></i>Our Story
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="hero-image-wrapper">
+            <div class="story-hero-visual">
+                <div class="story-hero-img-wrap">
                     <img src="https://images.unsplash.com/photo-1555507036-ab794f0ab04c?ixlib=rb-4.0.3&auto=format&fit=crop&w=900&q=80"
-                         alt="CaupenRost Fresh Bakery" class="hero-image">
-                    <div class="hero-floating-card card-1 d-none d-lg-flex">
+                         alt="CaupenRost Fresh Bakery" class="story-hero-img" id="heroParallaxImg">
+                    <div class="story-hero-float f1">
                         <i class="fas fa-cookie-bite"></i><span>Fresh Daily</span>
                     </div>
-                    <div class="hero-floating-card card-2 d-none d-lg-flex">
+                    <div class="story-hero-float f2">
                         <i class="fas fa-award"></i><span>Premium Quality</span>
+                    </div>
+                    <div class="story-hero-orbit">
+                        <div class="orbit-ring"></div>
+                        <div class="orbit-dot d1"></div>
+                        <div class="orbit-dot d2"></div>
+                        <div class="orbit-dot d3"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="story-scroll-hint">
+        <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+        <span>Scroll to explore</span>
+    </div>
 </section>
 
-<!-- ── Trust Strip ──────────────────────────────────────────── -->
+<!-- ── TRUST STRIP ────────────────────────────────────────────── -->
 <section class="trust-strip">
     <div class="container">
         <div class="row g-3">
             <div class="col-md-3 col-6">
-                <div class="trust-item">
+                <div class="trust-item reveal">
                     <i class="fas fa-clock"></i>
                     <div class="trust-text"><h6>Fresh Daily</h6><p>Baked every morning</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
-                <div class="trust-item">
+                <div class="trust-item reveal">
                     <i class="fas fa-truck"></i>
                     <div class="trust-text"><h6>Fast Delivery</h6><p>Same day available</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
-                <div class="trust-item">
+                <div class="trust-item reveal">
                     <i class="fas fa-qrcode"></i>
                     <div class="trust-text"><h6>Easy Payment</h6><p>UPI & COD accepted</p></div>
                 </div>
             </div>
             <div class="col-md-3 col-6">
-                <div class="trust-item">
+                <div class="trust-item reveal">
                     <i class="fas fa-heart"></i>
                     <div class="trust-text"><h6>Made with Love</h6><p>Premium ingredients</p></div>
                 </div>
@@ -75,46 +88,81 @@
     </div>
 </section>
 
-<!-- ── Why Choose Us ─────────────────────────────────────────── -->
-<section class="py-5 bg-light-brown">
-    <div class="container py-4">
-        <div class="section-header reveal">
-            <span class="section-subtitle">Why Choose Us</span>
-            <h2>The CaupenRost Difference</h2>
-            <p>We put passion and quality into every single bite</p>
-        </div>
-        <div class="row g-4 stagger-children">
-            <div class="col-lg-4 col-md-6 reveal">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-leaf"></i></div>
-                    <h4>100% Fresh Ingredients</h4>
-                    <p>We use only the finest, locally-sourced ingredients. No preservatives, no artificial flavors — ever.</p>
+<!-- ── STORY CHAPTER 1 — THE CRAFT ──────────────────────────── -->
+<section id="story-chapter" class="story-chapter sc-left">
+    <div class="sc-bg-accent"></div>
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-5 reveal sc-img-col">
+                <div class="sc-img-frame">
+                    <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Baker at work" class="sc-img">
+                    <div class="sc-img-badge"><i class="fas fa-seedling"></i><span>Since {{ site_settings.about_year }}</span></div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 reveal">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-birthday-cake"></i></div>
-                    <h4>Handcrafted with Care</h4>
-                    <p>Every product is lovingly made by skilled bakers using time-honored techniques perfected over years.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-6 reveal">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shipping-fast"></i></div>
-                    <h4>Doorstep Delivery</h4>
-                    <p>Get your favorites delivered fresh to your door. Free delivery on orders above ₹{{ site_settings.free_delivery_min }}!</p>
+            <div class="col-lg-7 reveal sc-text-col">
+                <div class="sc-chapter-num">Chapter 01</div>
+                <div class="section-subtitle">Our Roots</div>
+                <h2 class="sc-title">The Art of<br><em>Honest Baking</em></h2>
+                <p class="sc-lead">{{ site_settings.about_lead }}</p>
+                <p class="sc-body">{{ site_settings.about_text }}</p>
+                <div class="sc-pillars">
+                    {% for pill in ['100% Organic', 'No Preservatives', 'Custom Orders', 'Same Day Delivery'] %}
+                    <div class="sc-pillar">
+                        <span class="sc-pillar-dot"></span>{{ pill }}
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ── Featured Products ─────────────────────────────────────── -->
-<section id="featured" class="py-5">
-    <div class="container py-4">
+<!-- ── STORY CHAPTER 2 — WHY US ──────────────────────────────── -->
+<section class="story-chapter sc-dark">
+    <div class="container">
         <div class="section-header reveal">
+            <div class="sc-chapter-num text-center">Chapter 02</div>
+            <span class="section-subtitle">Why Choose Us</span>
+            <h2>The CaupenRost<br><em class="text-gold">Difference</em></h2>
+            <p>We put passion and quality into every single bite</p>
+        </div>
+        <div class="row g-4 stagger-children">
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="story-feature-card">
+                    <div class="sfc-icon-wrap"><i class="fas fa-leaf"></i></div>
+                    <h4>100% Fresh Ingredients</h4>
+                    <p>We use only the finest, locally-sourced ingredients. No preservatives, no artificial flavors — ever.</p>
+                    <div class="sfc-line"></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="story-feature-card sfc-featured">
+                    <div class="sfc-featured-glow"></div>
+                    <div class="sfc-icon-wrap"><i class="fas fa-fire"></i></div>
+                    <h4>Handcrafted with Care</h4>
+                    <p>Every product is lovingly made by skilled bakers using time-honored techniques perfected over years.</p>
+                    <div class="sfc-line"></div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 reveal">
+                <div class="story-feature-card">
+                    <div class="sfc-icon-wrap"><i class="fas fa-shipping-fast"></i></div>
+                    <h4>Doorstep Delivery</h4>
+                    <p>Get your favorites delivered fresh to your door. Free delivery on orders above ₹{{ site_settings.free_delivery_min }}!</p>
+                    <div class="sfc-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── STORY CHAPTER 3 — FEATURED PRODUCTS ───────────────────── -->
+<section id="featured" class="story-chapter sc-products">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="sc-chapter-num text-center">Chapter 03</div>
             <span class="section-subtitle">Our Best Sellers</span>
-            <h2>Featured Products</h2>
+            <h2>Featured <em class="text-gold">Products</em></h2>
             <p>Discover our most loved artisan baked goods</p>
         </div>
         <div class="row g-4 stagger-children">
@@ -167,44 +215,51 @@
     </div>
 </section>
 
-<!-- ── Categories ────────────────────────────────────────────── -->
-<section class="py-5 bg-light-brown">
-    <div class="container py-4">
+<!-- ── STORY CHAPTER 4 — CATEGORIES ──────────────────────────── -->
+<section class="story-chapter sc-categories">
+    <div class="container">
         <div class="section-header reveal">
+            <div class="sc-chapter-num text-center">Chapter 04</div>
             <span class="section-subtitle">Explore</span>
-            <h2>Shop by Category</h2>
+            <h2>Shop by <em class="text-gold">Category</em></h2>
             <p>Find exactly what you're craving</p>
         </div>
         <div class="row g-4 stagger-children">
             <div class="col-lg-4 col-md-6 reveal">
                 <a href="{{ url_for('products') }}?category=Cakes" class="text-decoration-none">
-                    <div class="category-card">
+                    <div class="story-cat-card">
                         <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Cakes">
-                        <div class="category-overlay">
+                        <div class="scc-overlay">
+                            <div class="scc-icon"><i class="fas fa-birthday-cake"></i></div>
                             <h5>Cakes</h5>
                             <p>Birthday, Wedding & Custom</p>
+                            <div class="scc-arrow"><i class="fas fa-arrow-right"></i></div>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-lg-4 col-md-6 reveal">
                 <a href="{{ url_for('products') }}?category=Pastries" class="text-decoration-none">
-                    <div class="category-card">
+                    <div class="story-cat-card">
                         <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Pastries">
-                        <div class="category-overlay">
+                        <div class="scc-overlay">
+                            <div class="scc-icon"><i class="fas fa-cookie"></i></div>
                             <h5>Pastries</h5>
                             <p>Fresh Croissants & Danish</p>
+                            <div class="scc-arrow"><i class="fas fa-arrow-right"></i></div>
                         </div>
                     </div>
                 </a>
             </div>
             <div class="col-lg-4 col-md-6 reveal">
                 <a href="{{ url_for('products') }}?category=Breads" class="text-decoration-none">
-                    <div class="category-card">
+                    <div class="story-cat-card">
                         <img src="https://images.unsplash.com/photo-1549931319-a545dcf3bc73?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Breads">
-                        <div class="category-overlay">
+                        <div class="scc-overlay">
+                            <div class="scc-icon"><i class="fas fa-bread-slice"></i></div>
                             <h5>Breads</h5>
                             <p>Artisan & Sourdough Loaves</p>
+                            <div class="scc-arrow"><i class="fas fa-arrow-right"></i></div>
                         </div>
                     </div>
                 </a>
@@ -218,12 +273,13 @@
     </div>
 </section>
 
-<!-- ── Reviews Slider ─────────────────────────────────────────── -->
-<section class="py-5">
-    <div class="container py-4">
+<!-- ── STORY CHAPTER 5 — REVIEWS ──────────────────────────────── -->
+<section class="story-chapter sc-reviews">
+    <div class="container">
         <div class="section-header reveal">
+            <div class="sc-chapter-num text-center">Chapter 05</div>
             <span class="section-subtitle">Customer Love</span>
-            <h2>What Our Customers Say</h2>
+            <h2>What Our Customers <em class="text-gold">Say</em></h2>
             <p>Only verified 4 &amp; 5 star reviews — in real time</p>
         </div>
 
@@ -266,17 +322,12 @@
             </button>
         </div>
         <p class="swipe-hint"><i class="fas fa-hand-point-right me-1"></i>Swipe to explore more</p>
-        <div class="text-center mt-4 reveal">
-            <a href="{{ url_for('products') }}" class="btn btn-outline-brown">
-                <i class="fas fa-shopping-bag me-2"></i>Shop &amp; Leave a Review
-            </a>
-        </div>
         {% else %}
         <div class="text-center py-5 reveal">
             <div style="font-size:3.5rem;margin-bottom:20px;">🥐</div>
             <h4 style="color:var(--cream);">Be the first to review!</h4>
             <p style="color:var(--cream-muted);max-width:400px;margin:0 auto 24px;">
-                Order something delicious and share your experience — your review appears here for the whole community.
+                Order something delicious and share your experience.
             </p>
             <a href="{{ url_for('products') }}" class="btn btn-brown">
                 <i class="fas fa-shopping-bag me-2"></i>Browse Products
@@ -286,53 +337,23 @@
     </div>
 </section>
 
-<!-- ── About ─────────────────────────────────────────────────── -->
-<section class="py-5 bg-light-brown">
-    <div class="container py-4">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6 reveal">
-                <img src="https://images.unsplash.com/photo-1556217477-d325251ece38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                     alt="Our Bakery Story" class="img-fluid rounded-4 about-image">
-            </div>
-            <div class="col-lg-6 reveal">
-                <span class="section-subtitle">{{ site_settings.about_year }}</span>
-                <h2 class="mb-4">Our Story</h2>
-                <p class="mb-3" style="color:var(--cream);font-weight:500;">{{ site_settings.about_lead }}</p>
-                <p style="color:var(--cream-muted);">{{ site_settings.about_text }}</p>
-                <div class="row mt-4 g-3">
-                    {% for item in ['100% Organic', 'No Preservatives', 'Custom Orders', 'Same Day Delivery'] %}
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="feature-icon" style="width:38px;height:38px;flex-shrink:0;">
-                                <i class="fas fa-check" style="font-size:0.8rem;"></i>
-                            </div>
-                            <span style="font-weight:600;font-size:0.85rem;color:var(--cream);">{{ item }}</span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- ── CTA ───────────────────────────────────────────────────── -->
-<section class="cta-section">
-    <div class="cta-content">
-        <div class="container text-center">
-            <div class="row justify-content-center">
-                <div class="col-lg-7 reveal">
-                    <span class="section-subtitle">Ready to Order?</span>
-                    <h2>{{ site_settings.cta_title }}</h2>
-                    <p>{{ site_settings.cta_subtitle }}</p>
-                    <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow">
-                            <i class="fas fa-shopping-bag me-2"></i>Order Now
-                        </a>
-                        <a href="tel:{{ site_settings.contact_phone }}" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-phone me-2"></i>Call Us
-                        </a>
-                    </div>
+<section class="story-cta">
+    <div class="story-cta-bg"></div>
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 reveal">
+                <div class="sc-chapter-num text-center">Ready?</div>
+                <span class="section-subtitle">Place Your Order</span>
+                <h2 class="story-cta-title">{{ site_settings.cta_title }}</h2>
+                <p class="story-cta-sub">{{ site_settings.cta_subtitle }}</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('products') }}" class="btn btn-gold btn-lg btn-glow">
+                        <i class="fas fa-shopping-bag me-2"></i>Order Now
+                    </a>
+                    <a href="tel:{{ site_settings.contact_phone }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-phone me-2"></i>Call Us
+                    </a>
                 </div>
             </div>
         </div>
